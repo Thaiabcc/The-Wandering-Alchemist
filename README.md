@@ -1,20 +1,41 @@
-🛠️ The Wandering Alchemist
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-In%20Development-blue" alt="Development Status Badge">
+  <br>
+  <h1>🧪 The Wandering Alchemist: A Unity 2D Adventure</h1>
+  <p>A solo project developed using **Unity**.</p>
+</p>
 
-🧪 Unity 2D Game Project
+---
 
-📜 Concept Summary
-The Wandering Alchemist is an adventure and management game centered around a young alchemist expelled from their academy. Armed with an old formula book and a dilapidated wagon, you embark on a journey across the world.
+<p align="center">
+  <h2>📜 Concept Summary: The Expelled Alchemist</h2>
+  
+  The Wandering Alchemist is an adventure and management game centered around a young alchemist expelled from their academy. Armed with nothing but an old formula book and a dilapidated wagon, you embark on a crucial journey across the world.
+  <br><br>
+  Your ultimate goal is to <strong>seek out legendary ingredients</strong> and successfully craft the mythical <strong>Philosopher's Stone</strong>.
+</p>
 
-Your ultimate goal is to seek out legendary ingredients to craft the mythical Philosopher's Stone.
+---
 
-🚀 Journey and Core Mechanics
-Mobile Base: The wagon serves as your sole laboratory and refuge. You must manage its space, upgrade your tools, and be self-sufficient as you travel.
+## 🚀 Key Gameplay & Mechanics
 
-Dangerous Exploration: You must stop your mobile base in distinct biomes (Mushroom Forests, Swamps, Volcanoes) to gather essential components.
+| Feature | Description |
+| :--- | :--- |
+| 🚚 **Mobile Base** | Your wagon serves as your sole laboratory and refuge. You must manage its space, upgrade tools, and ensure self-sufficiency on the road. |
+| 🗺️ **Dangerous Exploration** | Stop your mobile base in distinct, hostile biomes (Mushroom Forests, Swamps, Volcanoes) to gather essential, rare components. |
+| ✨ **Core Alchemy** | Master the art of crafting complex potions and poisons. You will trade these creations in the towns you pass through to earn vital profits and reputation. |
 
-Alchemy: The core mechanic revolves around crafting complex potions and poisons, which you trade in the towns you pass through to earn profit.
+---
 
-💻 Technology & Style
-Engine: Developed using Unity.
+<p align="center">
+  <h2>⚙️ Technology & Art Style</h2>
+  
+  <p>The project leverages detailed <strong>2D</strong> graphics, providing a classic, enchanting aesthetic that captures the mystery and allure of the world of alchemy.</p>
+</p>
 
-Art Style: Utilizes detailed 2D graphics, providing a classic aesthetic that emphasizes the mysterious and enchanting nature of the world of alchemy.
+---
+
+<p align="center">
+  <h4>💖 Support & Contact</h4>
+  <p>This is a solo project currently under active development.</p>
+</p>
