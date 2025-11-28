@@ -1,5 +1,7 @@
 🛠️ The Wandering Alchemist
+
 🧪 Unity 2D Game Project
+
 📜 Concept Summary
 The Wandering Alchemist is an adventure and management game centered around a young alchemist expelled from their academy. Armed with an old formula book and a dilapidated wagon, you embark on a journey across the world.
 
