@@ -1,0 +1,26 @@
+# Unity Generated Files
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+
+# Visual Studio / Rider Files
+.vs/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# macOS Files
+.DS_Store
+
+# Log files
+*.log
+
+# User Settings (tùy chọn, nên bỏ qua nếu làm việc 1 mình)
+UserSettings/
