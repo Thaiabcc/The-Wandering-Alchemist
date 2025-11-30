@@ -2,7 +2,7 @@
 
 public class FPSLimiter : MonoBehaviour
 {
-    private const int TargetFPS = 60;
+    private const int TargetFPS = 120;
 
     void Awake()
     {

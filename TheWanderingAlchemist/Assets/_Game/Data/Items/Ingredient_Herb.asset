@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 688144ce370a147429611f7ccbb643cd, type: 3}
+  m_Name: Ingredient_Herb
+  m_EditorClassIdentifier: 
+  id: herb_green
+  itemName: "Th\u1EA3o D\u01B0\u1EE3c"
+  description: "M\u1ED9t lo\u1EA1i th\u1EA3o d\u01B0\u1EE3c ph\u1ED5 bi\u1EBFn d\xF9ng
+    \u0111\u1EC3 n\u1EA5u thu\u1ED1c"
+  icon: {fileID: -2095568174, guid: fe1cfeece9ccb56488bf46ade8c6fa40, type: 3}
+  typel: 0
+  maxStackSize: 99
+  baseValue: 10
+  worldPrefeb: {fileID: 0}
