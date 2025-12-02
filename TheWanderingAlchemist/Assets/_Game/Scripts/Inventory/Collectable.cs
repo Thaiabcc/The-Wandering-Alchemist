@@ -36,13 +36,22 @@ public class Collectable : MonoBehaviour, IInteractable
     
     public void Interact()
     {
-        Debug.Log($"Đã nhặt được : {itemData.itemName}");
+        if (InventoryManager.Instance != null)
+        {
+            bool added = InventoryManager.Instance.AddItem(itemData);
 
-        //Inventory
-
-        //dissapear effect
-        Destroy(gameObject);
-    }    
-
-
+            if (added)
+            {      
+                Destroy(gameObject);
+            }
+            else
+            {
+                Debug.Log("Túi đầy rồi, không nhặt được!");
+            }
+        }
+        else
+        {
+            Debug.LogError("LỖI: Không tìm thấy InventoryManager trong Scene!");
+        }
+    }
 }
