@@ -4,20 +4,20 @@ using System.Collections.Generic;
 public class InventoryUI : MonoBehaviour
 {
     [Header("Tham chiếu")]
-    [SerializeField] private Transform slotsParent; // Cái lưới (Slots_Grid)
-    [SerializeField] private GameObject inventoryPanel; // Cái bảng tổng
+    [SerializeField] private Transform slotsParent; 
+    [SerializeField] private GameObject inventoryPanel; 
 
-    private InventorySlot_UI[] slots; // Mảng chứa các ô
+    private InventorySlot_UI[] slots; 
 
     private void Start()
     {
-        // 1. Tìm tất cả các ô con trong lưới
+        // 1. Searching slot in grid
         slots = slotsParent.GetComponentsInChildren<InventorySlot_UI>();
 
-        // 2. Đăng ký sự kiện: Khi túi thay đổi -> Vẽ lại
+        // 2. Inven change -> draw
         InventoryManager.Instance.OnInventoryChanged += UpdateUI;
 
-        // 3. Ẩn bảng đi lúc đầu
+        // 3. hide 
         inventoryPanel.SetActive(false);
     }
 
@@ -46,16 +46,16 @@ public class InventoryUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I))
         {
-            Debug.Log("Đã bấm nút TAB!"); // <--- Thêm dòng này
+            Debug.Log("Đã bấm nút TAB!"); 
 
             if (inventoryPanel != null)
             {
                 inventoryPanel.SetActive(!inventoryPanel.activeSelf);
-                Debug.Log("Trạng thái bảng: " + inventoryPanel.activeSelf); // <--- Thêm dòng này
+                Debug.Log("Trạng thái bảng: " + inventoryPanel.activeSelf); 
             }
             else
             {
-                Debug.LogError("QUÊN GẮN INVENTORY PANEL RỒI BẠN ƠI!"); // <--- Báo lỗi nếu quên gắn
+                Debug.LogError("QUÊN GẮN INVENTORY PANEL"); 
             }
         }
     }
