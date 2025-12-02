@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_HealthPotion
   m_EditorClassIdentifier: 
-  resultItem: {fileID: 11400000, guid: 669c7f14591982346b9cdfd2b830a10f, type: 2}
+  resultItem: {fileID: 11400000, guid: f06582fcfc45cef45ba4c9a10742e3cf, type: 2}
   resultCount: 1
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: 258cbb58f66db954480bb004c7bb0b51, type: 2}
+    count: 2
+  - item: {fileID: 11400000, guid: 6590da77ce872ad41bd0bc065e0c406a, type: 2}
+    count: 1

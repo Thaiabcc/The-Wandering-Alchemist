@@ -3,42 +3,36 @@ using System.Collections.Generic;
 
 public class InventoryUI : MonoBehaviour
 {
-    [Header("Tham chiếu")]
-    [SerializeField] private Transform slotsParent; 
-    [SerializeField] private GameObject inventoryPanel; 
+    public static InventoryUI Instance { get; private set; }
 
-    private InventorySlot_UI[] slots; 
+    [Header("Tham chiếu")]
+    [SerializeField] private Transform slotsParent;
+    [SerializeField] private GameObject inventoryPanel;
+
+    private InventorySlot_UI[] slots;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
-        // 1. Searching slot in grid
         slots = slotsParent.GetComponentsInChildren<InventorySlot_UI>();
-
-        // 2. Inven change -> draw
         InventoryManager.Instance.OnInventoryChanged += UpdateUI;
-
-        // 3. hide 
         inventoryPanel.SetActive(false);
+        UpdateUI();
     }
 
     private void UpdateUI()
     {
-        // Lấy dữ liệu từ Manager
         List<InventorySlot> inventory = InventoryManager.Instance.inventory;
-
-        // Duyệt qua tất cả các ô UI đang có
         for (int i = 0; i < slots.Length; i++)
         {
             if (i < inventory.Count)
-            {
-                // Ô này có đồ -> Hiển thị
                 slots[i].SetItem(inventory[i].itemData, inventory[i].quantity);
-            }
             else
-            {
-                // Ô này trống -> Xóa
                 slots[i].ClearSlot();
-            }
         }
     }
 
@@ -46,17 +40,35 @@ public class InventoryUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I))
         {
-            Debug.Log("Đã bấm nút TAB!"); 
-
-            if (inventoryPanel != null)
-            {
-                inventoryPanel.SetActive(!inventoryPanel.activeSelf);
-                Debug.Log("Trạng thái bảng: " + inventoryPanel.activeSelf); 
-            }
-            else
-            {
-                Debug.LogError("QUÊN GẮN INVENTORY PANEL"); 
-            }
+            ToggleInventory();
         }
     }
+
+    // Hàm bật tắt thông minh
+    public void ToggleInventory()
+    {
+        bool isOpening = !inventoryPanel.activeSelf;
+
+        if (isOpening)
+        {
+            // Nếu mở túi bằng tay (Tab) -> Cũng tạm ẩn Alchemy
+            if (AlchemyUI.Instance != null) AlchemyUI.Instance.HidePanel();
+        }
+
+        inventoryPanel.SetActive(isOpening);
+    }
+
+    // Hàm để bên Alchemy gọi sang tắt túi
+    public void CloseInventory()
+    {
+        inventoryPanel.SetActive(false);
+    }
+    public void OpenInventoryForSelection()
+    {
+        // Khi Alchemy nhờ mở túi -> Chỉ Tạm Ẩn bảng Alchemy thôi
+        if (AlchemyUI.Instance != null) AlchemyUI.Instance.HidePanel();
+
+        inventoryPanel.SetActive(true);
+    }
+
 }
