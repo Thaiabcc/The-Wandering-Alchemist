@@ -50,16 +50,29 @@ public class InventorySlot_UI : MonoBehaviour
     {
         if (currentItem == null) return;
 
-        // Kiểm tra xem bên Alchemy có đang chờ chọn đồ không?
+        // 1. Nếu đang chế thuốc -> Chọn nguyên liệu (Logic cũ)
         if (AlchemyUI.Instance != null && AlchemyUI.Instance.IsSelecting())
         {
-            // Gửi món đồ này sang cho Alchemy
             AlchemyUI.Instance.ReceiveItemFromInventory(currentItem);
         }
+        // 2. Nếu đang chơi bình thường -> SỬ DỤNG ĐỒ (Logic Mới)
         else
         {
-            Debug.Log("Bấm vào: " + currentItem.itemName);
-            // Sau này làm code Sử dụng/Ăn đồ ở đây
+            if (currentItem.isConsumable)
+            {
+                // Gọi PlayerStats để hồi máu
+                if (PlayerStats.Instance.currentHealth < 100) // Kiểm tra sơ bộ
+                {
+                    PlayerStats.Instance.Heal(currentItem.healthRestore);
+
+                    // Xóa 1 cái khỏi túi
+                    InventoryManager.Instance.RemoveItem(currentItem, 1);
+                }
+                else
+                {
+                    Debug.Log("Máu đầy rồi!");
+                }
+            }
         }
     }
 }

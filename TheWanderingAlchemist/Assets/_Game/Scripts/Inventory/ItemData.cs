@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,6 +21,10 @@ public class ItemData : ScriptableObject
     // For w3
     [Header("Image in Game")]
     public GameObject worldPrefeb;
+
+    [Header("Sử dụng (Consumable)")]
+    public bool isConsumable;      // Có dùng được không?
+    public int healthRestore;
 }   
 
 public enum ItemType 
