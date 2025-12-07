@@ -8,6 +8,8 @@ public class InventoryUI : MonoBehaviour
     [Header("Tham chiếu")]
     [SerializeField] private Transform slotsParent;
     [SerializeField] private GameObject inventoryPanel;
+    [Header("Tiền tệ")]
+    [SerializeField] private TMPro.TextMeshProUGUI goldText; // Kéo cái Gold_Text vào đây
 
     private InventorySlot_UI[] slots;
 
@@ -33,6 +35,11 @@ public class InventoryUI : MonoBehaviour
                 slots[i].SetItem(inventory[i].itemData, inventory[i].quantity);
             else
                 slots[i].ClearSlot();
+        }
+        // Cập nhật tiền
+        if (goldText != null)
+        {
+            goldText.text = "Gold: " + InventoryManager.Instance.currentGold.ToString();
         }
     }
 

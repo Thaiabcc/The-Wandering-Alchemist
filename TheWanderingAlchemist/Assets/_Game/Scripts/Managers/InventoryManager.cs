@@ -8,6 +8,21 @@ public class InventoryManager : MonoBehaviour
 
     public event Action OnInventoryChanged;
 
+    [Header("Kinh tế")]
+    public int currentGold = 100; // Tiền khởi điểm
+
+    // Hàm thay đổi tiền (Mua/Bán)
+    public void UpdateGold(int amount)
+    {
+        currentGold += amount;
+
+        // Không cho tiền âm
+        if (currentGold < 0) currentGold = 0;
+
+        // Báo cho UI biết để cập nhật số tiền hiển thị
+        OnInventoryChanged?.Invoke();
+    }
+
     [Header("Setting")]
     [SerializeField] private int maxSlots = 25;
 
