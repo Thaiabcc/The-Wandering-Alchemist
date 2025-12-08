@@ -19,13 +19,28 @@ public class ShopUI : MonoBehaviour
     {
         shopPanel.SetActive(false);
     }
+    public void ToggleShop()
+    {
+        bool isOpening = !shopPanel.activeSelf; // Đảo ngược trạng thái hiện tại
+
+        if (isOpening)
+        {
+            OpenShop();
+        }
+        else
+        {
+            CloseShop();
+        }
+    }
 
     // Hàm mở Shop (Sẽ được gọi bởi NPC)
     public void OpenShop()
     {
         shopPanel.SetActive(true);
-        // Tắt túi đồ cá nhân đi cho đỡ vướng (hoặc bật lên để so sánh tùy bạn)
-        // Refresh danh sách hàng
+        if(InventoryUI.Instance != null)
+        {
+            InventoryUI.Instance.OpenInventory();
+        }
         LoadShopItems();
     }
 
@@ -75,5 +90,33 @@ public class ShopUI : MonoBehaviour
         {
             Debug.Log("<color=red>Không đủ tiền!</color>");
         }
+    }
+
+    // Bán hàng
+    public bool IsShopOpen()
+    {
+        return shopPanel.activeSelf;
+    }
+    public void TrySellItem(ItemData item)
+    {
+        if (item == null) return;
+
+        // Bán = 50% mua
+        int sellPrice = Mathf.FloorToInt(item.baseValue * 0.5f);
+
+        // Bán min = 1
+        if (sellPrice < 1) sellPrice = 1;
+
+        // Giao dịch
+        if(InventoryManager.Instance.HasItem(item,1))
+        {
+            // -1
+            InventoryManager.Instance.RemoveItem(item, 1);
+
+            // + $
+            InventoryManager.Instance.UpdateGold(sellPrice);
+
+            Debug.Log($"Đã bán {item.itemName} với giá {sellPrice}");
+        }    
     }
 }

@@ -50,28 +50,32 @@ public class InventorySlot_UI : MonoBehaviour
     {
         if (currentItem == null) return;
 
-        // 1. Nếu đang chế thuốc -> Chọn nguyên liệu (Logic cũ)
+        // --- ƯU TIÊN 1: BÁN HÀNG (Nếu Shop đang mở) ---
+        if (ShopUI.Instance != null && ShopUI.Instance.IsShopOpen())
+        {
+            ShopUI.Instance.TrySellItem(currentItem);
+            return; // Bán xong thì thoát luôn, không làm các việc bên dưới
+        }
+
+        // --- ƯU TIÊN 2: CHỌN NGUYÊN LIỆU (Nếu Lò Luyện đang mở) ---
         if (AlchemyUI.Instance != null && AlchemyUI.Instance.IsSelecting())
         {
             AlchemyUI.Instance.ReceiveItemFromInventory(currentItem);
+            return;
         }
-        // 2. Nếu đang chơi bình thường -> SỬ DỤNG ĐỒ (Logic Mới)
-        else
-        {
-            if (currentItem.isConsumable)
-            {
-                // Gọi PlayerStats để hồi máu
-                if (PlayerStats.Instance.currentHealth < 100) // Kiểm tra sơ bộ
-                {
-                    PlayerStats.Instance.Heal(currentItem.healthRestore);
 
-                    // Xóa 1 cái khỏi túi
-                    InventoryManager.Instance.RemoveItem(currentItem, 1);
-                }
-                else
-                {
-                    Debug.Log("Máu đầy rồi!");
-                }
+        // --- ƯU TIÊN 3: SỬ DỤNG / ĂN (Nếu đang đi chơi bình thường) ---
+        if (currentItem.isConsumable)
+        {
+            // Logic uống thuốc hồi máu cũ của bạn
+            if (PlayerStats.Instance.currentHealth < 100)
+            {
+                PlayerStats.Instance.Heal(currentItem.healthRestore);
+                InventoryManager.Instance.RemoveItem(currentItem, 1);
+            }
+            else
+            {
+                Debug.Log("Máu đầy rồi, không uống nữa!");
             }
         }
     }

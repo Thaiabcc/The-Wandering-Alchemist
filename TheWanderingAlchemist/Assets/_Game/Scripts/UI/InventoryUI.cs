@@ -9,7 +9,8 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private Transform slotsParent;
     [SerializeField] private GameObject inventoryPanel;
     [Header("Tiền tệ")]
-    [SerializeField] private TMPro.TextMeshProUGUI goldText; // Kéo cái Gold_Text vào đây
+    [SerializeField] private TMPro.TextMeshProUGUI goldText;
+    [SerializeField] private TMPro.TextMeshProUGUI goldTextInventory;
 
     private InventorySlot_UI[] slots;
 
@@ -39,7 +40,11 @@ public class InventoryUI : MonoBehaviour
         // Cập nhật tiền
         if (goldText != null)
         {
-            goldText.text = "Gold: " + InventoryManager.Instance.currentGold.ToString();
+            goldText.text = "" + InventoryManager.Instance.currentGold.ToString();
+        }
+        if(goldTextInventory != null)
+        {
+            goldTextInventory.text = "" + InventoryManager.Instance.currentGold.ToString();
         }
     }
 
@@ -58,11 +63,25 @@ public class InventoryUI : MonoBehaviour
 
         if (isOpening)
         {
-            // Nếu mở túi bằng tay (Tab) -> Cũng tạm ẩn Alchemy
-            if (AlchemyUI.Instance != null) AlchemyUI.Instance.HidePanel();
+            // [SỬA LẠI ĐOẠN NÀY]
+            // Chỉ tắt Alchemy (Lò luyện) thôi
+            if (AlchemyUI.Instance != null)
+            {
+                AlchemyUI.Instance.HidePanel();
+            }
+
+            // KHÔNG tắt ShopUI! Hãy để Shop và Túi sống chung hòa bình.
+            // (Xóa hoặc comment dòng ShopUI.CloseShop() nếu có)
         }
 
         inventoryPanel.SetActive(isOpening);
+    }
+
+    // Hàm này để Shop gọi (Bắt buộc mở túi)
+    public void OpenInventory()
+    {
+        // Khi Shop gọi mở, ta chỉ cần hiện lên thôi, không cần tắt ai cả
+        inventoryPanel.SetActive(true);
     }
 
     // Hàm để bên Alchemy gọi sang tắt túi

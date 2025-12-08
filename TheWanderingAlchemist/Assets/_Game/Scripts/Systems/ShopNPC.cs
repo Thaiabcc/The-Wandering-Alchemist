@@ -4,7 +4,10 @@ public class ShopNPC : MonoBehaviour, IInteractable
 {
     public void Interact()
     {
-        Debug.Log("Chào mừng quý khách!");
-        ShopUI.Instance.OpenShop();
+        // Thay vì chỉ gọi OpenShop, ta gọi ToggleShop
+        if (ShopUI.Instance != null)
+        {
+            ShopUI.Instance.ToggleShop();
+        }
     }
 }
