@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/System/Scenes/BioForest.unity
     guid: 857e638620f922144811e587cbeb2bea
+  - enabled: 1
+    path: Assets/System/Scenes/WagonInterior.unity
+    guid: d1204302a49c092439af3728b9af87e8
   m_configObjects: {}

@@ -25,7 +25,18 @@ public class AlchemyUI : MonoBehaviour
     private AlchemySlot currentSelectingSlot;
     private int craftTimes = 0;
 
-    private void Awake() { Instance = this; }
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // <--- BẮT BUỘC PHẢI CÓ
+        }
+    }
 
     private void Start()
     {
@@ -178,6 +189,18 @@ public class AlchemyUI : MonoBehaviour
 
             // Đóng bảng
             CloseButtonAction();
+        }
+    }
+    public void OpenPanel()
+    {
+        // 1. Bật bảng Lò luyện lên
+        alchemyPanel.SetActive(true);
+
+        // 2. (Tùy chọn) Nếu muốn mở lò thì tắt túi đi cho đỡ vướng (Logic cũ)
+        // Nếu muốn hiện song song thì bỏ dòng dưới này đi
+        if (InventoryUI.Instance != null)
+        {
+            InventoryUI.Instance.CloseInventory();
         }
     }
 }
