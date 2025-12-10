@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4872322414603252934}
   - component: {fileID: 6892861096906874322}
   - component: {fileID: 7148564946990099157}
+  - component: {fileID: 1178336657454065005}
   m_Layer: 3
   m_Name: Brick-Cook
   m_TagString: Untagged
@@ -143,3 +144,24 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.875, y: 2.5625}
   m_EdgeRadius: 0
+--- !u!95 &1178336657454065005
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4322167072513287587}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d6c577f2911830f408e1d19c6917fd1e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
