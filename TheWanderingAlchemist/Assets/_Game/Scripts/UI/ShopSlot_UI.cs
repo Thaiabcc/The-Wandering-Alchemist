@@ -9,9 +9,11 @@ public class ShopSlot_UI : MonoBehaviour
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI priceText;
 
+    // 1. THÊM DÒNG NÀY: Để code biết cái nút nằm đâu
+    public Button buyButton;
+
     private ItemData currentItem;
 
-    // Hàm này để ShopUI gọi khi vẽ danh sách
     public void SetShopItem(ItemData item)
     {
         currentItem = item;
@@ -20,16 +22,22 @@ public class ShopSlot_UI : MonoBehaviour
         {
             iconImage.sprite = item.icon;
             nameText.text = item.itemName;
-            priceText.text = item.baseValue.ToString() + " G"; // Ví dụ: "10 G"
+            priceText.text = item.baseValue.ToString() + " G";
+
+            // 2. THÊM ĐOẠN NÀY: "Hàn dây điện" cho nút bấm
+            // Xóa lệnh cũ (nếu có) để tránh lỗi bấm 1 lần mua 2 lần
+            buyButton.onClick.RemoveAllListeners();
+
+            // Bảo cái nút là: "Khi bị bấm, hãy chạy hàm OnBuyClick ngay!"
+            buyButton.onClick.AddListener(OnBuyClick);
         }
     }
 
-    // Gắn hàm này vào Nút (Button) của Slot
+    // Hàm này giữ nguyên
     public void OnBuyClick()
     {
         if (currentItem != null)
         {
-            // Gọi lên quản lý Shop để mua
             ShopUI.Instance.TryBuyItem(currentItem);
         }
     }

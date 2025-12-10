@@ -8,7 +8,28 @@ public class InventorySlot_UI : MonoBehaviour
     [SerializeField] private Image iconImage;
     [SerializeField] private TextMeshProUGUI amountText;
 
+    // --- THÊM: Biến này để code tự tìm nút ---
+    public Button slotButton;
+
     private ItemData currentItem;
+
+    // --- THÊM: Hàm Awake để tự động nối dây (Auto-wiring) ---
+    private void Awake()
+    {
+        // 1. Tự tìm nút nếu quên kéo (Tìm trên chính nó hoặc con nó)
+        if (slotButton == null)
+        {
+            slotButton = GetComponent<Button>();
+            if (slotButton == null) slotButton = GetComponentInChildren<Button>();
+        }
+
+        // 2. Tự động gắn hàm OnClick vào nút
+        if (slotButton != null)
+        {
+            slotButton.onClick.RemoveAllListeners(); // Xóa sạch dây cũ cho chắc
+            slotButton.onClick.AddListener(OnClick); // Nối dây mới vào hàm OnClick ở dưới
+        }
+    }
 
     public void SetItem(ItemData item, int amount)
     {
@@ -16,7 +37,7 @@ public class InventorySlot_UI : MonoBehaviour
         if (item != null)
         {
             iconImage.sprite = item.icon;
-            iconImage.enabled = true; // Bật ảnh lên
+            iconImage.enabled = true;
             iconImage.color = Color.white;
 
             if (amount > 1)
@@ -39,13 +60,12 @@ public class InventorySlot_UI : MonoBehaviour
     {
         currentItem = null;
         iconImage.sprite = null;
-        iconImage.enabled = false; // Tắt ảnh đi để không bị ô trắng
+        iconImage.enabled = false;
         amountText.text = "";
         amountText.gameObject.SetActive(false);
     }
 
-    // --- HÀM MỚI: Xử lý khi bấm vào ô này ---
-    // (Nhớ gắn vào Button OnClick ở Prefab)
+    // --- HÀM XỬ LÝ CLICK (Đã được nối dây tự động ở Awake) ---
     public void OnClick()
     {
         if (currentItem == null) return;
@@ -54,23 +74,24 @@ public class InventorySlot_UI : MonoBehaviour
         if (ShopUI.Instance != null && ShopUI.Instance.IsShopOpen())
         {
             ShopUI.Instance.TrySellItem(currentItem);
-            return; // Bán xong thì thoát luôn, không làm các việc bên dưới
+            return;
         }
 
         // --- ƯU TIÊN 2: CHỌN NGUYÊN LIỆU (Nếu Lò Luyện đang mở) ---
+        // (Lưu ý: Bạn cần đảm bảo AlchemyUI có hàm IsSelecting và ReceiveItemFromInventory nhé)
         if (AlchemyUI.Instance != null && AlchemyUI.Instance.IsSelecting())
         {
             AlchemyUI.Instance.ReceiveItemFromInventory(currentItem);
             return;
         }
 
-        // --- ƯU TIÊN 3: SỬ DỤNG / ĂN (Nếu đang đi chơi bình thường) ---
+        // --- ƯU TIÊN 3: SỬ DỤNG / ĂN ---
         if (currentItem.isConsumable)
         {
-            // Logic uống thuốc hồi máu cũ của bạn
             if (PlayerStats.Instance.currentHealth < 100)
             {
                 PlayerStats.Instance.Heal(currentItem.healthRestore);
+                // Trừ 1 cái sau khi ăn
                 InventoryManager.Instance.RemoveItem(currentItem, 1);
             }
             else
