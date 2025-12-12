@@ -9,7 +9,7 @@ public class InventoryManager : MonoBehaviour
     public event Action OnInventoryChanged;
 
     [Header("Kinh tế")]
-    public int currentGold = 100; // Tiền khởi điểm
+    public int currentGold = 1000; // Tiền khởi điểm
 
     // Hàm thay đổi tiền (Mua/Bán)
     public void UpdateGold(int amount)
@@ -108,5 +108,21 @@ public class InventoryManager : MonoBehaviour
 
         // Cập nhật lại UI
         OnInventoryChanged?.Invoke();
+    }
+    private void Update()
+    {
+        // Bấm phím G (Gold) để hack thêm 1000 vàng
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            UpdateGold(1000);
+            Debug.Log("Cheat: Đã hack thêm 1000G!");
+        }
+
+        // Bấm phím H để tự hồi máu (Test bình máu)
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            // Giả sử bạn có PlayerStats, nếu chưa có thì bỏ qua dòng này
+            // PlayerStats.Instance.Heal(10); 
+        }
     }
 }
