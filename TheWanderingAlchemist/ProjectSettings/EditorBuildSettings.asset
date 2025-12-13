@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/System/Scenes/WagonInterior.unity
     guid: d1204302a49c092439af3728b9af87e8
+  - enabled: 1
+    path: Assets/System/Scenes/Dungeon_01.unity
+    guid: 19ce80a5b60ad5642bc6a4d48a3f74af
   m_configObjects: {}

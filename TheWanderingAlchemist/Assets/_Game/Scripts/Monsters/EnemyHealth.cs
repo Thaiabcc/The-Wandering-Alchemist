@@ -6,19 +6,36 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private int maxHealth = 3;
     private int currentHealth;
 
+    // --- THÊM DÒNG NÀY ---
+    [Header("UI")]
+    [SerializeField] private EnemyHealthBar healthBar;
+    // ---------------------
+
+    [Header("Phần thưởng (Loot)")]
+    [SerializeField] private GameObject lootPrefab;
+    [SerializeField] private float dropChance = 100f;
+
     private void Start()
     {
         currentHealth = maxHealth;
+
+        // --- Cập nhật lần đầu cho chắc ---
+        if (healthBar != null) healthBar.UpdateHealthBar(currentHealth, maxHealth);
     }
 
-    // Hàm này sẽ được gọi bởi Vũ khí của người chơi
     public void TakeDamage(int damageAmount)
     {
         currentHealth -= damageAmount;
-        Debug.Log($"{gameObject.name} bị đánh! Máu còn: {currentHealth}");
 
-        // Hiệu ứng nhấp nháy đỏ/trắng (Optional - Làm sau)
-        // PlayHurtAnimation();
+        // --- GỌI THANH MÁU CẬP NHẬT ---
+        if (healthBar != null)
+        {
+            healthBar.UpdateHealthBar(currentHealth, maxHealth);
+        }
+        // ------------------------------
+
+        // Debug.Log cũ có thể xóa hoặc comment lại cho đỡ rác
+        // Debug.Log(...); 
 
         if (currentHealth <= 0)
         {
@@ -28,10 +45,18 @@ public class EnemyHealth : MonoBehaviour
 
     private void Die()
     {
-        Debug.Log($"{gameObject.name} đã tạch!");
-
-        // Rớt đồ (Loot) - Tính năng này làm sau
-        // SpawnLoot();
+        if (lootPrefab != null)
+        {
+            if (Random.Range(0, 100) <= dropChance)
+            {
+                Instantiate(lootPrefab, transform.position, Quaternion.identity);
+            }
+        }
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.AddKill();
+        }
+        // ---------------------
 
         Destroy(gameObject);
     }
