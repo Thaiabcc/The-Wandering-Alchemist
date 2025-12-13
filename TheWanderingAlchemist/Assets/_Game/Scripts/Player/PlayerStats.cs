@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -8,33 +9,76 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private int maxHealth = 100;
     public int currentHealth;
 
+    // Biến này để đánh dấu xem Player này là "Cũ" hay "Mới"
+    public bool isOriginal = false;
+
+    public string nextSpawnID;
+
     private void Awake()
     {
-        // Kiểm tra xem đã có PlayerStats nào tồn tại chưa
         if (Instance != null && Instance != this)
         {
-            // Nếu có rồi (từ màn trước mang sang), thì hủy cái Player mới sinh ra này đi
-            // Để giữ lại cái cũ (đang chứa số máu hiện tại)
+            // Có thằng khác tồn tại rồi -> Mình là đồ fake -> Tự hủy
             Destroy(gameObject);
-        }
-        else
-        {
-            // Nếu chưa có, thì mình là trùm
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // <--- CÂU THẦN CHÚ BẤT TỬ
+            return; // Quan trọng: Dừng code ngay, không chạy đoạn dưới nữa!
         }
 
-        // Dòng này chỉ chạy nếu đây là lần đầu tiên sinh ra (ở Town)
-        // Nếu là Player mang từ màn trước sang thì nó không reset máu nữa
-        if (Instance == this)
+        // Nếu chưa có ai -> Mình là trùm
+        Instance = this;
+        isOriginal = true; // Đánh dấu tôi là bản gốc
+        DontDestroyOnLoad(gameObject);
+
+        // Chỉ set đầy máu nếu đây là lần khởi tạo đầu tiên
+        // (Lúc game mới bật, currentHealth thường bằng 0 hoặc giá trị Inspector)
+        // Ta giả định nếu currentHealth <= 0 nghĩa là chưa setup bao giờ
+        if (currentHealth <= 0)
         {
             currentHealth = maxHealth;
+        }
+
+        Debug.Log($"Player khởi tạo tại Scene: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} | Máu: {currentHealth}");
+    }
+    // --- THÊM MỚI ĐOẠN NÀY ---
+    private void OnEnable()
+    {
+        // Đăng ký lắng nghe sự kiện chuyển cảnh
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        // Hủy đăng ký khi object bị hủy (để tránh lỗi)
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // Hàm này sẽ TỰ ĐỘNG CHẠY mỗi khi load xong màn mới
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Kiểm tra xem GameManager có dặn dò vị trí nào không
+        if (GameManager.Instance != null)
+        {
+            // Lấy vị trí cần đến
+            Vector3 targetPos = GameManager.Instance.nextSpawnPosition.GetValueOrDefault();
+            // Kiểm tra: Nếu vị trí là (0,0,0) thì có thể là chưa set, 
+            // nhưng nếu WagonExit set đúng thì nó sẽ khác (0,0,0).
+            // Tuy nhiên, để chắc chắn, ta cứ dịch chuyển.
+
+            // QUAN TRỌNG: Cần check xem có phải Vector3.zero mặc định không 
+            // (nếu bạn muốn spawn mặc định thì bỏ qua check này)
+            if (targetPos != Vector3.zero)
+            {
+                transform.position = targetPos;
+
+                // Reset lại để lần sau không bị nhảy linh tinh nếu đi bộ bình thường
+                // (Tùy logic game, có thể không cần dòng dưới nếu Portal luôn set đè)
+                // GameManager.Instance.nextSpawnPosition = Vector3.zero; 
+            }
         }
     }
 
     private void Start()
     {
-        // 3. Cập nhật UI ngay khi vào game để thanh máu đầy
+        // Cập nhật UI
         if (PlayerHealthUI.Instance != null)
         {
             PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);

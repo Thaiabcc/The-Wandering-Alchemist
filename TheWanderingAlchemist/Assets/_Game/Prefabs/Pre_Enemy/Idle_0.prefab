@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5554765899621067023}
   - component: {fileID: 4989583677356259442}
   - component: {fileID: 6300989077085360734}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: HealBar_Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 7741362471970022967}
   - component: {fileID: 4773636544411141528}
   - component: {fileID: 2972741690440984144}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Idle_0
   m_TagString: Monster
   m_Icon: {fileID: 0}
@@ -302,7 +302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63bb6ce1b961c0840927dab2048dd7f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 30
+  maxHealth: 100
   healthBar: {fileID: 6300989077085360734}
   lootPrefab: {fileID: 2477963370002911841, guid: 61a488bcab6fd674cbe91585b46b031f, type: 3}
   dropChance: 100
@@ -318,7 +318,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b31ce51a161f3434f89faad2848003cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
+  moveSpeed: 2
   chaseRange: 3.5
   damage: 5
   knockbackForce: 5
@@ -333,7 +333,7 @@ GameObject:
   - component: {fileID: 6767402889811161292}
   - component: {fileID: 5701433968030356756}
   - component: {fileID: 1009214141228568822}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -408,7 +408,7 @@ GameObject:
   - component: {fileID: 8877291250785672321}
   - component: {fileID: 5638494920808478881}
   - component: {fileID: 5634695340949839772}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -115,7 +115,7 @@ Transform:
   m_GameObject: {fileID: 5850448356051248001}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9.09, y: -7.02, z: -0.0260517}
+  m_LocalPosition: {x: 0.33163744, y: 0.0017922372, z: -0.0260517}
   m_LocalScale: {x: 0.85, y: 0.85, z: 0.85}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -214,7 +214,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bab2b65d478a9a64aa8a36593b688442, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
+  walkSpeed: 10
+  runSpeed: 15
 --- !u!95 &9014516498403646517
 Animator:
   serializedVersion: 5
@@ -302,6 +303,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   currentHealth: 0
+  isOriginal: 0
+  nextSpawnID: 
 --- !u!114 &8222662028975532577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,10 +317,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09237076caf9f1d41809ee33afef3a2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackPoint: {fileID: 8387018972461828036}
+  attackPoint: {fileID: 6017558602105581353}
   animator: {fileID: 0}
+  baseDamage: 10
+  critChance: 20
+  critMultiplier: 2
+  attackRange: 1
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 64
   startAttackDelay: 0.6
-  attackTime: 0.1
   attackCooldown: 0.2
   attackOffset: 0.8
 --- !u!1 &8387018972461828036
@@ -330,7 +339,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6017558602105581353}
   - component: {fileID: 6649096382875618053}
-  - component: {fileID: 5488740066539680393}
   m_Layer: 0
   m_Name: AttackPoint
   m_TagString: Untagged
@@ -360,7 +368,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8387018972461828036}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -388,17 +396,3 @@ CircleCollider2D:
   m_Offset: {x: 0.16292487, y: 0}
   serializedVersion: 2
   m_Radius: 0.6629248
---- !u!114 &5488740066539680393
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8387018972461828036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a0bf0d0bd70adf46aa2021266cca5cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  damage: 10
-  targetTag: Monster
