@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class DamagePopupGenerator : MonoBehaviour
 {
     // 1. Tạo biến tĩnh (static) để truy cập từ mọi nơi
@@ -15,6 +16,9 @@ public class DamagePopupGenerator : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            // --- THÊM DÒNG NÀY ĐỂ BẤT TỬ ---
+            DontDestroyOnLoad(gameObject);
+            // -------------------------------
         }
         else
         {
@@ -25,11 +29,21 @@ public class DamagePopupGenerator : MonoBehaviour
     // Cập nhật hàm Create để nhận thêm tham số isCriticalHit (mặc định là false)
     public void Create(Vector3 position, int damageAmount, bool isCriticalHit = false)
     {
+        // Kiểm tra null để tránh lỗi nếu quên kéo Prefab
+        if (pfDamagePopup == null)
+        {
+            Debug.LogError("Chưa kéo Prefab vào DamagePopupGenerator kìa bro!");
+            return;
+        }
+
         Transform damagePopupTransform = Instantiate(pfDamagePopup, position, Quaternion.identity);
 
         DamagePopup popup = damagePopupTransform.GetComponent<DamagePopup>();
 
         // Gọi hàm Setup mới
-        popup.Setup(damageAmount, isCriticalHit);
+        if (popup != null)
+        {
+            popup.Setup(damageAmount, isCriticalHit);
+        }
     }
 }

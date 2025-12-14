@@ -115,7 +115,7 @@ Transform:
   m_GameObject: {fileID: 5850448356051248001}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.33163744, y: 0.0017922372, z: -0.0260517}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.85, y: 0.85, z: 0.85}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -215,7 +215,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 10
-  runSpeed: 15
+  runSpeed: 18
+  staminaDrain: 20
+  footstepDelay: 0.4
+  runStepMultiplier: 0.6
 --- !u!95 &9014516498403646517
 Animator:
   serializedVersion: 5
@@ -305,6 +308,9 @@ MonoBehaviour:
   currentHealth: 0
   isOriginal: 0
   nextSpawnID: 
+  maxStamina: 100
+  currentStamina: 0
+  staminaRegenRate: 20
 --- !u!114 &8222662028975532577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -322,7 +328,7 @@ MonoBehaviour:
   baseDamage: 10
   critChance: 20
   critMultiplier: 2
-  attackRange: 1
+  attackRange: 2
   enemyLayers:
     serializedVersion: 2
     m_Bits: 64
@@ -355,7 +361,7 @@ Transform:
   m_GameObject: {fileID: 8387018972461828036}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.3799998, y: -0.1000006, z: 0}
+  m_LocalPosition: {x: 1.5, y: -0.1000006, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -368,7 +374,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8387018972461828036}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
