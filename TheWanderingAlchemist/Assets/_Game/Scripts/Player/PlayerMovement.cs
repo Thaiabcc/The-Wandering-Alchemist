@@ -1,11 +1,17 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.InputSystem; // Bắt buộc để dùng Keyboard.current
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private float walkSpeed = 5f; // Đổi tên từ moveSpeed thành walkSpeed cho rõ
-    [SerializeField] private float runSpeed = 8f;  // <--- [BỔ SUNG 1] Tốc độ chạy
+    [SerializeField] private float walkSpeed = 5f;
+    [SerializeField] private float runSpeed = 8f;
+
+    // --- [MỚI] Dòng này sẽ hiện ra trong Inspector sau khi bạn lưu code ---
+    [Header("Thể lực")]
+    [SerializeField] private float staminaDrain = 20f; // Tốc độ trừ (20 điểm/giây)
+    // ---------------------------------------------------------------------
 
     private Rigidbody2D rb;
     private GameControls gameControls;
@@ -13,8 +19,31 @@ public class PlayerMovement : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Animator animator;
 
-    // Biến lưu tốc độ hiện tại để dùng cho FixedUpdate
     private float currentSpeed;
+    private bool isKnockedBack = false;
+    public void ApplyKnockback(Vector2 direction, float force, float duration)
+    {
+        // 1. Đánh dấu đang bị đẩy -> Ngắt điều khiển
+        isKnockedBack = true;
+
+        // 2. Reset vận tốc cũ để lực đẩy có tác dụng 100%
+        rb.velocity = Vector2.zero;
+
+        // 3. Đẩy! (ForceMode2D.Impulse là lực tức thì)
+        rb.AddForce(direction * force, ForceMode2D.Impulse);
+
+        // 4. Chờ một chút rồi trả lại quyền điều khiển
+        StartCoroutine(KnockbackRoutine(duration));
+    }
+
+    private IEnumerator KnockbackRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        // Hết thời gian choáng -> Reset vận tốc về 0 để không trượt tiếp
+        rb.velocity = Vector2.zero;
+        isKnockedBack = false; // Trả lại quyền điều khiển
+    }
 
     private void Awake()
     {
@@ -23,54 +52,72 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();
         gameControls = new GameControls();
 
-        if (animator == null) Debug.LogError("Animator Component is missing on Player!");
+        if (animator == null) Debug.LogError("Thiếu Animator!");
     }
 
-    private void OnEnable()
-    {
-        gameControls.Enable();
-    }
-
-    private void OnDisable()
-    {
-        gameControls.Disable();
-    }
+    private void OnEnable() => gameControls.Enable();
+    private void OnDisable() => gameControls.Disable();
 
     private void Update()
     {
-        // 1. Đọc hướng di chuyển
         moveInput = gameControls.Gameplay.Move.ReadValue<Vector2>();
 
-        // 2. [BỔ SUNG 2] Kiểm tra phím Shift
-        // Mặc định là tốc độ đi bộ
+        // Mặc định là đi bộ
         currentSpeed = walkSpeed;
 
-        // Nếu bàn phím tồn tại VÀ phím Shift đang được giữ
-        if (Keyboard.current != null && Keyboard.current.shiftKey.isPressed)
-        {
-            currentSpeed = runSpeed;
-        }
+        // 1. Kiểm tra có đang di chuyển không
+        bool isMoving = moveInput.magnitude > 0;
 
-        // 3. Gửi thông số vào Animator
-        // Lưu ý: moveInput.magnitude chỉ trả về 0 hoặc 1 (đứng im hoặc di chuyển)
-        // Nếu bạn muốn Animator phân biệt đi bộ/chạy, bạn có thể cần logic khác.
-        // Hiện tại giữ nguyên logic cũ của bạn.
-        if (animator != null)
-        {
-            animator.SetFloat("Speed", moveInput.magnitude);
-        }
+        // 2. Kiểm tra có giữ phím Shift không
+        bool isRunPressed = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 
-        // 4. Logic Lật ảnh (Flip Sprite)
-        if (moveInput.x != 0 && spriteRenderer != null)
+        // --- [LOGIC QUAN TRỌNG NHẤT] ---
+        if (isMoving && isRunPressed)
         {
-            if (moveInput.x < 0) spriteRenderer.flipX = true;
-            else spriteRenderer.flipX = false;
+            // Hỏi PlayerStats xem còn sức không?
+            // Nếu còn (TryConsumeStamina trả về true) -> Cho phép chạy nhanh
+            if (PlayerStats.Instance.TryConsumeStamina(staminaDrain * Time.deltaTime))
+            {
+                currentSpeed = runSpeed;
+            }
+            else
+            {
+                // Hết hơi -> Về đi bộ dù vẫn giữ Shift
+                currentSpeed = walkSpeed;
+            }
+        }
+        else
+        {
+            // Nếu đứng im hoặc nhả Shift -> Hồi phục
+            PlayerStats.Instance.RegenerateStamina(PlayerStats.Instance.staminaRegenRate * Time.deltaTime);
+        }
+        // -------------------------------
+
+        // Gửi speed vào Animator
+        if (animator != null) animator.SetFloat("Speed", moveInput.magnitude);
+
+        // Xoay nhân vật
+        if (moveInput.x != 0)
+        {
+            if (moveInput.x > 0)
+            {
+                // Quay mặt sang phải (Góc 0 độ)
+                transform.rotation = Quaternion.Euler(0, 0, 0);
+            }
+            else
+            {
+                // Quay mặt sang trái (Góc 180 độ quanh trục Y)
+                // Nó sẽ xoay nhân vật úp mặt vào trong, tạo hiệu ứng lật gương hoàn hảo
+                transform.rotation = Quaternion.Euler(0, 180, 0);
+            }
         }
     }
 
     private void FixedUpdate()
     {
-        // 5. [BỔ SUNG 3] Di chuyển với tốc độ đã tính toán (currentSpeed)
+        if (isKnockedBack) return;
+
+        // Logic di chuyển cũ của bạn
         rb.velocity = moveInput * currentSpeed;
     }
 }

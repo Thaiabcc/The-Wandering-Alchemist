@@ -4,24 +4,27 @@ using System.Collections;
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Cài đặt")]
-    [SerializeField] private Transform attackPoint; // Đổi từ GameObject sang Transform cho nhẹ
+    [SerializeField] private Transform attackPoint;
     [SerializeField] private Animator animator;
 
-    // --- MỚI: Cài đặt chỉ số chiến đấu ---
     [Header("Chỉ số Chiến đấu")]
-    [SerializeField] private int baseDamage = 100;      // Sát thương gốc
-    [SerializeField] private float critChance = 30f;    // Tỉ lệ bạo kích (30%)
-    [SerializeField] private float critMultiplier = 2f; // Nhân đôi khi bạo kích
-    [SerializeField] private float attackRange = 1.0f;  // Phạm vi đánh
-    [SerializeField] private LayerMask enemyLayers;     // Chỉ đánh vào lớp Enemy
+    [SerializeField] private int baseDamage = 100;
+    [SerializeField] private float critChance = 30f;
+    [SerializeField] private float critMultiplier = 2f;
+    [SerializeField] private float attackRange = 1.0f;
+    [SerializeField] private LayerMask enemyLayers;
 
     [Header("Tinh chỉnh Thời gian")]
     [SerializeField] private float startAttackDelay = 0.1f;
     [SerializeField] private float attackCooldown = 0.5f;
+
+    // [QUAN TRỌNG] Biến này dùng để chỉnh vị trí Hitbox
     [SerializeField] private float attackOffset = 0.8f;
 
     private bool isAttacking = false;
-    private Vector2 lastDirection = Vector2.right;
+
+    // Mặc định luôn là (1,0) vì Rotation của PlayerMovement đã lo việc xoay hướng
+    private Vector2 localDirection = Vector2.right;
 
     private void Awake()
     {
@@ -30,22 +33,36 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
+        // 1. Đọc Input để chỉnh hướng đánh (Nếu game bạn đánh được lên/xuống)
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveY = Input.GetAxisRaw("Vertical");
 
+        // --- SỬA LOGIC XUNG ĐỘT TẠI ĐÂY ---
+        // Nếu PlayerMovement đã dùng Rotation để xoay trái/phải
+        // Thì ở đây chúng ta LUÔN coi hướng ngang là bên Phải (Vector2.right)
+        // Vì khi cha xoay 180 độ, Vector2.right của con sẽ tự thành bên Trái thế giới.
+
         if (moveX != 0 || moveY != 0)
         {
-            if (moveX > 0) lastDirection = Vector2.right;
-            else if (moveX < 0) lastDirection = Vector2.left;
+            if (moveX != 0)
+            {
+                // Dù đi trái hay phải, Hitbox vẫn luôn nằm ở "phía trước mặt" (Local X dương)
+                localDirection = Vector2.right;
+            }
 
-            if (moveY > 0) lastDirection = Vector2.up;
-            else if (moveY < 0) lastDirection = Vector2.down;
+            // Nếu có đánh lên xuống thì giữ nguyên logic Y
+            if (moveY > 0) localDirection = Vector2.up;
+            else if (moveY < 0) localDirection = Vector2.down;
         }
 
+        // Cập nhật vị trí Hitbox theo hướng Local
         if (attackPoint != null)
         {
-            attackPoint.localPosition = lastDirection * attackOffset;
+            // Bây giờ đi trái -> localDirection vẫn là Right -> AttackPoint nằm ở X dương (trước mặt)
+            // Nhờ PlayerMovement xoay 180 độ -> Trước mặt lúc này chính là bên Trái! -> CHUẨN BÀI
+            attackPoint.localPosition = localDirection * attackOffset;
         }
+        // -----------------------------------
 
         if (isAttacking) return;
 
@@ -59,54 +76,52 @@ public class PlayerAttack : MonoBehaviour
     {
         isAttacking = true;
 
-        // 1. Chạy Animation
         if (animator != null)
         {
-            animator.SetFloat("InputX", lastDirection.x);
-            animator.SetFloat("InputY", lastDirection.y);
+            // Gửi thông số vào Animator (InputX, InputY)
+            // Lưu ý: Animator có thể cần giá trị thực tế của MoveX để biết đang chạy hay đứng
+            // Nhưng blend tree đánh nhau thì thường dựa vào hướng mặt
+            animator.SetFloat("InputX", Input.GetAxisRaw("Horizontal"));
+            animator.SetFloat("InputY", Input.GetAxisRaw("Vertical"));
             animator.SetTrigger("Attack");
         }
 
-        // 2. Chờ vung tay (Delay)
         yield return new WaitForSeconds(startAttackDelay);
 
-        // 3. --- MỚI: XÚC XẮC & GÂY SÁT THƯƠNG TẠI ĐÂY ---
         PerformAttack();
 
-        // 4. Hồi chiêu
         yield return new WaitForSeconds(attackCooldown);
         isAttacking = false;
     }
 
-    // --- MỚI: Hàm xử lý logic đánh đấm ---
     private void PerformAttack()
     {
-        // A. Tìm tất cả kẻ địch trong vùng tròn (Hitbox ảo)
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
         foreach (Collider2D enemy in hitEnemies)
         {
-            // B. "Xúc xắc" tính bạo kích cho TỪNG con quái trúng đòn
             bool isCrit = Random.Range(0f, 100f) < critChance;
-
-            // Tính damage cuối cùng
             int finalDamage = baseDamage;
-            if (isCrit)
+
+            if (isCrit) finalDamage = Mathf.RoundToInt(baseDamage * critMultiplier);
+
+            // Kiểm tra null để tránh lỗi đỏ lòm console nếu quái chưa có máu
+            EnemyHealth eHealth = enemy.GetComponent<EnemyHealth>();
+            if (eHealth != null)
             {
-                finalDamage = Mathf.RoundToInt(baseDamage * critMultiplier);
+                eHealth.TakeDamage(finalDamage);
             }
 
-            // C. Gửi sát thương cho Enemy (Giả sử enemy có script EnemyHealth)
-            enemy.GetComponent<EnemyHealth>().TakeDamage(finalDamage);
-            // Debug tạm để test nếu chưa có script EnemyHealth:
-            Debug.Log("Đánh trúng " + enemy.name + " - Damage: " + finalDamage + " - Crit: " + isCrit);
+            // Debug.Log("Đánh trúng " + enemy.name + " Damage: " + finalDamage);
 
-            // D. HIỆN SỐ DAMAGE BAY LÊN (Gọi Đạo Diễn File 2)
-            DamagePopupGenerator.Instance.Create(enemy.transform.position, finalDamage, isCrit);
+            // Nếu có Singleton Popup thì gọi, không thì thôi tránh lỗi
+            if (DamagePopupGenerator.Instance != null)
+            {
+                DamagePopupGenerator.Instance.Create(enemy.transform.position, finalDamage, isCrit);
+            }
         }
     }
 
-    // --- MỚI: Vẽ vòng tròn đỏ trong Editor để dễ chỉnh tầm đánh ---
     private void OnDrawGizmosSelected()
     {
         if (attackPoint == null) return;

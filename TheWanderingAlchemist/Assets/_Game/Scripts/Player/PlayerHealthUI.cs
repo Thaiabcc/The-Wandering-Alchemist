@@ -1,34 +1,47 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI; // Nhớ dòng này để dùng Image
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerHealthUI : MonoBehaviour
 {
-    public static PlayerHealthUI Instance { get; private set; } // Singleton để gọi cho dễ
+    // Singleton vẫn giữ nguyên
+    public static PlayerHealthUI Instance { get; private set; }
 
-    [SerializeField] private Image fillImage; // Kéo cái thanh đỏ vào đây
+    [Header("Máu (Health)")]
+    [SerializeField] private Image healthFillImage;
+
+    [Header("Thể lực (Stamina)")]
+    [SerializeField] private Image staminaFillImage; // <--- THÊM DÒNG NÀY
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // Hủy cái Canvas mới (trống trơn) đi
+            Destroy(gameObject);
         }
         else
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Giữ cái Canvas cũ lại
+            DontDestroyOnLoad(gameObject);
         }
     }
 
+    // Hàm cập nhật Máu cũ
     public void UpdateHealth(int currentHealth, int maxHealth)
     {
-        if (fillImage != null)
+        if (healthFillImage != null)
         {
-            // Ép kiểu float để chia có số lẻ (y hệt cái Slime)
             float ratio = (float)currentHealth / maxHealth;
-            fillImage.fillAmount = ratio;
+            healthFillImage.fillAmount = ratio;
+        }
+    }
+
+    // --- HÀM CẬP NHẬT THỂ LỰC MỚI ---
+    public void UpdateStamina(float currentStamina, float maxStamina)
+    {
+        if (staminaFillImage != null)
+        {
+            float ratio = currentStamina / maxStamina;
+            staminaFillImage.fillAmount = ratio;
         }
     }
 }

@@ -319,7 +319,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  chaseRange: 3.5
+  chaseRange: 2
   damage: 5
   knockbackForce: 5
 --- !u!1 &4033386861210187413

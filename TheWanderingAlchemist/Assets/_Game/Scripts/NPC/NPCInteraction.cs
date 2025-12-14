@@ -66,7 +66,7 @@ public class NPCInteraction : MonoBehaviour
         if (qm.isQuestStarted && !qm.isQuestCompleted)
         {
             // Tạo câu thoại động: "Ngươi mới giết X/3 con thôi!"
-            string statusLine = $"Ngươi mới diệt được {qm.killCount}/{qm.targetKills} con thôi. Nhanh lên!";
+            string statusLine = $"Ngươi mới diệt được {qm.killCount}/{qm.targetKills} con thôi. Làm việc nhanh cái tay lên!";
             string[] dynamicLines = { questProgressLines[0], statusLine };
 
             DialogueManager.Instance.StartDialogue(npcName, dynamicLines);

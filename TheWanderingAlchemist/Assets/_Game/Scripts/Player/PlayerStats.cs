@@ -13,6 +13,12 @@ public class PlayerStats : MonoBehaviour
     public bool isOriginal = false;
 
     public string nextSpawnID;
+    
+    // Thể lực
+    [Header("Thể lực (Stamina)")]
+    public float maxStamina = 100f;
+    public float currentStamina;
+    public float staminaRegenRate = 10f;
 
     private void Awake()
     {
@@ -78,10 +84,38 @@ public class PlayerStats : MonoBehaviour
 
     private void Start()
     {
+        // Khởi tạo Stamina
+        if(isOriginal && currentStamina <= 0) { currentStamina = maxStamina; }
         // Cập nhật UI
         if (PlayerHealthUI.Instance != null)
         {
             PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
+        }
+    }
+
+    // Logic Stamina
+    public bool TryConsumeStamina(float amount)
+    {
+        if(currentStamina > 0)
+        {
+            currentStamina -= amount;
+            if (currentStamina < 0) currentStamina = 0;
+
+            // Cập nhật UI
+            if (PlayerHealthUI.Instance != null)
+                PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
+            return true;
+        }
+        return false;
+    }
+    public void RegenerateStamina(float amount)
+    {
+        if(currentStamina < maxStamina)
+        {
+            currentStamina += amount;
+            if (currentStamina > maxStamina) currentStamina = maxStamina;
+            if (PlayerHealthUI.Instance != null)
+                PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
         }
     }
 

@@ -59,24 +59,21 @@ public class EnemyAI : MonoBehaviour
     // 3. Xử lý va chạm (CẮN NGƯỜI CHƠI)
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // Nếu cái thứ mình vừa húc vào là Player
         if (collision.gameObject.CompareTag("Player"))
         {
+            // 1. Gây sát thương (Giữ nguyên)
             PlayerStats playerStats = collision.gameObject.GetComponent<PlayerStats>();
+            if (playerStats != null) playerStats.TakeDamage(damage);
 
-            if (playerStats != null)
+            // 2. Đẩy lùi (SỬA ĐOẠN NÀY)
+            PlayerMovement playerMove = collision.gameObject.GetComponent<PlayerMovement>();
+            if (playerMove != null)
             {
-                // Cắn 1 phát
-                playerStats.TakeDamage(damage);
+                // Tính hướng đẩy
+                Vector2 pushDir = (collision.transform.position - transform.position).normalized;
 
-                // Đẩy lùi người chơi ra (Knockback) để không bị cắn liên tục
-                Rigidbody2D playerRb = collision.gameObject.GetComponent<Rigidbody2D>();
-                if (playerRb != null)
-                {
-                    // Tính hướng đẩy (ngược lại hướng va chạm)
-                    Vector2 pushDir = (collision.transform.position - transform.position).normalized;
-                    playerRb.AddForce(pushDir * knockbackForce, ForceMode2D.Impulse);
-                }
+                // Gọi hàm bên Player: Lực đẩy = knockbackForce, Thời gian choáng = 0.2 giây
+                playerMove.ApplyKnockback(pushDir, knockbackForce, 0.2f);
             }
         }
     }
