@@ -15,6 +15,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip swordSwing;
     public AudioClip enemyHit;
     public AudioClip footstep;
+    public AudioClip pickupItems;
 
     private void Awake()
     {

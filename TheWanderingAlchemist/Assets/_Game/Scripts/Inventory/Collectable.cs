@@ -41,13 +41,15 @@ public class Collectable : MonoBehaviour, IInteractable
             bool added = InventoryManager.Instance.AddItem(itemData);
 
             if (added)
-            {      
-                Destroy(gameObject);
-            }
-            else
-            {
-                Debug.Log("Túi đầy rồi, không nhặt được!");
-            }
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 0.5f);
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    Debug.Log("Túi đầy rồi, không nhặt được!");
+                }
         }
         else
         {
