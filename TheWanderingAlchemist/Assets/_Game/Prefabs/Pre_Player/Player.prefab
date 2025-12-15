@@ -325,7 +325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackPoint: {fileID: 6017558602105581353}
   animator: {fileID: 0}
-  baseDamage: 10
+  baseDamage: 50
   critChance: 20
   critMultiplier: 2
   attackRange: 2

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -12,96 +13,123 @@ public class PlayerStats : MonoBehaviour
     // Biến này để đánh dấu xem Player này là "Cũ" hay "Mới"
     public bool isOriginal = false;
 
-    public string nextSpawnID;
-    
-    // Thể lực
+    [Header("Hiệu ứng khi trúng đòn")] // [MỚI]
+    [SerializeField] private Color flashColor = Color.red;
+    [SerializeField] private float flashDuration = 0.1f;
+    [SerializeField] private int flashCount = 2;
+
     [Header("Thể lực (Stamina)")]
     public float maxStamina = 100f;
     public float currentStamina;
     public float staminaRegenRate = 10f;
 
+    // Các thành phần tham chiếu [MỚI]
+    private Animator animator;
+    private PlayerMovement playerMovement;
+    private SpriteRenderer spriteRenderer;
+    private bool isDead = false;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            // Có thằng khác tồn tại rồi -> Mình là đồ fake -> Tự hủy
             Destroy(gameObject);
-            return; // Quan trọng: Dừng code ngay, không chạy đoạn dưới nữa!
+            return;
         }
 
-        // Nếu chưa có ai -> Mình là trùm
         Instance = this;
-        isOriginal = true; // Đánh dấu tôi là bản gốc
+        isOriginal = true;
         DontDestroyOnLoad(gameObject);
 
-        // Chỉ set đầy máu nếu đây là lần khởi tạo đầu tiên
-        // (Lúc game mới bật, currentHealth thường bằng 0 hoặc giá trị Inspector)
-        // Ta giả định nếu currentHealth <= 0 nghĩa là chưa setup bao giờ
-        if (currentHealth <= 0)
-        {
-            currentHealth = maxHealth;
-        }
+        if (currentHealth <= 0) currentHealth = maxHealth;
 
-        Debug.Log($"Player khởi tạo tại Scene: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} | Máu: {currentHealth}");
-    }
-    // --- THÊM MỚI ĐOẠN NÀY ---
-    private void OnEnable()
-    {
-        // Đăng ký lắng nghe sự kiện chuyển cảnh
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        // Lấy các component [MỚI]
+        animator = GetComponent<Animator>();
+        playerMovement = GetComponent<PlayerMovement>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        Debug.Log($"Player khởi tạo tại Scene: {SceneManager.GetActiveScene().name} | Máu: {currentHealth}");
     }
 
-    private void OnDisable()
-    {
-        // Hủy đăng ký khi object bị hủy (để tránh lỗi)
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
+    private void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;
+    private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
 
-    // Hàm này sẽ TỰ ĐỘNG CHẠY mỗi khi load xong màn mới
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Kiểm tra xem GameManager có dặn dò vị trí nào không
+        // 1. Logic vị trí cũ (Giữ nguyên)
         if (GameManager.Instance != null)
         {
-            // Lấy vị trí cần đến
             Vector3 targetPos = GameManager.Instance.nextSpawnPosition.GetValueOrDefault();
-            // Kiểm tra: Nếu vị trí là (0,0,0) thì có thể là chưa set, 
-            // nhưng nếu WagonExit set đúng thì nó sẽ khác (0,0,0).
-            // Tuy nhiên, để chắc chắn, ta cứ dịch chuyển.
-
-            // QUAN TRỌNG: Cần check xem có phải Vector3.zero mặc định không 
-            // (nếu bạn muốn spawn mặc định thì bỏ qua check này)
             if (targetPos != Vector3.zero)
             {
                 transform.position = targetPos;
-
-                // Reset lại để lần sau không bị nhảy linh tinh nếu đi bộ bình thường
-                // (Tùy logic game, có thể không cần dòng dưới nếu Portal luôn set đè)
-                // GameManager.Instance.nextSpawnPosition = Vector3.zero; 
             }
         }
+
+        // 2. [MỚI - QUAN TRỌNG] LOGIC HỒI SINH (RESET PLAYER)
+        // Vì Player không bị hủy, ta phải "tắm rửa sạch sẽ" cho nó thủ công
+
+        Debug.Log("Scene đã load! Đang hồi sinh Player...");
+
+        // A. Hồi máu & Reset trạng thái chết
+        currentHealth = maxHealth;
+        isDead = false;
+
+        // B. Bật lại Animator (Reset về Idle)
+        if (animator != null)
+        {
+            animator.Rebind(); // Reset toàn bộ animation về trạng thái ban đầu (Entry)
+            animator.Update(0f);
+        }
+
+        // C. Bật lại Collider
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = true;
+
+        // D. Bật lại điều khiển di chuyển
+        if (playerMovement != null)
+        {
+            playerMovement.enabled = true;
+        }
+
+        // E. Bật lại khả năng tấn công (nếu có script Attack)
+        // PlayerAttack attack = GetComponent<PlayerAttack>();
+        // if (attack != null) attack.enabled = true;
+
+        // F. Cập nhật lại thanh máu UI
+        if (PlayerHealthUI.Instance != null)
+        {
+            PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
+        }
     }
+    /*IEnumerator GameOverSequence()
+    {
+        Debug.Log("Chờ 2 giây để load lại...");
+
+        // Dùng WaitForSecondsRealtime để kể cả khi Time.timeScale = 0 thì nó vẫn đếm
+        yield return new WaitForSecondsRealtime(2f);
+
+        Debug.Log("Đang load lại Scene...");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }*/
 
     private void Start()
     {
-        // Khởi tạo Stamina
-        if(isOriginal && currentStamina <= 0) { currentStamina = maxStamina; }
-        // Cập nhật UI
+        if (isOriginal && currentStamina <= 0) { currentStamina = maxStamina; }
+
         if (PlayerHealthUI.Instance != null)
         {
             PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
         }
     }
 
-    // Logic Stamina
+    // --- Logic Stamina (Giữ nguyên) ---
     public bool TryConsumeStamina(float amount)
     {
-        if(currentStamina > 0)
+        if (currentStamina > 0)
         {
             currentStamina -= amount;
             if (currentStamina < 0) currentStamina = 0;
-
-            // Cập nhật UI
             if (PlayerHealthUI.Instance != null)
                 PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
             return true;
@@ -110,7 +138,7 @@ public class PlayerStats : MonoBehaviour
     }
     public void RegenerateStamina(float amount)
     {
-        if(currentStamina < maxStamina)
+        if (currentStamina < maxStamina)
         {
             currentStamina += amount;
             if (currentStamina > maxStamina) currentStamina = maxStamina;
@@ -119,67 +147,97 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
-    // Hàm hồi máu (Dùng khi uống thuốc)
+    // --- Logic Máu ---
     public void Heal(int amount)
     {
-        if (currentHealth >= maxHealth)
-        {
-            Debug.Log("Máu đã đầy, không cần uống!");
-            return;
-        }
+        if (isDead) return;
+        if (currentHealth >= maxHealth) return;
 
         currentHealth += amount;
-
-        // Không cho máu vượt quá Max
         if (currentHealth > maxHealth) currentHealth = maxHealth;
 
         Debug.Log($"<color=green>Đã hồi {amount} máu. HP: {currentHealth}/{maxHealth}</color>");
 
-        // --- SỬA LỖI: THÊM ĐOẠN NÀY ĐỂ UI CẬP NHẬT KHI HỒI MÁU ---
         if (PlayerHealthUI.Instance != null)
-        {
             PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
-        }
-        // ---------------------------------------------------------
     }
 
-    // Hàm nhận sát thương
     public void TakeDamage(int damage)
     {
+        if (isDead) return;
+
         currentHealth -= damage;
         Debug.Log($"Á á! Đau quá! Máu còn: {currentHealth}");
 
-        // --- GỌI UI CẬP NHẬT ---
+        // 1. Cập nhật UI
         if (PlayerHealthUI.Instance != null)
-        {
             PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
-        }
-        // ------------------------
 
+        // 2. [MỚI] Hiệu ứng nháy đỏ
+        StartCoroutine(FlashEffect());
+
+        // 3. Kiểm tra chết
         if (currentHealth <= 0)
         {
             Die();
         }
     }
 
+    // [MỚI] Coroutine nháy đỏ
+    private IEnumerator FlashEffect()
+    {
+        for (int i = 0; i < flashCount; i++)
+        {
+            spriteRenderer.color = flashColor;
+            yield return new WaitForSeconds(flashDuration);
+            spriteRenderer.color = Color.white;
+            yield return new WaitForSeconds(flashDuration);
+        }
+    }
+
+    // [MỚI] Xử lý Chết
     private void Die()
     {
         Debug.Log("GAME OVER - Bạn đã tạch!");
+        isDead = true;
+
+        // Reset màu về trắng (tránh bị kẹt màu đỏ)
+        StopAllCoroutines();
+        spriteRenderer.color = Color.white;
+
+        // Chạy animation Die
+        if (animator != null) animator.SetTrigger("die");
+
+        // Dừng di chuyển và tắt điều khiển
+        if (playerMovement != null)
+        {
+            playerMovement.StopMoving(); // Gọi hàm phanh gấp bên kia
+            playerMovement.enabled = false; // Tắt luôn script
+        }
+
+        // Tắt khả năng tấn công (nếu có script PlayerAttack thì bạn uncomment dòng dưới)
+        // PlayerAttack attack = GetComponent<PlayerAttack>();
+        // if (attack != null) attack.enabled = false;
+
+        // Tắt va chạm để quái không cắn xác chết
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+
+        // Gọi Game Over sau 2 giây
+        StartCoroutine(GameOverSequence());
     }
 
-    // Phím tắt Debug
+    private IEnumerator GameOverSequence()
+    {
+        yield return new WaitForSeconds(2f);
+        // Load lại màn chơi hiện tại
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
     private void Update()
     {
-        // Bấm K để tự đánh mình (Test mất máu)
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            TakeDamage(20);
-        }
-
-        // Bấm H để tự hồi máu (Test uống thuốc)
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            Heal(20);
-        }
+        // Cheat code test game
+        if (Input.GetKeyDown(KeyCode.K)) TakeDamage(20);
+        if (Input.GetKeyDown(KeyCode.H)) Heal(20);
     }
 }

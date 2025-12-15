@@ -303,9 +303,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  enemyAI: {fileID: 2972741690440984144}
   healthBar: {fileID: 6300989077085360734}
   lootPrefab: {fileID: 2477963370002911841, guid: 61a488bcab6fd674cbe91585b46b031f, type: 3}
   dropChance: 100
+  destroyDelay: 1
 --- !u!114 &2972741690440984144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -319,9 +321,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  chaseRange: 2
+  chaseRange: 3
   damage: 5
   knockbackForce: 5
+  stopDistance: 0.5
 --- !u!1 &4033386861210187413
 GameObject:
   m_ObjectHideFlags: 0

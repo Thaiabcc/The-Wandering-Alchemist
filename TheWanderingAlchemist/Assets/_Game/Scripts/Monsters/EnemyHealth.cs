@@ -3,8 +3,12 @@
 public class EnemyHealth : MonoBehaviour
 {
     [Header("Chỉ số")]
-    [SerializeField] private int maxHealth = 100; // Để máu nhiều chút test cho dễ
+    [SerializeField] private int maxHealth = 100;
     private int currentHealth;
+
+    [Header("Dependencies")]
+    // Kéo thả script EnemyAI vào đây, hoặc để code tự tìm
+    [SerializeField] private EnemyAI enemyAI;
 
     [Header("UI")]
     [SerializeField] private EnemyHealthBar healthBar;
@@ -12,30 +16,28 @@ public class EnemyHealth : MonoBehaviour
     [Header("Phần thưởng (Loot)")]
     [SerializeField] private GameObject lootPrefab;
     [SerializeField] private float dropChance = 50f;
-
-    // [Header("Hiệu ứng")] ---> XÓA DÒNG NÀY
-    // [SerializeField] private GameObject damagePopupPrefab; ---> XÓA DÒNG NÀY
+    [SerializeField] private float destroyDelay = 1f; // Thời gian chờ animation chết chạy xong
 
     private void Start()
     {
         currentHealth = maxHealth;
         if (healthBar != null) healthBar.UpdateHealthBar(currentHealth, maxHealth);
+
+        // Tự tìm EnemyAI nếu chưa gán
+        if (enemyAI == null) enemyAI = GetComponent<EnemyAI>();
     }
 
     public void TakeDamage(int damageAmount)
     {
+        // Nếu AI báo đã chết thì không trừ máu nữa (tránh lỗi trừ 2 lần)
+        if (enemyAI != null && enemyAI.isDead) return;
+
         currentHealth -= damageAmount;
 
-        // Cập nhật thanh máu
         if (healthBar != null)
         {
             healthBar.UpdateHealthBar(currentHealth, maxHealth);
         }
-
-        // --- ĐOẠN NÀY ĐÃ BỊ XÓA ---
-        // Lý do: PlayerAttack đã gọi DamagePopupGenerator rồi.
-        // Không cần hiện damage ở đây nữa để tránh bị 2 số đè lên nhau.
-        // ---------------------------
 
         if (currentHealth <= 0)
         {
@@ -45,7 +47,13 @@ public class EnemyHealth : MonoBehaviour
 
     private void Die()
     {
-        // Rớt đồ (Loot)
+        // 1. Báo cho AI biết để dừng di chuyển và chạy animation
+        if (enemyAI != null)
+        {
+            enemyAI.TriggerDeath();
+        }
+
+        // 2. Rớt đồ (Loot)
         if (lootPrefab != null)
         {
             if (Random.Range(0f, 100f) <= dropChance)
@@ -54,12 +62,13 @@ public class EnemyHealth : MonoBehaviour
             }
         }
 
-        // Cập nhật nhiệm vụ
+        // 3. Cập nhật nhiệm vụ
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.AddKill();
         }
 
-        Destroy(gameObject);
+        // 4. QUAN TRỌNG: Không Destroy ngay, mà đợi hết thời gian animation
+        Destroy(gameObject, destroyDelay);
     }
 }

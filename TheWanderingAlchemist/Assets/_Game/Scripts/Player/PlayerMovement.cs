@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem; // Bắt buộc để dùng Keyboard.current
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -8,13 +8,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float walkSpeed = 5f;
     [SerializeField] private float runSpeed = 8f;
 
-    // --- [MỚI] Dòng này sẽ hiện ra trong Inspector sau khi bạn lưu code ---
     [Header("Thể lực")]
-    [SerializeField] private float staminaDrain = 20f; // Tốc độ trừ (20 điểm/giây)
-    // --- MỚI 1: Thêm biến chỉnh âm thanh bước chân ---
+    [SerializeField] private float staminaDrain = 20f;
+
     [Header("Audio Bước Chân")]
-    [SerializeField] private float footstepDelay = 0.4f; // Bao lâu thì kêu 1 lần (0.4s là vừa đi bộ)
-    [SerializeField] private float runStepMultiplier = 0.6f; // Chạy thì tiếng dồn dập hơn (nhân với 0.6)
+    [SerializeField] private float footstepDelay = 0.4f;
+    [SerializeField] private float runStepMultiplier = 0.6f;
     private float footstepTimer = 0;
 
     private Rigidbody2D rb;
@@ -25,28 +24,39 @@ public class PlayerMovement : MonoBehaviour
 
     private float currentSpeed;
     private bool isKnockedBack = false;
+
+    // --- [MỚI] HÀM DỪNG KHẨN CẤP (Gọi từ PlayerStats khi chết) ---
+    public void StopMoving()
+    {
+        // 1. Phanh vật lý lại ngay lập tức
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Kinematic; // Dừng hẳn vật lý
+        }
+
+        // 2. Tắt animation chạy (để tránh lỗi Moonwalk)
+        // Vì Animator của bạn đang dùng Float "Speed", ta set về 0
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", 0f);
+        }
+    }
+    // -------------------------------------------------------------
+
     public void ApplyKnockback(Vector2 direction, float force, float duration)
     {
-        // 1. Đánh dấu đang bị đẩy -> Ngắt điều khiển
         isKnockedBack = true;
-
-        // 2. Reset vận tốc cũ để lực đẩy có tác dụng 100%
         rb.velocity = Vector2.zero;
-
-        // 3. Đẩy! (ForceMode2D.Impulse là lực tức thì)
         rb.AddForce(direction * force, ForceMode2D.Impulse);
-
-        // 4. Chờ một chút rồi trả lại quyền điều khiển
         StartCoroutine(KnockbackRoutine(duration));
     }
 
     private IEnumerator KnockbackRoutine(float duration)
     {
         yield return new WaitForSeconds(duration);
-
-        // Hết thời gian choáng -> Reset vận tốc về 0 để không trượt tiếp
         rb.velocity = Vector2.zero;
-        isKnockedBack = false; // Trả lại quyền điều khiển
+        isKnockedBack = false;
     }
 
     private void Awake()
@@ -64,13 +74,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        // Nếu đang bị đẩy lùi thì không nhận input
+        if (isKnockedBack) return;
+
         moveInput = gameControls.Gameplay.Move.ReadValue<Vector2>();
         currentSpeed = walkSpeed;
 
         bool isMoving = moveInput.magnitude > 0;
         bool isRunPressed = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 
-        // Logic Chạy/Thể lực cũ
+        // Logic Chạy/Thể lực
         if (isMoving && isRunPressed)
         {
             if (PlayerStats.Instance.TryConsumeStamina(staminaDrain * Time.deltaTime))
@@ -89,42 +102,31 @@ public class PlayerMovement : MonoBehaviour
 
         if (animator != null) animator.SetFloat("Speed", moveInput.magnitude);
 
-        // Logic Xoay người cũ
+        // Logic Xoay người
         if (moveInput.x != 0)
         {
             if (moveInput.x > 0) transform.rotation = Quaternion.Euler(0, 0, 0);
             else transform.rotation = Quaternion.Euler(0, 180, 0);
         }
 
-        // --- MỚI 2: LOGIC PHÁT TIẾNG BƯỚC CHÂN ---
+        // Logic Tiếng bước chân
         if (isMoving)
         {
-            // Trừ dần thời gian
             footstepTimer -= Time.deltaTime;
-
             if (footstepTimer <= 0)
             {
-                // Phát tiếng (Volume nhỏ 0.3f thôi cho đỡ đau đầu)
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.footstep, 0.8f);
+                // Nhớ gán AudioManager vào Scene nhé
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.footstep, 0.8f);
 
-                // Reset đồng hồ
-                // Nếu đang chạy nhanh -> Thời gian delay ngắn lại (bước nhanh hơn)
-                if (currentSpeed == runSpeed)
-                {
-                    footstepTimer = footstepDelay * runStepMultiplier;
-                }
-                else
-                {
-                    footstepTimer = footstepDelay;
-                }
+                if (currentSpeed == runSpeed) footstepTimer = footstepDelay * runStepMultiplier;
+                else footstepTimer = footstepDelay;
             }
         }
         else
         {
-            // Nếu đứng im -> Reset timer về 0 để vừa nhích chân là kêu ngay
             footstepTimer = 0;
         }
-        // ------------------------------------------
     }
 
     private void FixedUpdate()
