@@ -29,22 +29,25 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
-        // ... (Giữ nguyên phần xử lý Input di chuyển và AttackPoint Offset của bạn) ...
+        // ... (Giữ nguyên Input di chuyển) ...
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveY = Input.GetAxisRaw("Vertical");
 
+        // [FIX LỖI] Phân biệt rõ Trái/Phải
         if (moveX != 0 || moveY != 0)
         {
-            if (moveX != 0) localDirection = Vector2.right;
+            if (moveX > 0) localDirection = Vector2.right;
+            else if (moveX < 0) localDirection = Vector2.left; // Thêm dòng này
+
             if (moveY > 0) localDirection = Vector2.up;
             else if (moveY < 0) localDirection = Vector2.down;
         }
 
+        // Cập nhật vị trí AttackPoint
         if (attackPoint != null)
         {
             attackPoint.localPosition = localDirection * attackOffset;
         }
-        // ...
 
         if (isAttacking) return;
 
@@ -96,8 +99,10 @@ public class PlayerAttack : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetFloat("InputX", Input.GetAxisRaw("Horizontal"));
-            animator.SetFloat("InputY", Input.GetAxisRaw("Vertical"));
+            // [TỐI ƯU] Dùng localDirection thay vì Input để đảm bảo
+            // Animation chém cùng hướng với AttackPoint (Hitbox)
+            animator.SetFloat("InputX", localDirection.x);
+            animator.SetFloat("InputY", localDirection.y);
             animator.SetTrigger("Attack");
         }
 

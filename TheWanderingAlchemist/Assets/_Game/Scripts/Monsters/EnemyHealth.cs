@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections; // Cần cái này cho Coroutine
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -7,68 +8,67 @@ public class EnemyHealth : MonoBehaviour
     private int currentHealth;
 
     [Header("Dependencies")]
-    // Kéo thả script EnemyAI vào đây, hoặc để code tự tìm
+    // [QUAN TRỌNG] Tham chiếu tới EnemyAI
+    // Vì EnemySlime và EnemySkeleton đều là con của EnemyAI, nên kéo vào đây OK hết
     [SerializeField] private EnemyAI enemyAI;
+
+    [Header("Hiệu ứng")]
+    [SerializeField] private Color flashColor = Color.red;
+    [SerializeField] private float flashDuration = 0.1f;
+    private SpriteRenderer spriteRenderer;
 
     [Header("UI")]
     [SerializeField] private EnemyHealthBar healthBar;
 
-    [Header("Phần thưởng (Loot)")]
+    [Header("Loot")]
     [SerializeField] private GameObject lootPrefab;
     [SerializeField] private float dropChance = 50f;
-    [SerializeField] private float destroyDelay = 1f; // Thời gian chờ animation chết chạy xong
+    [SerializeField] private float destroyDelay = 1f;
 
     private void Start()
     {
         currentHealth = maxHealth;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
         if (healthBar != null) healthBar.UpdateHealthBar(currentHealth, maxHealth);
 
-        // Tự tìm EnemyAI nếu chưa gán
         if (enemyAI == null) enemyAI = GetComponent<EnemyAI>();
     }
 
     public void TakeDamage(int damageAmount)
     {
-        // Nếu AI báo đã chết thì không trừ máu nữa (tránh lỗi trừ 2 lần)
-        if (enemyAI != null && enemyAI.isDead) return;
+        if (currentHealth <= 0) return;
 
         currentHealth -= damageAmount;
 
-        if (healthBar != null)
-        {
-            healthBar.UpdateHealthBar(currentHealth, maxHealth);
-        }
+        if (healthBar != null) healthBar.UpdateHealthBar(currentHealth, maxHealth);
 
-        if (currentHealth <= 0)
+        StartCoroutine(FlashRoutine());
+
+        if (currentHealth <= 0) Die();
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        if (spriteRenderer != null)
         {
-            Die();
+            spriteRenderer.color = flashColor;
+            yield return new WaitForSeconds(flashDuration);
+            spriteRenderer.color = Color.white;
         }
     }
 
     private void Die()
     {
-        // 1. Báo cho AI biết để dừng di chuyển và chạy animation
-        if (enemyAI != null)
+        if (enemyAI != null) enemyAI.TriggerDeath();
+
+        if (lootPrefab != null && Random.Range(0f, 100f) <= dropChance)
         {
-            enemyAI.TriggerDeath();
+            Instantiate(lootPrefab, transform.position, Quaternion.identity);
         }
 
-        // 2. Rớt đồ (Loot)
-        if (lootPrefab != null)
-        {
-            if (Random.Range(0f, 100f) <= dropChance)
-            {
-                Instantiate(lootPrefab, transform.position, Quaternion.identity);
-            }
-        }
+        // if (QuestManager.Instance != null) QuestManager.Instance.AddKill();
 
-        // 3. Cập nhật nhiệm vụ
-        if (QuestManager.Instance != null)
-        {
-            QuestManager.Instance.AddKill();
-        }
-
-        // 4. QUAN TRỌNG: Không Destroy ngay, mà đợi hết thời gian animation
         Destroy(gameObject, destroyDelay);
     }
 }

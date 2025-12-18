@@ -174,7 +174,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
-  m_SpriteSortPoint: 1
+  m_SpriteSortPoint: 0
 --- !u!50 &5799941491112469267
 Rigidbody2D:
   serializedVersion: 4
@@ -307,10 +307,12 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   isOriginal: 0
-  nextSpawnID: 
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
+  flashCount: 2
   maxStamina: 100
   currentStamina: 0
-  staminaRegenRate: 20
+  staminaRegenRate: 25
 --- !u!114 &8222662028975532577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,14 +327,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackPoint: {fileID: 6017558602105581353}
   animator: {fileID: 0}
-  baseDamage: 50
+  baseDamage: 20
   critChance: 20
   critMultiplier: 2
-  attackRange: 2
+  attackRange: 3.5
   enemyLayers:
     serializedVersion: 2
     m_Bits: 64
-  startAttackDelay: 0.6
+  startAttackDelay: 0.5
   attackCooldown: 0.2
   attackOffset: 0.8
 --- !u!1 &8387018972461828036
