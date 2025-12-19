@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 688144ce370a147429611f7ccbb643cd, type: 3}
+  m_Name: Potion_BuffDame
+  m_EditorClassIdentifier: 
+  id: Potion_BuffDame
+  itemName: "Thu\u1ED1c HP"
+  description: "1 lo\u1EA1i thu\u1ED1c hi\u1EBFm b\u1ED5 sung s\u1EE9c m\u1EA1nh
+    v\u01B0\u1EE3t tr\u1ED9i\n"
+  icon: {fileID: 21300000, guid: 53c9a9773088ce34285acb4953d160ad, type: 3}
+  typel: 1
+  maxStackSize: 99
+  baseValue: 10
+  worldPrefeb: {fileID: 0}
+  isConsumable: 1
+  healthRestore: 20
