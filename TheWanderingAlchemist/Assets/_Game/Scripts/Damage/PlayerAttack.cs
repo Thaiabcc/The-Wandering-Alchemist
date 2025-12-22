@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -61,33 +62,32 @@ public class PlayerAttack : MonoBehaviour
     private void PerformAttack()
     {
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
-
-        // Nếu KHÔNG trúng ai thì thôi
         if (hitEnemies.Length == 0) return;
 
-        // --- 1. ƯU TIÊN PHÁT TIẾNG ĐỘNG NGAY (SOUND FIRST) ---
-        // Phát ngay khi phát hiện có va chạm, TRƯỚC khi tính toán máu me
         AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyHit, 0.5f);
 
-        // --- 2. SAU ĐÓ MỚI TRỪ MÁU (VISUAL/LOGIC) ---
-        foreach (Collider2D enemy in hitEnemies)
+        // Tạo một danh sách tạm để lưu những con quái đã bị trừ máu trong lần chém này
+        List<EnemyHealth> damagedEnemies = new List<EnemyHealth>();
+
+        foreach (Collider2D enemyCollider in hitEnemies)
         {
-            // Tính toán bạo kích
-            bool isCrit = Random.Range(0f, 100f) < critChance;
-            int finalDamage = baseDamage;
-            if (isCrit) finalDamage = Mathf.RoundToInt(baseDamage * critMultiplier);
+            EnemyHealth eHealth = enemyCollider.GetComponent<EnemyHealth>();
 
-            // Gây sát thương
-            EnemyHealth eHealth = enemy.GetComponent<EnemyHealth>();
-            if (eHealth != null)
+            // Nếu con này có máu VÀ chưa bị trừ máu trong nhát chém này
+            if (eHealth != null && !damagedEnemies.Contains(eHealth))
             {
+                // Tính damage...
+                bool isCrit = Random.Range(0f, 100f) < critChance;
+                int finalDamage = isCrit ? Mathf.RoundToInt(baseDamage * critMultiplier) : baseDamage;
+
                 eHealth.TakeDamage(finalDamage);
-            }
 
-            // Hiện số damage
-            if (DamagePopupGenerator.Instance != null)
-            {
-                DamagePopupGenerator.Instance.Create(enemy.transform.position, finalDamage, isCrit);
+                // Đánh dấu là đã trừ xong
+                damagedEnemies.Add(eHealth);
+
+                // Popup damage...
+                if (DamagePopupGenerator.Instance != null)
+                    DamagePopupGenerator.Instance.Create(enemyCollider.transform.position, finalDamage, isCrit);
             }
         }
     }
