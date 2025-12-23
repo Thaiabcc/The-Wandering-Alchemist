@@ -46,6 +46,15 @@ public class EnemyHealth : MonoBehaviour
         StartCoroutine(FlashRoutine());
 
         if (currentHealth <= 0) Die();
+        if (currentHealth <= maxHealth / 2)
+        {
+            // Thử tìm xem có script FlyingRangeBoss không
+            var bossAI = GetComponent<FlyingRangeBoss>();
+            if (bossAI != null)
+            {
+                bossAI.ActivateRage();
+            }
+        }
     }
 
     private IEnumerator FlashRoutine()
