@@ -129,6 +129,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 977197cc373edd949a49963bc71fbbd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realRockPrefab: {fileID: 7578613371820497605, guid: 349f7faf568ab0445aa9db0e6d326272, type: 3}
+  rockPrefabs:
+  - {fileID: 9063638681061815669, guid: da53cb2a4ad0ccd4eb8cb967db45adfa, type: 3}
+  - {fileID: 9063638681061815669, guid: 19a75cb9f96afe64e81744e7f1bd2cbd, type: 3}
+  - {fileID: 9063638681061815669, guid: 03c34253c1f2b22478d9bff1a8d24616, type: 3}
   warningDuration: 0.8
   spawnHeight: 8

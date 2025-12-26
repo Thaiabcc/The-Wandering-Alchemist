@@ -3,16 +3,17 @@
 public class RockWarning : MonoBehaviour
 {
     [Header("--- CẤU HÌNH ---")]
-    public GameObject realRockPrefab; // Kéo Prefab cục đá thật vào đây
-    public float warningDuration = 0.8f; // Thời gian hiện cảnh báo trước khi đá rơi
-    public float spawnHeight = 10f; // Đá sẽ rơi từ độ cao 10m so với mặt đất
+    // [THAY ĐỔI]: Đổi thành mảng [] để chứa nhiều loại đá
+    public GameObject[] rockPrefabs;
+
+    public float warningDuration = 0.8f;
+    public float spawnHeight = 10f;
 
     private float timer;
 
     void Start()
     {
         timer = warningDuration;
-        // Làm hiệu ứng nhấp nháy hoặc to dần (tùy chọn)
         transform.localScale = Vector3.zero;
     }
 
@@ -20,24 +21,36 @@ public class RockWarning : MonoBehaviour
     {
         timer -= Time.deltaTime;
 
-        // Hiệu ứng vòng tròn to dần ra cho kịch tính
+        // Hiệu ứng vòng tròn to dần
         float scale = 1f - (timer / warningDuration);
-        transform.localScale = Vector3.Lerp(Vector3.zero, new Vector3(1.5f, 0.5f, 1f), scale); // Dẹt dẹt cho giống bóng
+        transform.localScale = Vector3.Lerp(Vector3.zero, new Vector3(1.5f, 0.5f, 1f), scale);
 
         if (timer <= 0)
         {
             SpawnRock();
-            Destroy(gameObject); // Hủy vòng tròn cảnh báo
+            Destroy(gameObject);
         }
     }
 
     void SpawnRock()
     {
-        if (realRockPrefab != null)
+        // Kiểm tra xem có cục đá nào trong danh sách không
+        if (rockPrefabs != null && rockPrefabs.Length > 0)
         {
-            // Sinh ra cục đá thật ở tít trên cao, thẳng hàng với vòng tròn này
-            Vector3 dropPos = transform.position + Vector3.up * spawnHeight;
-            Instantiate(realRockPrefab, dropPos, Quaternion.identity);
+            // [THAY ĐỔI]: Chọn ngẫu nhiên 1 chỉ số từ 0 đến độ dài mảng
+            int randomIndex = Random.Range(0, rockPrefabs.Length);
+
+            GameObject rockToSpawn = rockPrefabs[randomIndex];
+
+            if (rockToSpawn != null)
+            {
+                Vector3 dropPos = transform.position + Vector3.up * spawnHeight;
+                Instantiate(rockToSpawn, dropPos, Quaternion.identity);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Chưa kéo Prefab đá vào RockWarning kìa bro!");
         }
     }
 }

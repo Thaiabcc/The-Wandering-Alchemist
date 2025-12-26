@@ -89,6 +89,7 @@ GameObject:
   - component: {fileID: 6023853495316806258}
   - component: {fileID: 6498179725306424732}
   - component: {fileID: 2178884932815918098}
+  - component: {fileID: 3970751411484489480}
   m_Layer: 6
   m_Name: boss-Idle_0
   m_TagString: Monster
@@ -105,7 +106,7 @@ Transform:
   m_GameObject: {fileID: 3008748211540487896}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 52.09, y: -51.4, z: -0.116786025}
+  m_LocalPosition: {x: 2.8288212, y: -5.342873, z: -0.116786025}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -202,7 +203,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -212,7 +213,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &6498179725306424732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,6 +232,9 @@ MonoBehaviour:
   attackCooldown: 1.5
   patrolRadius: 3
   waitTime: 2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
   combatCenterOffset: 0.5
   stopDistance: 5
   flyHeight: 2
@@ -248,7 +252,7 @@ MonoBehaviour:
   rageColor: {r: 1, g: 0, b: 0, a: 1}
   rageVFX: {fileID: 0}
   chargeDuration: 3
-  rockPrefab: {fileID: 0}
+  rockPrefab: {fileID: 7048732649677099171, guid: e1e80f816a4b51a43a0731783b60b6f3, type: 3}
   rockSpawnRate: 0.2
 --- !u!114 &2178884932815918098
 MonoBehaviour:
@@ -270,6 +274,41 @@ MonoBehaviour:
   lootPrefab: {fileID: 0}
   dropChance: 50
   destroyDelay: 1
+--- !u!58 &3970751411484489480
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3008748211540487896}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 1}
+  serializedVersion: 2
+  m_Radius: 1
 --- !u!1 &3596417815948502379
 GameObject:
   m_ObjectHideFlags: 0

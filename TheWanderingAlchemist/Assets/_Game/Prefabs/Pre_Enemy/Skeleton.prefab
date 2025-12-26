@@ -289,7 +289,7 @@ Rigidbody2D:
   m_LinearDrag: 20
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -309,7 +309,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 8017318280962498047}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -373,7 +373,7 @@ MonoBehaviour:
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
   healthBar: {fileID: 5888279701397250552}
-  lootPrefab: {fileID: 0}
+  lootPrefab: {fileID: 8261378303904186502, guid: 70becc68d04af584da00c78a15c02c01, type: 3}
   dropChance: 50
   destroyDelay: 1
 --- !u!114 &135026101892923453
@@ -394,6 +394,9 @@ MonoBehaviour:
   attackCooldown: 1.3
   patrolRadius: 4
   waitTime: 1.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 128
   combatCenterOffset: 1.2
   hitPoint: {fileID: 730048840046830075}
   hitRadius: 2

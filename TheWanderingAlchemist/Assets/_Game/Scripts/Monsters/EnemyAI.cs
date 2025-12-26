@@ -16,6 +16,10 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] protected float patrolRadius = 3f;
     [SerializeField] protected float waitTime = 2f;
 
+    // [MỚI] Layer để nhận biết đâu là tường/vật cản. NHỚ CHỌN LAYER NÀY TRONG INSPECTOR!
+    [Header("Cài đặt Môi trường (QUAN TRỌNG)")]
+    [SerializeField] protected LayerMask obstacleLayer;
+
     [Header("Tinh chỉnh tâm đánh")]
     // [MỚI] Biến này để chỉnh tâm vòng tròn lên cao (ví dụ 0.5 hoặc 1.0)
     [SerializeField] protected float combatCenterOffset = 0.5f;
@@ -36,6 +40,10 @@ public class EnemyAI : MonoBehaviour
     protected float waitTimer;
     protected bool isWaiting = false;
 
+    // [MỚI] Biến dùng để check xem có bị kẹt không
+    private Vector2 lastPosition;
+    private float stuckTimer;
+
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -46,9 +54,10 @@ public class EnemyAI : MonoBehaviour
         if (player != null) playerTransform = player.transform;
 
         startPosition = transform.position;
+        lastPosition = transform.position; // Khởi tạo vị trí cũ
+
         PickNewPatrolPoint();
     }
-
 
     protected virtual void FixedUpdate()
     {
@@ -87,6 +96,7 @@ public class EnemyAI : MonoBehaviour
     {
         waitTimer = 0;
         isWaiting = false;
+        stuckTimer = 0; // Khi đuổi theo thì reset bộ đếm kẹt
 
         if (distance <= attackRange)
         {
@@ -110,6 +120,8 @@ public class EnemyAI : MonoBehaviour
         if (distanceToTarget < 0.2f)
         {
             StopMoving();
+            stuckTimer = 0; // Đến nơi rồi thì reset kẹt
+
             if (waitTimer <= 0)
             {
                 waitTimer = waitTime;
@@ -127,7 +139,30 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            if (!isWaiting) MoveTo(patrolTarget);
+            if (!isWaiting)
+            {
+                MoveTo(patrolTarget);
+
+                // --- [MỚI] LOGIC CHỐNG KẸT (STUCK CHECK) ---
+                // Nếu đang cố đi mà vị trí không thay đổi nhiều -> Đang húc tường
+                if (Vector2.Distance(transform.position, lastPosition) < 0.01f * moveSpeed * Time.fixedDeltaTime * 5f)
+                {
+                    stuckTimer += Time.fixedDeltaTime;
+
+                    // Nếu đứng im quá 0.5 giây -> Chọn điểm mới ngay
+                    if (stuckTimer > 0.5f)
+                    {
+                        PickNewPatrolPoint();
+                        stuckTimer = 0;
+                    }
+                }
+                else
+                {
+                    stuckTimer = 0; // Đang đi tốt
+                }
+
+                lastPosition = transform.position; // Lưu vị trí frame này
+            }
         }
     }
 
@@ -152,10 +187,32 @@ public class EnemyAI : MonoBehaviour
         animator.SetBool("isMoving", false);
     }
 
+    // [MỚI] Hàm chọn điểm tuần tra thông minh hơn
     protected void PickNewPatrolPoint()
     {
-        Vector2 randomPoint = Random.insideUnitCircle * patrolRadius;
-        patrolTarget = startPosition + randomPoint;
+        // Thử tìm điểm hợp lệ tối đa 10 lần
+        for (int i = 0; i < 10; i++)
+        {
+            Vector2 randomDir = Random.insideUnitCircle * patrolRadius;
+            Vector2 potentialTarget = startPosition + randomDir;
+
+            // Bắn tia từ chân quái đến điểm dự kiến để xem có tường chắn không
+            Vector2 direction = (potentialTarget - (Vector2)transform.position).normalized;
+            float distance = Vector2.Distance(transform.position, potentialTarget);
+
+            // Kiểm tra va chạm với lớp Obstacle
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, obstacleLayer);
+
+            // Nếu không va vào tường (hit.collider == null) -> Điểm này OK
+            if (hit.collider == null)
+            {
+                patrolTarget = potentialTarget;
+                return;
+            }
+        }
+
+        // Nếu thử 10 lần mà vẫn vướng tường, đứng yên tại chỗ chờ lượt sau
+        patrolTarget = transform.position;
     }
 
     protected void FlipSprite(Vector2 target)
@@ -197,5 +254,13 @@ public class EnemyAI : MonoBehaviour
         Gizmos.color = Color.green;
         Vector3 patrolCenter = Application.isPlaying ? (Vector3)startPosition : transform.position;
         Gizmos.DrawWireSphere(patrolCenter, patrolRadius);
+
+        // Vẽ điểm đang định đi tới
+        if (Application.isPlaying)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(transform.position, patrolTarget);
+            Gizmos.DrawSphere(patrolTarget, 0.2f);
+        }
     }
 }

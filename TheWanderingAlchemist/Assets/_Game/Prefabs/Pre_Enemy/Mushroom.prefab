@@ -427,7 +427,7 @@ Rigidbody2D:
   m_LinearDrag: 50
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -447,7 +447,7 @@ CircleCollider2D:
   m_GameObject: {fileID: 9215134645561244149}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -511,6 +511,9 @@ MonoBehaviour:
   attackCooldown: 1.5
   patrolRadius: 2.5
   waitTime: 1
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 128
   combatCenterOffset: 1
   hitPoint: {fileID: 729329101182026669}
   hitRadius: 2.6
