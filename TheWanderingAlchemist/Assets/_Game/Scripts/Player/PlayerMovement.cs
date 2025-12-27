@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement; // [QUAN TRỌNG] Thêm cái này
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -19,30 +20,85 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private GameControls gameControls;
     private Vector2 moveInput;
-    private SpriteRenderer spriteRenderer;
     private Animator animator;
 
     private float currentSpeed;
     private bool isKnockedBack = false;
 
-    // --- [MỚI] HÀM DỪNG KHẨN CẤP (Gọi từ PlayerStats khi chết) ---
+    // --- CÁC HÀM CƠ BẢN ---
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        gameControls = new GameControls();
+        if (animator == null) Debug.LogError("Thiếu Animator!");
+    }
+
+    private void OnEnable()
+    {
+        gameControls.Enable();
+        // Đăng ký sự kiện: Cứ load màn xong là gọi hàm OnSceneLoaded
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        gameControls.Disable();
+        // Hủy đăng ký để tránh lỗi
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // --- [FIX] HÀM NÀY CHẠY MỖI KHI SANG MAP MỚI ---
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Gọi hàm dịch chuyển (Delay 1 xíu để map load xong hẳn)
+        StartCoroutine(TeleportRoutine());
+    }
+
+    // Dự phòng: Nếu Player không phải DontDestroyOnLoad thì chạy cái này
+    private void Start()
+    {
+        StartCoroutine(TeleportRoutine());
+    }
+
+    // --- LOGIC DỊCH CHUYỂN ---
+    private IEnumerator TeleportRoutine()
+    {
+        // Chờ 1 frame để đảm bảo GameManager đã sẵn sàng
+        yield return null;
+
+        if (GameManager.Instance != null && GameManager.Instance.nextSpawnPosition.HasValue)
+        {
+            Debug.Log("PLAYER: Phát hiện vị trí mới! Đang tele tới: " + GameManager.Instance.nextSpawnPosition.Value);
+
+            // 1. Tắt vật lý
+            if (rb != null) rb.simulated = false;
+
+            // 2. Dịch chuyển
+            transform.position = GameManager.Instance.nextSpawnPosition.Value;
+
+            // 3. Reset dữ liệu trong GameManager (Quan trọng!)
+            GameManager.Instance.nextSpawnPosition = null;
+
+            // 4. Chờ thêm 1 frame để vị trí ăn vào hệ thống
+            yield return null;
+
+            // 5. Bật lại vật lý
+            if (rb != null) rb.simulated = true;
+        }
+    }
+    // ---------------------------------------------
+
+    // --- CÁC HÀM XỬ LÝ DI CHUYỂN CŨ (GIỮ NGUYÊN) ---
     public void StopMoving()
     {
-        // 1. Phanh vật lý lại ngay lập tức
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
-            rb.bodyType = RigidbodyType2D.Kinematic; // Dừng hẳn vật lý
+            rb.bodyType = RigidbodyType2D.Kinematic;
         }
-
-        // 2. Tắt animation chạy (để tránh lỗi Moonwalk)
-        // Vì Animator của bạn đang dùng Float "Speed", ta set về 0
-        if (animator != null)
-        {
-            animator.SetFloat("Speed", 0f);
-        }
+        if (animator != null) animator.SetFloat("Speed", 0f);
     }
-    // -------------------------------------------------------------
 
     public void ApplyKnockback(Vector2 direction, float force, float duration)
     {
@@ -59,22 +115,8 @@ public class PlayerMovement : MonoBehaviour
         isKnockedBack = false;
     }
 
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
-        gameControls = new GameControls();
-
-        if (animator == null) Debug.LogError("Thiếu Animator!");
-    }
-
-    private void OnEnable() => gameControls.Enable();
-    private void OnDisable() => gameControls.Disable();
-
     private void Update()
     {
-        // Nếu đang bị đẩy lùi thì không nhận input
         if (isKnockedBack) return;
 
         moveInput = gameControls.Gameplay.Move.ReadValue<Vector2>();
@@ -83,17 +125,10 @@ public class PlayerMovement : MonoBehaviour
         bool isMoving = moveInput.magnitude > 0;
         bool isRunPressed = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 
-        // Logic Chạy/Thể lực
         if (isMoving && isRunPressed)
         {
-            if (PlayerStats.Instance.TryConsumeStamina(staminaDrain * Time.deltaTime))
-            {
-                currentSpeed = runSpeed;
-            }
-            else
-            {
-                currentSpeed = walkSpeed;
-            }
+            if (PlayerStats.Instance.TryConsumeStamina(staminaDrain * Time.deltaTime)) currentSpeed = runSpeed;
+            else currentSpeed = walkSpeed;
         }
         else
         {
@@ -102,20 +137,18 @@ public class PlayerMovement : MonoBehaviour
 
         if (animator != null) animator.SetFloat("Speed", moveInput.magnitude);
 
-        // Logic Xoay người
         if (moveInput.x != 0)
         {
             if (moveInput.x > 0) transform.rotation = Quaternion.Euler(0, 0, 0);
             else transform.rotation = Quaternion.Euler(0, 180, 0);
         }
 
-        // Logic Tiếng bước chân
+        // Audio
         if (isMoving)
         {
             footstepTimer -= Time.deltaTime;
             if (footstepTimer <= 0)
             {
-                // Nhớ gán AudioManager vào Scene nhé
                 if (AudioManager.Instance != null)
                     AudioManager.Instance.PlaySFX(AudioManager.Instance.footstep, 0.8f);
 
@@ -123,10 +156,7 @@ public class PlayerMovement : MonoBehaviour
                 else footstepTimer = footstepDelay;
             }
         }
-        else
-        {
-            footstepTimer = 0;
-        }
+        else footstepTimer = 0;
     }
 
     private void FixedUpdate()

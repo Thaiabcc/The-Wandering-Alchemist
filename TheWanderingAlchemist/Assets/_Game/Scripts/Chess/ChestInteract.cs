@@ -56,10 +56,10 @@ public class ChestInteract : MonoBehaviour
 
             if (rb != null)
             {
-                // Tạo hướng ngẫu nhiên (bắn lên trên và hơi lệch sang trái/phải)
-                Vector2 dropDirection = new Vector2(Random.Range(-1f, 1f), 1f).normalized;
+                // Bắn vàng ra mọi hướng xung quanh (360 độ) thay vì chỉ bắn lên trên
+                Vector2 dropDirection = Random.insideUnitCircle.normalized;
 
-                // Thêm lực bắn (Impulse = lực tức thời)
+                // Thêm lực bắn mạnh
                 rb.AddForce(dropDirection * popForce, ForceMode2D.Impulse);
             }
         }

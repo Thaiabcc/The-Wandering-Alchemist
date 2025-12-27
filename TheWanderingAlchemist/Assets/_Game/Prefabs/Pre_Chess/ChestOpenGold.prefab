@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 6959545687445571685}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.14, y: 3.19, z: -0.116786025}
+  m_LocalPosition: {x: -2.9579322, y: 59.40737, z: -0.116786025}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -121,6 +121,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5783f5783baffaa40ae12de71a1e1839, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  goldPrefab: {fileID: 3998132593377268082, guid: 5ea11a61cbb8c8a4e9e77265226ee0bd, type: 3}
+  goldAmount: 4
+  popForce: 3
 --- !u!61 &3598955713933897813
 BoxCollider2D:
   m_ObjectHideFlags: 0
