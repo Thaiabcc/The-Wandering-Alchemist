@@ -1,60 +1,58 @@
 ﻿using UnityEngine;
 
-// Class Cha: Chứa logic chung (Di chuyển, Tuần tra, Đuổi theo)
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
-[RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(SpriteRenderer))]
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Chỉ số Chung")]
+    #region Configuration
+    [Header("Movement & Range")]
     [SerializeField] protected float moveSpeed = 2f;
     [SerializeField] protected float chaseRange = 5f;
-    [SerializeField] protected float attackRange = 1f;       // Tầm đánh
-    [SerializeField] protected float attackCooldown = 1.5f;  // Hồi chiêu
+    [SerializeField] protected float attackRange = 1f;
+    [SerializeField] protected float attackCooldown = 1.5f;
 
-    [Header("Cài đặt Tuần tra")]
+    [Header("Patrol Settings")]
     [SerializeField] protected float patrolRadius = 3f;
     [SerializeField] protected float waitTime = 2f;
+    [SerializeField] protected float stoppingDistance = 0.2f;
 
-    // [MỚI] Layer để nhận biết đâu là tường/vật cản. NHỚ CHỌN LAYER NÀY TRONG INSPECTOR!
-    [Header("Cài đặt Môi trường (QUAN TRỌNG)")]
+    [Header("Environment")]
     [SerializeField] protected LayerMask obstacleLayer;
-
-    [Header("Tinh chỉnh tâm đánh")]
-    // [MỚI] Biến này để chỉnh tâm vòng tròn lên cao (ví dụ 0.5 hoặc 1.0)
     [SerializeField] protected float combatCenterOffset = 0.5f;
+    #endregion
 
-    // Các biến tham chiếu (Protected để con dùng được)
+    #region Component References
     protected Transform playerTransform;
     protected Rigidbody2D rb;
     protected Animator animator;
     protected SpriteRenderer spriteRenderer;
+    protected Collider2D mainCollider;
+    #endregion
 
-    // Trạng thái
-    public bool isDead { get; protected set; } = false; // Public get để script khác check
+    #region State Variables
+    public bool isDead { get; protected set; } = false;
     protected float lastAttackTime;
 
-    // Biến tuần tra
+    // Patrol State
     protected Vector2 startPosition;
     protected Vector2 patrolTarget;
     protected float waitTimer;
     protected bool isWaiting = false;
 
-    // [MỚI] Biến dùng để check xem có bị kẹt không
+    // Stuck Check
     private Vector2 lastPosition;
     private float stuckTimer;
+    private const float STUCK_THRESHOLD_TIME = 0.5f;
+    private const float MIN_MOVE_DISTANCE = 0.01f;
+    #endregion
 
+    #region Unity Lifecycle
     protected virtual void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null) playerTransform = player.transform;
+        InitializeComponents();
+        FindPlayer();
 
         startPosition = transform.position;
-        lastPosition = transform.position; // Khởi tạo vị trí cũ
+        lastPosition = transform.position;
 
         PickNewPatrolPoint();
     }
@@ -63,49 +61,35 @@ public class EnemyAI : MonoBehaviour
     {
         if (isDead) return;
 
+        // Nếu mất dấu player hoặc player chết -> Tuần tra
         if (playerTransform == null)
         {
             Patroling();
             return;
         }
 
-        // --- [SỬA LẠI: TỰ TÍNH TÂM (OFFSET) THAY VÌ DỰA VÀO COLLIDER] ---
+        float distanceToPlayer = GetCombatDistanceToPlayer();
 
-        // 1. Lấy vị trí chân + nâng lên một đoạn (combatCenterOffset)
-        Vector2 myCombatCenter = (Vector2)transform.position + new Vector2(0, combatCenterOffset);
-
-        // 2. Làm tương tự với Player (Giả sử Player cũng cần tính từ ngực)
-        Vector2 targetCombatCenter = (Vector2)playerTransform.position + new Vector2(0, combatCenterOffset);
-
-        // 3. Tính khoảng cách giữa 2 ĐIỂM NGỰC
-        float distance = Vector2.Distance(myCombatCenter, targetCombatCenter);
-
-        // ----------------------------------------
-
-        if (distance < chaseRange)
+        if (distanceToPlayer < chaseRange)
         {
-            Chasing(distance);
+            Chasing(distanceToPlayer);
         }
         else
         {
             Patroling();
         }
     }
+    #endregion
+
+    #region Core Logic (Overridable)
 
     protected virtual void Chasing(float distance)
     {
-        waitTimer = 0;
-        isWaiting = false;
-        stuckTimer = 0; // Khi đuổi theo thì reset bộ đếm kẹt
+        ResetPatrolState(); // Reset timer wait/stuck khi đang đuổi
 
         if (distance <= attackRange)
         {
-            StopMoving();
-            if (Time.time >= lastAttackTime + attackCooldown)
-            {
-                lastAttackTime = Time.time;
-                PerformAttack(); // Gọi hàm tấn công ảo
-            }
+            HandleCombat();
         }
         else
         {
@@ -117,67 +101,151 @@ public class EnemyAI : MonoBehaviour
     {
         float distanceToTarget = Vector2.Distance(transform.position, patrolTarget);
 
-        if (distanceToTarget < 0.2f)
+        if (distanceToTarget < stoppingDistance)
         {
-            StopMoving();
-            stuckTimer = 0; // Đến nơi rồi thì reset kẹt
-
-            if (waitTimer <= 0)
-            {
-                waitTimer = waitTime;
-                isWaiting = true;
-            }
-            else
-            {
-                waitTimer -= Time.fixedDeltaTime;
-                if (waitTimer <= 0)
-                {
-                    PickNewPatrolPoint();
-                    isWaiting = false;
-                }
-            }
+            HandlePatrolWait();
         }
         else
         {
             if (!isWaiting)
             {
                 MoveTo(patrolTarget);
-
-                // --- [MỚI] LOGIC CHỐNG KẸT (STUCK CHECK) ---
-                // Nếu đang cố đi mà vị trí không thay đổi nhiều -> Đang húc tường
-                if (Vector2.Distance(transform.position, lastPosition) < 0.01f * moveSpeed * Time.fixedDeltaTime * 5f)
-                {
-                    stuckTimer += Time.fixedDeltaTime;
-
-                    // Nếu đứng im quá 0.5 giây -> Chọn điểm mới ngay
-                    if (stuckTimer > 0.5f)
-                    {
-                        PickNewPatrolPoint();
-                        stuckTimer = 0;
-                    }
-                }
-                else
-                {
-                    stuckTimer = 0; // Đang đi tốt
-                }
-
-                lastPosition = transform.position; // Lưu vị trí frame này
+                CheckIfStuck();
             }
         }
     }
 
-    // --- HÀM ẢO (VIRTUAL) ĐỂ CON GHI ĐÈ ---
     protected virtual void PerformAttack()
     {
-        // Mặc định để trống, con nào cần animation thì override lại
+        // Class con sẽ override logic này (gây damage, play sound, v.v.)
     }
 
-    // --- CÁC HÀM HỖ TRỢ ---
+    #endregion
+
+    #region Helper Methods
+
+    private void InitializeComponents()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        mainCollider = GetComponent<Collider2D>();
+    }
+
+    private void FindPlayer()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null) playerTransform = player.transform;
+    }
+
+    // Tính khoảng cách dựa trên Offset ngực/tâm thay vì chân
+    protected float GetCombatDistanceToPlayer()
+    {
+        Vector2 myCenter = GetCombatCenter(transform);
+        Vector2 targetCenter = GetCombatCenter(playerTransform);
+        return Vector2.Distance(myCenter, targetCenter);
+    }
+
+    protected Vector2 GetCombatCenter(Transform t)
+    {
+        return (Vector2)t.position + new Vector2(0, combatCenterOffset);
+    }
+
+    private void HandleCombat()
+    {
+        StopMoving();
+        if (Time.time >= lastAttackTime + attackCooldown)
+        {
+            lastAttackTime = Time.time;
+            PerformAttack();
+        }
+    }
+
+    private void HandlePatrolWait()
+    {
+        StopMoving();
+        stuckTimer = 0; // Reset stuck khi đã đến đích
+
+        if (!isWaiting) // Bắt đầu chờ
+        {
+            waitTimer = waitTime;
+            isWaiting = true;
+        }
+        else // Đang chờ
+        {
+            waitTimer -= Time.fixedDeltaTime;
+            if (waitTimer <= 0)
+            {
+                PickNewPatrolPoint();
+                isWaiting = false;
+            }
+        }
+    }
+
+    private void CheckIfStuck()
+    {
+        // Kiểm tra quãng đường di chuyển được so với frame trước
+        float movedDistance = Vector2.Distance(transform.position, lastPosition);
+        float expectedMinDistance = MIN_MOVE_DISTANCE * moveSpeed * Time.fixedDeltaTime * 5f;
+
+        if (movedDistance < expectedMinDistance)
+        {
+            stuckTimer += Time.fixedDeltaTime;
+            if (stuckTimer > STUCK_THRESHOLD_TIME)
+            {
+                PickNewPatrolPoint(); // Kẹt quá lâu -> đổi điểm
+                stuckTimer = 0;
+            }
+        }
+        else
+        {
+            stuckTimer = 0; // Di chuyển tốt
+        }
+
+        lastPosition = transform.position;
+    }
+
+    protected void ResetPatrolState()
+    {
+        waitTimer = 0;
+        isWaiting = false;
+        stuckTimer = 0;
+    }
+
+    protected void PickNewPatrolPoint()
+    {
+        int maxAttempts = 10;
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            Vector2 randomDir = Random.insideUnitCircle * patrolRadius;
+            Vector2 potentialTarget = startPosition + randomDir;
+
+            if (IsPathClear(potentialTarget))
+            {
+                patrolTarget = potentialTarget;
+                return;
+            }
+        }
+        // Fallback: Đứng yên nếu không tìm được điểm
+        patrolTarget = transform.position;
+    }
+
+    private bool IsPathClear(Vector2 targetPos)
+    {
+        Vector2 direction = (targetPos - (Vector2)transform.position).normalized;
+        float distance = Vector2.Distance(transform.position, targetPos);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, obstacleLayer);
+        return hit.collider == null;
+    }
+
+    #endregion
+
+    #region Movement & Action
     protected void MoveTo(Vector2 target)
     {
         animator.SetBool("isMoving", true);
         Vector2 dir = (target - (Vector2)transform.position).normalized;
-        rb.MovePosition((Vector2)transform.position + (dir * moveSpeed * Time.fixedDeltaTime));
+        rb.MovePosition(rb.position + (dir * moveSpeed * Time.fixedDeltaTime));
         FlipSprite(target);
     }
 
@@ -187,38 +255,10 @@ public class EnemyAI : MonoBehaviour
         animator.SetBool("isMoving", false);
     }
 
-    // [MỚI] Hàm chọn điểm tuần tra thông minh hơn
-    protected void PickNewPatrolPoint()
-    {
-        // Thử tìm điểm hợp lệ tối đa 10 lần
-        for (int i = 0; i < 10; i++)
-        {
-            Vector2 randomDir = Random.insideUnitCircle * patrolRadius;
-            Vector2 potentialTarget = startPosition + randomDir;
-
-            // Bắn tia từ chân quái đến điểm dự kiến để xem có tường chắn không
-            Vector2 direction = (potentialTarget - (Vector2)transform.position).normalized;
-            float distance = Vector2.Distance(transform.position, potentialTarget);
-
-            // Kiểm tra va chạm với lớp Obstacle
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, obstacleLayer);
-
-            // Nếu không va vào tường (hit.collider == null) -> Điểm này OK
-            if (hit.collider == null)
-            {
-                patrolTarget = potentialTarget;
-                return;
-            }
-        }
-
-        // Nếu thử 10 lần mà vẫn vướng tường, đứng yên tại chỗ chờ lượt sau
-        patrolTarget = transform.position;
-    }
-
     protected void FlipSprite(Vector2 target)
     {
-        if (target.x < transform.position.x) spriteRenderer.flipX = true;
-        else spriteRenderer.flipX = false;
+        // So sánh x để lật mặt
+        spriteRenderer.flipX = target.x < transform.position.x;
     }
 
     public void TriggerDeath()
@@ -226,36 +266,33 @@ public class EnemyAI : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        rb.velocity = Vector2.zero;
+        StopMoving();
         rb.isKinematic = true;
-        animator.SetBool("isMoving", false);
         animator.SetBool("Dead", true);
 
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = false;
+        if (mainCollider != null) mainCollider.enabled = false;
     }
+    #endregion
 
+    #region Debugging
     protected virtual void OnDrawGizmosSelected()
     {
-        // Tính tâm vẽ dựa trên offset
         Vector3 center = transform.position + new Vector3(0, combatCenterOffset, 0);
 
+        // Combat Ranges
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(center, chaseRange);
-
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(center, attackRange);
-
-        // Vẽ thêm 1 chấm nhỏ để biết tâm đang ở đâu
         Gizmos.color = Color.blue;
         Gizmos.DrawSphere(center, 0.1f);
 
-        // Vẽ vùng tuần tra (Patrol) vẫn lấy chân làm gốc
+        // Patrol Area
         Gizmos.color = Color.green;
         Vector3 patrolCenter = Application.isPlaying ? (Vector3)startPosition : transform.position;
         Gizmos.DrawWireSphere(patrolCenter, patrolRadius);
 
-        // Vẽ điểm đang định đi tới
+        // Target Line
         if (Application.isPlaying)
         {
             Gizmos.color = Color.magenta;
@@ -263,4 +300,5 @@ public class EnemyAI : MonoBehaviour
             Gizmos.DrawSphere(patrolTarget, 0.2f);
         }
     }
+    #endregion
 }

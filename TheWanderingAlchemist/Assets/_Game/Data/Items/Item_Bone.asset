@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Item_Bone
   m_EditorClassIdentifier: 
   id: BoneItem
-  itemName: "X\u01B0\u01A1ng c\u1EE7a Skeleton"
+  itemName: "X\u01B0\u01A1ng skeleton"
   description: "X\u01B0\u01A1ng c\u1EE7a Skeleton...."
   icon: {fileID: 21300000, guid: bb0d5c1c44a5cfe40a74f0a49a140442, type: 3}
-  typel: 0
+  itemType: 0
   maxStackSize: 99
   baseValue: 150
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
   isConsumable: 0
   healthRestore: 0

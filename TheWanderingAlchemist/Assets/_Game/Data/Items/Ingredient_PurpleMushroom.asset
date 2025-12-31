@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: Ingredient_PurpleMushroom
   m_EditorClassIdentifier: 
   id: 'mushroom_purple '
-  itemName: "N\u1EA5m T\xEDm"
+  itemName: "N\u1EA5m t\xEDm"
   description: "M\u1ED9t lo\u1EA1i n\u1EA5m ph\u1ED5 bi\u1EBFn d\xF9ng \u0111\u1EC3
     n\u1EA5u thu\u1ED1c"
   icon: {fileID: -1820760015, guid: fe1cfeece9ccb56488bf46ade8c6fa40, type: 3}
-  typel: 0
+  itemType: 0
   maxStackSize: 99
   baseValue: 10
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
+  isConsumable: 0
+  healthRestore: 0

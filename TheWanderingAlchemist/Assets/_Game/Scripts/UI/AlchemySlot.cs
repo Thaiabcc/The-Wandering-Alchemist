@@ -1,50 +1,76 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // Thêm thư viện TextMeshPro
+using TMPro;
 
 public class AlchemySlot : MonoBehaviour
 {
     [Header("UI")]
-    public Image iconDisplay;
-    public TextMeshProUGUI amountText; // <--- THÊM MỚI: Hiển thị số lượng
+    [SerializeField] private Image iconDisplay;
+    [SerializeField] private TextMeshProUGUI amountText;
 
-    [Header("Dữ liệu")]
-    public ItemData currentItem;
-    public int currentAmount = 0; // <--- THÊM MỚI: Đang chứa bao nhiêu?
+    [Header("Data")]
+    [SerializeField] private ItemData currentItem;
+    [SerializeField] private int currentAmount;
 
-    // Hàm cập nhật mới (Nhận cả Item và Số lượng)
+    public ItemData CurrentItem => currentItem;
+    public int CurrentAmount => currentAmount;
+
+    // ==============================
+    // Visual Update
+    // ==============================
     public void UpdateVisual(ItemData item, int amount)
     {
+        if (item == null || amount <= 0)
+        {
+            Clear();
+            return;
+        }
+
         currentItem = item;
         currentAmount = amount;
 
-        if (item != null && amount > 0)
-        {
-            iconDisplay.sprite = item.icon;
-            iconDisplay.enabled = true;
-            iconDisplay.color = Color.white;
+        iconDisplay.sprite = item.icon;
+        iconDisplay.enabled = true;
+        iconDisplay.color = Color.white;
 
-            // Hiển thị số lượng
-            if (amountText != null)
-            {
-                amountText.text = amount.ToString();
-                amountText.gameObject.SetActive(true);
-            }
-        }
-        else
-        {
-            // Reset
-            currentItem = null;
-            currentAmount = 0;
-            iconDisplay.sprite = null;
-            iconDisplay.enabled = false;
-            if (amountText != null) amountText.gameObject.SetActive(false);
-        }
+        UpdateAmountText(amount);
     }
 
+    // ==============================
+    // Clear
+    // ==============================
+    private void Clear()
+    {
+        currentItem = null;
+        currentAmount = 0;
+
+        iconDisplay.sprite = null;
+        iconDisplay.enabled = false;
+
+        if (amountText != null)
+            amountText.gameObject.SetActive(false);
+    }
+
+    // ==============================
+    // Amount Text
+    // ==============================
+    private void UpdateAmountText(int amount)
+    {
+        if (amountText == null)
+            return;
+
+        amountText.text = amount.ToString();
+        amountText.gameObject.SetActive(true);
+    }
+
+    // ==============================
+    // Input
+    // ==============================
     public void OnSlotClicked()
     {
-        // Gọi lên trùm, bảo là tao muốn chọn đồ
+        if (AlchemyUI.Instance == null)
+            return;
+
         AlchemyUI.Instance.StartSelection(this);
     }
 }

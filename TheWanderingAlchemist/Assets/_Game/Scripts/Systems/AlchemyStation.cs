@@ -2,29 +2,21 @@
 
 public class AlchemyStation : MonoBehaviour, IInteractable
 {
-    // Xóa dòng biến GameObject alchemyPanel cũ đi
-    // [SerializeField] private GameObject alchemyPanel; <--- XÓA HOẶC COMMENT
-
     public void Interact()
     {
-        // Gọi thẳng vào Singleton của AlchemyUI
-        if (AlchemyUI.Instance != null)
-        {
-            // Kiểm tra xem bảng đang mở hay đóng
-            bool isOpening = !AlchemyUI.Instance.alchemyPanel.activeSelf;
+        AlchemyUI alchemyUI = AlchemyUI.Instance;
 
-            if (isOpening)
-            {
-                AlchemyUI.Instance.OpenPanel();
-            }
-            else
-            {
-                AlchemyUI.Instance.CloseButtonAction();
-            }
-        }
-        else
+        if (alchemyUI == null)
         {
-            Debug.LogError("Lỗi: Không tìm thấy AlchemyUI! (Kiểm tra xem UI_Manager đã chạy từ đầu chưa?)");
+            Debug.LogError("Không tìm thấy Alchemist !...");
+            return;
         }
+
+        bool isOpening = !alchemyUI.alchemyPanel.activeSelf;
+
+        if (isOpening)
+            alchemyUI.OpenPanel();
+        else
+            alchemyUI.CloseButtonAction();
     }
 }

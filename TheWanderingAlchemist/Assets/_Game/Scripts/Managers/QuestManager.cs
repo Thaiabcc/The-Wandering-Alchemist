@@ -1,60 +1,66 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class QuestManager : MonoBehaviour
 {
     public static QuestManager Instance { get; private set; }
 
     [Header("Trạng thái Nhiệm vụ")]
-    public bool isQuestStarted = false;   // Đã nhận Q chưa?
-    public bool isQuestCompleted = false; // Đã xong Q (đã nhận thưởng) chưa?
+    public bool isQuestStarted;
+    public bool isQuestCompleted;
 
     [Header("Tiến độ")]
-    public int killCount = 0;      // Đã giết bao nhiêu
-    public int targetKills = 3;    // Cần giết bao nhiêu
+    public int killCount;
+    public int targetKills = 3;
 
+    // ==============================
+    // Unity Lifecycle
+    // ==============================
     private void Awake()
     {
-        if (Instance != null && Instance != this) Destroy(this);
-        else Instance = this;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
-        // Giữ lại khi chuyển cảnh (để sang map khác đánh quái vẫn tính)
+        Instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
-    // Hàm gọi khi nhận nhiệm vụ từ NPC
+    // ==============================
+    // Quest Logic
+    // ==============================
     public void AcceptQuest()
     {
-        if (!isQuestStarted)
-        {
-            isQuestStarted = true;
-            killCount = 0; // Reset lại cho chắc
-            Debug.Log("Đã nhận nhiệm vụ: Diệt Slime!");
-        }
+        if (isQuestStarted)
+            return;
+
+        isQuestStarted = true;
+        killCount = 0;
+
+        Debug.Log("Đã nhận nhiệm vụ: Diệt Slime!");
     }
 
-    // Hàm gọi khi một con quái chết
     public void AddKill()
     {
-        // Chỉ tính nếu nhiệm vụ đang chạy VÀ chưa hoàn thành xong hẳn
-        if (isQuestStarted && !isQuestCompleted)
-        {
-            killCount++;
-            Debug.Log($"Tiến độ: {killCount}/{targetKills}");
+        if (!isQuestStarted || isQuestCompleted)
+            return;
 
-            if (killCount >= targetKills)
-            {
-                Debug.Log("Nhiệm vụ hoàn tất! Về gặp NPC nhận thưởng thôi.");
-            }
+        killCount++;
+        Debug.Log($"Tiến độ: {killCount}/{targetKills}");
+
+        if (killCount >= targetKills)
+        {
+            Debug.Log("Nhiệm vụ hoàn tất! Về gặp NPC nhận thưởng thôi.");
         }
     }
 
-    // Hàm nhận thưởng (Gọi khi nói chuyện xong với NPC lần cuối)
     public void CompleteQuest()
     {
+        if (isQuestCompleted)
+            return;
+
         isQuestCompleted = true;
         Debug.Log("Đã nhận thưởng! +100 Vàng (Ví dụ)");
-        // Sau này thêm code cộng tiền/vàng vào đây
     }
 }

@@ -6,97 +6,120 @@ public class NPCInteraction : MonoBehaviour
     [SerializeField] private string npcName = "Trưởng Làng";
 
     [Header("Các đoạn hội thoại")]
-    [TextArea(2, 5)][SerializeField] private string[] questStartLines; // 1. Mời nhận Q
-    [TextArea(2, 5)][SerializeField] private string[] questProgressLines; // 2. Đang làm (Hối thúc)
-    [TextArea(2, 5)][SerializeField] private string[] questCompletedLines; // 3. Đã xong (Khen thưởng)
-    [TextArea(2, 5)][SerializeField] private string[] afterQuestLines; // 4. Sau khi xong hết (Chém gió)
+    [TextArea(2, 5)][SerializeField] private string[] questStartLines;
+    [TextArea(2, 5)][SerializeField] private string[] questProgressLines;
+    [TextArea(2, 5)][SerializeField] private string[] questCompletedLines;
+    [TextArea(2, 5)][SerializeField] private string[] afterQuestLines;
 
     [Header("Cài đặt khác")]
     [SerializeField] private GameObject interactKey;
 
-    private bool isPlayerInRange = false;
+    private bool isPlayerInRange;
 
+    // ==============================
+    // Unity Lifecycle
+    // ==============================
     private void Start()
     {
-        if (interactKey != null) interactKey.SetActive(false);
+        SetInteractKey(false);
     }
 
     private void Update()
     {
-        if (isPlayerInRange && Input.GetKeyDown(KeyCode.E))
+        if (!isPlayerInRange)
+            return;
+
+        if (!Input.GetKeyDown(KeyCode.E))
+            return;
+
+        DialogueManager dialogue = DialogueManager.Instance;
+        if (dialogue == null)
+            return;
+
+        if (dialogue.IsDialogueActive)
         {
-            if (DialogueManager.Instance != null)
-            {
-                if (DialogueManager.Instance.IsDialogueActive)
-                {
-                    // Nếu đang nói dở -> Next câu
-                    DialogueManager.Instance.DisplayNextSentence();
-                }
-                else
-                {
-                    // Nếu chưa nói -> Bắt đầu hội thoại (Kiểm tra trạng thái Q)
-                    CheckQuestStatusAndTalk();
-                }
-            }
+            dialogue.DisplayNextSentence();
+            return;
         }
+
+        CheckQuestStatusAndTalk();
     }
 
+    // ==============================
+    // Dialogue Logic
+    // ==============================
     private void CheckQuestStatusAndTalk()
     {
         QuestManager qm = QuestManager.Instance;
-        if (qm == null) return;
+        if (qm == null)
+            return;
 
-        // TRƯỜNG HỢP 1: Chưa nhận nhiệm vụ
+        // 1️⃣ Chưa nhận nhiệm vụ
         if (!qm.isQuestStarted)
         {
             DialogueManager.Instance.StartDialogue(npcName, questStartLines);
-            qm.AcceptQuest(); // Tự động nhận Q luôn khi nói chuyện
+            qm.AcceptQuest();
             return;
         }
 
-        // TRƯỜNG HỢP 2: Đã xong nhiệm vụ (Đủ số lượng) NHƯNG chưa nhận thưởng
-        if (qm.isQuestStarted && !qm.isQuestCompleted && qm.killCount >= qm.targetKills)
+        // 2️⃣ Đã đủ điều kiện hoàn thành nhưng chưa nhận thưởng
+        if (!qm.isQuestCompleted && qm.killCount >= qm.targetKills)
         {
             DialogueManager.Instance.StartDialogue(npcName, questCompletedLines);
-            qm.CompleteQuest(); // Nhận thưởng
+            qm.CompleteQuest();
             return;
         }
 
-        // TRƯỜNG HỢP 3: Đang làm nhiệm vụ (Chưa đủ số lượng)
-        if (qm.isQuestStarted && !qm.isQuestCompleted)
+        // 3️⃣ Đang làm nhiệm vụ
+        if (!qm.isQuestCompleted)
         {
-            // Tạo câu thoại động: "Ngươi mới giết X/3 con thôi!"
-            string statusLine = $"Ngươi mới diệt được {qm.killCount}/{qm.targetKills} con thôi. Làm việc nhanh cái tay lên!";
-            string[] dynamicLines = { questProgressLines[0], statusLine };
+            string statusLine =
+                $"Ngươi mới diệt được {qm.killCount}/{qm.targetKills} con thôi. Làm việc nhanh cái tay lên!";
+
+            string[] dynamicLines =
+            {
+                questProgressLines.Length > 0 ? questProgressLines[0] : statusLine,
+                statusLine
+            };
 
             DialogueManager.Instance.StartDialogue(npcName, dynamicLines);
             return;
         }
 
-        // TRƯỜNG HỢP 4: Đã xong tất cả
-        if (qm.isQuestCompleted)
-        {
-            DialogueManager.Instance.StartDialogue(npcName, afterQuestLines);
-        }
+        // 4️⃣ Hoàn thành xong hết
+        DialogueManager.Instance.StartDialogue(npcName, afterQuestLines);
     }
 
-    // ... (Giữ nguyên OnTriggerEnter/Exit như cũ) ...
+    // ==============================
+    // Trigger
+    // ==============================
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-        {
-            isPlayerInRange = true;
-            if (interactKey != null) interactKey.SetActive(true);
-        }
+        if (!collision.CompareTag("Player"))
+            return;
+
+        isPlayerInRange = true;
+        SetInteractKey(true);
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-        {
-            isPlayerInRange = false;
-            if (interactKey != null) interactKey.SetActive(false);
-            if (DialogueManager.Instance != null) DialogueManager.Instance.EndDialogue();
-        }
+        if (!collision.CompareTag("Player"))
+            return;
+
+        isPlayerInRange = false;
+        SetInteractKey(false);
+
+        if (DialogueManager.Instance != null)
+            DialogueManager.Instance.EndDialogue();
+    }
+
+    // ==============================
+    // Utils
+    // ==============================
+    private void SetInteractKey(bool state)
+    {
+        if (interactKey != null)
+            interactKey.SetActive(state);
     }
 }

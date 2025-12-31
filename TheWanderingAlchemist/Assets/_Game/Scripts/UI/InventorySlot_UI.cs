@@ -4,100 +4,138 @@ using TMPro;
 
 public class InventorySlot_UI : MonoBehaviour
 {
-    [Header("Thành phần UI")]
-    [SerializeField] private Image iconImage;
+    [Header("UI")]
+    [SerializeField] private Image icon;
     [SerializeField] private TextMeshProUGUI amountText;
+    [SerializeField] private Button button;
 
-    // --- THÊM: Biến này để code tự tìm nút ---
-    public Button slotButton;
+    private ItemData item;
+    public ItemData Item => item;
 
-    private ItemData currentItem;
-
-    // --- THÊM: Hàm Awake để tự động nối dây (Auto-wiring) ---
     private void Awake()
     {
-        // 1. Tự tìm nút nếu quên kéo (Tìm trên chính nó hoặc con nó)
-        if (slotButton == null)
-        {
-            slotButton = GetComponent<Button>();
-            if (slotButton == null) slotButton = GetComponentInChildren<Button>();
-        }
-
-        // 2. Tự động gắn hàm OnClick vào nút
-        if (slotButton != null)
-        {
-            slotButton.onClick.RemoveAllListeners(); // Xóa sạch dây cũ cho chắc
-            slotButton.onClick.AddListener(OnClick); // Nối dây mới vào hàm OnClick ở dưới
-        }
+        AutoWireButton();
     }
 
-    public void SetItem(ItemData item, int amount)
-    {
-        currentItem = item;
-        if (item != null)
-        {
-            iconImage.sprite = item.icon;
-            iconImage.enabled = true;
-            iconImage.color = Color.white;
+    // ------------------ SETUP ------------------
 
-            if (amount > 1)
-            {
-                amountText.text = amount.ToString();
-                amountText.gameObject.SetActive(true);
-            }
-            else
-            {
-                amountText.gameObject.SetActive(false);
-            }
+    public void SetItem(ItemData newItem, int amount)
+    {
+        item = newItem;
+
+        if (item == null)
+        {
+            Clear();
+            return;
+        }
+
+        icon.sprite = item.icon;
+        icon.enabled = true;
+
+        amountText.gameObject.SetActive(amount > 1);
+        amountText.text = amount.ToString();
+    }
+
+    public void Clear()
+    {
+        item = null;
+
+        if (icon != null)
+        {
+            icon.enabled = false;
+        }
+
+        if (amountText != null)
+        {
+            amountText.gameObject.SetActive(false);
+        }
+    }
+    public void ClearSlot() 
+    {
+        Clear();
+    }
+
+    // ------------------ CLICK ------------------
+
+    private void OnClick()
+    {
+        if (item == null) return;
+
+        if (TrySellItem()) return;
+        if (TrySendToAlchemy()) return;
+
+        TryConsumeItem();
+    }
+
+    // ------------------ ACTIONS ------------------
+
+    private bool TrySellItem()
+    {
+        if (ShopUI.Instance == null || !ShopUI.Instance.IsShopOpen())
+            return false;
+
+        ShopUI.Instance.TrySellItem(item);
+        return true;
+    }
+
+    private bool TrySendToAlchemy()
+    {
+        if (AlchemyUI.Instance == null || !AlchemyUI.Instance.IsSelecting())
+            return false;
+
+        AlchemyUI.Instance.ReceiveItemFromInventory(item);
+        return true;
+    }
+
+    private void TryConsumeItem()
+    {
+        if (!item.isConsumable) return;
+        PlayerStats player = PlayerStats.Instance;
+        if (player == null) return;
+        bool itemUsed = false;
+
+        // Health
+        if(item.healthRestore > 0 && player.currentHealth < player.MaxHealth)
+        {
+            player.Heal((int)item.healthRestore);
+            itemUsed = true;
+        }    
+
+        // Stamina
+        if(item.staminaRestore > 0 && player.currentStamina < player.maxStamina)
+        {
+            player.RegenerateStamina(item.staminaRestore);
+            itemUsed = true;
+        }
+
+        // Buff Dame
+        if(item.damagebuffAmount > 0)
+        {
+            player.ApplyBuffDamage(item.damagebuffAmount, item.buffduration);
+            itemUsed = true;
+        }
+
+        // End
+        if (itemUsed)
+        {
+            InventoryManager.Instance.RemoveItem(item, 1);
         }
         else
         {
-            ClearSlot();
+            Debug.Log("Error....!");
         }
     }
 
-    public void ClearSlot()
+    // ------------------ UTIL ------------------
+
+    private void AutoWireButton()
     {
-        currentItem = null;
-        iconImage.sprite = null;
-        iconImage.enabled = false;
-        amountText.text = "";
-        amountText.gameObject.SetActive(false);
-    }
+        if (!button)
+            button = GetComponent<Button>() ?? GetComponentInChildren<Button>();
 
-    // --- HÀM XỬ LÝ CLICK (Đã được nối dây tự động ở Awake) ---
-    public void OnClick()
-    {
-        if (currentItem == null) return;
+        if (!button) return;
 
-        // --- ƯU TIÊN 1: BÁN HÀNG (Nếu Shop đang mở) ---
-        if (ShopUI.Instance != null && ShopUI.Instance.IsShopOpen())
-        {
-            ShopUI.Instance.TrySellItem(currentItem);
-            return;
-        }
-
-        // --- ƯU TIÊN 2: CHỌN NGUYÊN LIỆU (Nếu Lò Luyện đang mở) ---
-        // (Lưu ý: Bạn cần đảm bảo AlchemyUI có hàm IsSelecting và ReceiveItemFromInventory nhé)
-        if (AlchemyUI.Instance != null && AlchemyUI.Instance.IsSelecting())
-        {
-            AlchemyUI.Instance.ReceiveItemFromInventory(currentItem);
-            return;
-        }
-
-        // --- ƯU TIÊN 3: SỬ DỤNG / ĂN ---
-        if (currentItem.isConsumable)
-        {
-            if (PlayerStats.Instance.currentHealth < 100)
-            {
-                PlayerStats.Instance.Heal(currentItem.healthRestore);
-                // Trừ 1 cái sau khi ăn
-                InventoryManager.Instance.RemoveItem(currentItem, 1);
-            }
-            else
-            {
-                Debug.Log("Máu đầy rồi, không uống nữa!");
-            }
-        }
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(OnClick);
     }
 }

@@ -4,157 +4,349 @@ using System.Collections;
 public class FlyingRangeBoss : EnemyAI
 {
     [Header("--- CÀI ĐẶT DI CHUYỂN ---")]
-    public float stopDistance = 5f;     // Khoảng cách dừng lại
-    public float flyHeight = 2f;        // Bay cao hơn đầu Player bao nhiêu
-    public float bobSpeed = 2f;         // Tốc độ nhấp nhô
+    public float stopDistance = 5f;
+    public float flyHeight = 2f;
+    public float bobSpeed = 2f;
 
     [Header("--- TẤN CÔNG (3 KHÚC) ---")]
-    public Transform firePoint;         // Vị trí bắn (tay/miệng)
-    public GameObject part1Prefab;      // Khúc 1 (Gốc)
-    public GameObject part2Prefab;      // Khúc 2 (Giữa)
-    public GameObject part3Prefab;      // Khúc 3 (Ngọn)
-    public float segmentLength = 1.5f;  // Chiều dài mỗi khúc
-    public float spawnDelay = 0.1f;     // Độ trễ giữa các khúc
+    public Transform firePoint;
+    public GameObject part1Prefab;
+    public GameObject part2Prefab;
+    public GameObject part3Prefab;
+    public float segmentLength = 1.5f;
+    public float spawnDelay = 0.1f;
 
-    [Header("--- KỸ NĂNG: TELEPORT ---")]
-    [Tooltip("Tỉ lệ dùng Teleport thay vì bắn thường (0-100)")]
+    [Header("--- KỸ NĂNG: TELEPORT (SÁT THỦ) ---")]
+    [Tooltip("Tỉ lệ dùng Teleport (0-100)")]
     public int teleportChance = 30;
-    [Tooltip("Thời gian tàng hình")]
-    public float teleportDuration = 0.2f;
-    [Tooltip("Khoảng cách xuất hiện sau lưng Player")]
-    public float teleportOffset = 2.0f;
+    public float teleportDuration = 0.5f;
+    public float teleportOffset = 3.0f;
+    [Tooltip("Thời gian đứng cảnh báo sau khi hiện hình rồi mới đánh")]
+    public float postTeleportIdleTime = 1.0f;
 
-    [Header("--- KỸ NĂNG: RAGE MODE (HÓA ĐIÊN) ---")]
+    [Header("--- KỸ NĂNG: HÓA ĐIÊN (RAGE) ---")]
     public bool enableRage = true;
-    public Color rageColor = Color.red; // Màu khi hóa điên
-    public GameObject rageVFX;          // Hiệu ứng nổ khi gồng xong
+    public Color rageColor = Color.red;
+    public GameObject rageVFX;
+    public float chargeDuration = 3.0f;
+    public GameObject rockPrefab; // Prefab đá rơi/cảnh báo
+    public float rockSpawnRate = 0.2f;
 
-    [Header("--- HIỆU ỨNG GỒNG (TRANSITION) ---")]
-    public float chargeDuration = 3.0f; // Thời gian đứng gồng
-    public GameObject rockPrefab;       // Prefab hòn đá rơi
-    public float rockSpawnRate = 0.2f;  // Tốc độ rơi đá (giây/viên)
+    [Header("--- CƠ CHẾ POISE (SEKIRO STYLE) ---")]
+    public float maxPoise = 100f;
+    public float poiseRecoveryRate = 5f;
 
-    // --- BIẾN NỘI BỘ ---
+    [Header("--- UI KẾT NỐI ---")]
+    public BossHUD bossHUD;
+
+    [Header("--- TUẦN TRA (WAYPOINTS) ---")]
+    public Transform[] patrolPoints;
+
+    // ===============================
+    // BIẾN NỘI BỘ
+    // ===============================
+    private int currentPatrolIndex = 0;
+    private float waypointWaitTimer = 0;
+
     private bool isRaging = false;
-    private bool isCharging = false;    // Đang trong trạng thái gồng
+    private bool isCharging = false;
+    private bool isTeleporting = false;
+    private bool isStunned = false;
+    private bool isFightStarted = false; // Check xem đã vào trận chưa
+
+    private float currentPoise;
+
     private SpriteRenderer mySprite;
     private Collider2D myCollider;
-    private Vector3 originalScale;      // Lưu scale gốc
+    private Vector3 originalScale;
 
+    // ===============================
+    // KHỞI TẠO
+    // ===============================
     protected override void Start()
     {
         base.Start();
-        // Tắt trọng lực để bay
-        rb.gravityScale = 0;
+        rb.gravityScale = 0; // Boss bay không chịu trọng lực
         attackRange = stopDistance;
+        currentPoise = maxPoise;
 
         mySprite = GetComponent<SpriteRenderer>();
         myCollider = GetComponent<Collider2D>();
         originalScale = transform.localScale;
+
+        // Setup UI nhưng ẨN đi (Chờ kích hoạt)
+        if (bossHUD != null)
+        {
+            bossHUD.gameObject.SetActive(false); // <--- QUAN TRỌNG: Ẩn ngay lập tức
+        }
     }
 
+    // ===============================
+    // LOGIC CHÍNH (BRAIN)
+    // ===============================
     protected override void FixedUpdate()
     {
         if (isDead || playerTransform == null) return;
 
-        // 1. NẾU ĐANG GỒNG -> ĐỨNG IM TUYỆT ĐỐI
-        if (isCharging)
+        // 1. Hồi phục Poise nếu không bị choáng và chưa vào trận găng
+        if (!isStunned && currentPoise < maxPoise && !isCharging)
+        {
+            currentPoise += poiseRecoveryRate * Time.fixedDeltaTime;
+            if (bossHUD != null) bossHUD.UpdatePoise(currentPoise);
+        }
+
+        // 2. Nếu đang bận (Gồng/Tele/Stun) -> Đứng im
+        if (isCharging || isTeleporting || isStunned)
         {
             rb.velocity = Vector2.zero;
             animator.SetBool("isMoving", false);
-            return; // Dừng mọi logic khác
+            return;
         }
 
-        // 2. LOGIC QUAY MẶT (Luôn nhìn về phía Player)
-        // Dùng Mathf.Abs để tránh lỗi scale âm bị lật ngược hình
-        float facingX = (playerTransform.position.x > transform.position.x) ? 1 : -1;
-        float currentScaleX = Mathf.Abs(transform.localScale.x);
-        transform.localScale = new Vector3(currentScaleX * facingX, transform.localScale.y, 1);
-
-        // 3. DI CHUYỂN
-        Vector2 targetPos = playerTransform.position;
-        targetPos.y += flyHeight + Mathf.Sin(Time.time * bobSpeed) * 0.5f; // Cộng thêm nhấp nhô
-
+        // 3. Đo khoảng cách
         float distance = Vector2.Distance(transform.position, playerTransform.position);
 
-        if (distance > stopDistance)
+        // --- LOGIC KÍCH HOẠT TRẬN ĐẤU (AGGRO) ---
+        // Nếu thấy Player VÀ Trận đấu chưa bắt đầu -> Kích hoạt!
+        if (distance < chaseRange && !isFightStarted && CheckLineOfSight())
         {
-            // Đuổi theo
-            animator.SetBool("isMoving", true);
-            rb.MovePosition(Vector2.MoveTowards(transform.position, targetPos, moveSpeed * Time.fixedDeltaTime));
+            StartBossFight();
         }
-        else
+
+        // --- LOGIC QUAY MẶT ---
+        if (distance < chaseRange)
         {
-            // Dừng lại & Tấn công
-            animator.SetBool("isMoving", false);
-            rb.velocity = Vector2.zero;
+            float face = (playerTransform.position.x > transform.position.x) ? 1 : -1;
+            float currentScaleX = Mathf.Abs(transform.localScale.x);
+            transform.localScale = new Vector3(currentScaleX * face, transform.localScale.y, 1);
+        }
 
-            if (Time.time >= lastAttackTime + attackCooldown)
+        // --- LOGIC DI CHUYỂN & TẤN CÔNG ---
+        // Chỉ đuổi khi đã vào trận VÀ nhìn thấy Player
+        if (isFightStarted && distance < chaseRange && CheckLineOfSight())
+        {
+            // Nếu chưa đến tầm bắn -> Đuổi theo
+            if (distance > stopDistance)
             {
-                lastAttackTime = Time.time;
+                animator.SetBool("isMoving", true);
 
-                // Random: Teleport hay Đánh?
-                if (Random.Range(0, 100) < teleportChance)
+                Vector2 targetPos = playerTransform.position;
+                targetPos.y += flyHeight + Mathf.Sin(Time.time * bobSpeed) * 0.5f; // Bay nhấp nhô
+
+                rb.MovePosition(Vector2.MoveTowards(transform.position, targetPos, moveSpeed * Time.fixedDeltaTime));
+            }
+            // Nếu đã đến tầm -> Dừng & Đánh
+            else
+            {
+                animator.SetBool("isMoving", false);
+
+                // Cơ chế Spacing: Nếu Player lại quá gần -> Lùi lại 1 chút
+                if (distance < stopDistance * 0.5f)
                 {
-                    StartCoroutine(TeleportSkill());
+                    Vector2 back = Vector2.MoveTowards(transform.position, playerTransform.position, -moveSpeed * Time.fixedDeltaTime);
+                    rb.MovePosition(back);
                 }
                 else
                 {
-                    animator.SetTrigger("Attack");
+                    rb.velocity = Vector2.zero;
                 }
+
+                if (Time.time >= lastAttackTime + attackCooldown)
+                {
+                    lastAttackTime = Time.time;
+                    DecideAttack();
+                }
+            }
+        }
+        else
+        {
+            // Không thấy Player hoặc chưa vào trận -> Đi tuần tra
+            Patroling();
+        }
+    }
+
+    // ===============================
+    // HÀM KÍCH HOẠT TRẬN ĐẤU
+    // ===============================
+    void StartBossFight()
+    {
+        isFightStarted = true;
+
+        // Hiện thanh máu lên
+        if (bossHUD != null)
+            bossHUD.gameObject.SetActive(true);
+
+        Debug.Log("BOSS FIGHT STARTED!");
+        // Bro có thể thêm code phát nhạc Boss ở đây
+    }
+
+    // ===============================
+    // LOGIC TUẦN TRA (WAYPOINTS)
+    // ===============================
+    protected override void Patroling()
+    {
+        if (patrolPoints == null || patrolPoints.Length == 0)
+        {
+            float bob = Mathf.Sin(Time.time * bobSpeed) * 0.01f;
+            transform.position += new Vector3(0, bob, 0);
+            return;
+        }
+
+        Transform target = patrolPoints[currentPatrolIndex];
+        float dist = Vector2.Distance(transform.position, target.position);
+
+        // Quay mặt về điểm đến
+        float face = (target.position.x > transform.position.x) ? 1 : -1;
+        float currentScaleX = Mathf.Abs(transform.localScale.x);
+        transform.localScale = new Vector3(currentScaleX * face, transform.localScale.y, 1);
+
+        if (dist < 0.2f)
+        {
+            if (waypointWaitTimer <= 0)
+            {
+                waypointWaitTimer = waitTime;
+            }
+            else
+            {
+                waypointWaitTimer -= Time.deltaTime;
+                if (waypointWaitTimer <= 0)
+                {
+                    currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
+                }
+            }
+        }
+        else
+        {
+            animator.SetBool("isMoving", true);
+            Vector2 next = Vector2.MoveTowards(transform.position, target.position, moveSpeed * 0.5f * Time.fixedDeltaTime);
+            next.y += Mathf.Sin(Time.time * bobSpeed) * 0.02f;
+            rb.MovePosition(next);
+        }
+    }
+
+    // ===============================
+    // CÁC HÀM HỖ TRỢ & NHẬN DAME
+    // ===============================
+    private bool CheckLineOfSight()
+    {
+        Vector2 dir = (playerTransform.position - transform.position).normalized;
+        float dist = Vector2.Distance(transform.position, playerTransform.position);
+
+        // Bắn tia Raycast chỉ va chạm với lớp Obstacle
+        return Physics2D.Raycast(transform.position, dir, dist, obstacleLayer).collider == null;
+    }
+
+    // Hàm này được gọi từ EnemyHealth.cs
+    public void TakeDamage(float damage)
+    {
+        // Nếu bị đánh lén mà chưa bật Mode chiến đấu -> BẬT LUÔN
+        if (!isFightStarted) StartBossFight();
+
+        // Xử lý Poise
+        if (!isStunned && !isCharging)
+        {
+            currentPoise -= damage * 2f;
+            if (bossHUD != null) bossHUD.UpdatePoise(currentPoise);
+
+            if (currentPoise <= 0)
+            {
+                StartCoroutine(StunState());
             }
         }
     }
 
-    // =========================================================
-    // PHẦN 1: LOGIC TELEPORT SÁT THỦ
-    // =========================================================
+    IEnumerator StunState()
+    {
+        isStunned = true;
+        animator.SetTrigger("Hurt"); // Animation bị choáng
+
+        Color old = mySprite.color;
+        mySprite.color = Color.gray; // Đổi màu báo hiệu
+
+        yield return new WaitForSeconds(2.0f); // Thời gian choáng
+
+        currentPoise = maxPoise; // Hồi phục lại
+        if (bossHUD != null) bossHUD.UpdatePoise(currentPoise);
+
+        mySprite.color = old;
+        isStunned = false;
+    }
+
+    void DecideAttack()
+    {
+        int chance = isRaging ? teleportChance + 20 : teleportChance;
+
+        if (Random.Range(0, 100) < chance)
+        {
+            StartCoroutine(TeleportSkill());
+        }
+        else
+        {
+            animator.SetTrigger("Attack");
+        }
+    }
+
+    // ===============================
+    // KỸ NĂNG: TELEPORT
+    // ===============================
     IEnumerator TeleportSkill()
     {
-        // Dừng di chuyển
-        rb.velocity = Vector2.zero;
+        isTeleporting = true;
         animator.SetBool("isMoving", false);
 
-        // Tàng hình & Tắt va chạm
+        // 1. Biến mất
         if (mySprite) mySprite.enabled = false;
         if (myCollider) myCollider.enabled = false;
 
         yield return new WaitForSeconds(teleportDuration);
 
-        // Tính toán vị trí SAU LƯNG Player
-        // Lấy hướng nhìn của Player (-1 là trái, 1 là phải)
-        float playerDir = Mathf.Sign(playerTransform.localScale.x);
-        float behindDir = -playerDir;
-
-        // Vị trí mới = Player + (Hướng sau lưng * Khoảng cách NGẮN)
+        // 2. Xuất hiện sau lưng
+        float dir = -Mathf.Sign(playerTransform.localScale.x);
         Vector2 teleportPos = new Vector2(
-            playerTransform.position.x + (behindDir * teleportOffset),
+            playerTransform.position.x + dir * teleportOffset,
             playerTransform.position.y + flyHeight
         );
-
         transform.position = teleportPos;
 
-        // Hiện hình & Bật lại va chạm
+        // 3. Hiện hình
         if (mySprite) mySprite.enabled = true;
         if (myCollider) myCollider.enabled = true;
 
-        // Quay mặt về phía Player ngay lập tức
         float newFacing = (playerTransform.position.x > transform.position.x) ? 1 : -1;
         transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * newFacing, transform.localScale.y, 1);
 
-        // Đánh luôn cho bất ngờ (Delay cực ngắn 0.1s)
-        yield return new WaitForSeconds(0.1f);
+        // 4. Hăm dọa (Chờ)
+        float timer = 0;
+        float wait = isRaging ? postTeleportIdleTime * 0.5f : postTeleportIdleTime;
+        Color baseColor = isRaging ? rageColor : Color.white;
+
+        while (timer < wait)
+        {
+            newFacing = (playerTransform.position.x > transform.position.x) ? 1 : -1;
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * newFacing, transform.localScale.y, 1);
+
+            if (mySprite)
+                mySprite.color = Color.Lerp(baseColor, Color.yellow, Mathf.PingPong(Time.time * 20, 1));
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        if (mySprite) mySprite.color = baseColor;
+
+        // 5. Tấn công
         animator.SetTrigger("Attack");
+        yield return new WaitForSeconds(0.5f);
+
+        isTeleporting = false;
     }
 
-    // =========================================================
-    // PHẦN 2: LOGIC HÓA ĐIÊN (GỒNG -> RUNG -> ĐÁ RƠI -> BÙM)
-    // =========================================================
-
-    // Hàm này gọi từ script EnemyHealth khi máu < 50%
+    // ===============================
+    // KỸ NĂNG: HÓA ĐIÊN (RAGE MODE)
+    // ===============================
     public void ActivateRage()
     {
-        if (isRaging) return; // Nếu đang Rage rồi thì thôi
+        if (isRaging) return;
         StartCoroutine(RageTransitionSequence());
     }
 
@@ -163,29 +355,19 @@ public class FlyingRangeBoss : EnemyAI
         isRaging = true;
         isCharging = true; // Khóa di chuyển
 
-        Debug.Log("BOSS BẮT ĐẦU GỒNG!");
-
-        // 1. BẤT TỬ (Tắt Collider)
         if (myCollider) myCollider.enabled = false;
 
-        // 2. RUNG MÀN HÌNH (Gọi Singleton CameraShake)
-        if (CameraShake.Instance != null)
-            CameraShake.Instance.Shake(chargeDuration, 0.3f);
-
-        // 3. VÒNG LẶP GỒNG (3 Giây)
         float elapsed = 0f;
         float nextRockTime = 0f;
         Vector3 startPos = transform.position;
 
+        Debug.Log("BOSS GỒNG CHAOS!");
+
         while (elapsed < chargeDuration)
         {
-            // A. Rung lắc bản thân con Boss tại chỗ
             transform.position = startPos + (Vector3)Random.insideUnitCircle * 0.1f;
-
-            // B. Nhấp nháy màu cảnh báo (Đỏ/Trắng)
             if (mySprite) mySprite.color = Color.Lerp(Color.white, rageColor, Mathf.PingPong(Time.time * 20, 1));
 
-            // C. Mưa đá rơi
             if (Time.time >= nextRockTime)
             {
                 SpawnFallingRock();
@@ -196,116 +378,71 @@ public class FlyingRangeBoss : EnemyAI
             yield return null;
         }
 
-        // 4. KẾT THÚC GỒNG
-        transform.position = startPos; // Trả về vị trí cũ chuẩn
-        if (myCollider) myCollider.enabled = true; // Hết bất tử
-        isCharging = false; // Mở khóa di chuyển
+        transform.position = startPos;
+        if (myCollider) myCollider.enabled = true;
+        isCharging = false;
 
-        // 5. BUFF CHỈ SỐ
-        moveSpeed *= 1.5f;       // Bay nhanh hơn
-        attackCooldown *= 0.5f;  // Bắn nhanh gấp đôi
-        spawnDelay /= 2f;        // Tốc độ chuỗi đạn nhanh hơn
+        moveSpeed *= 1.4f;
+        attackCooldown *= 0.6f;
+        spawnDelay /= 1.5f;
+        teleportDuration *= 0.7f;
 
-        // Đổi màu đỏ vĩnh viễn
         if (mySprite) mySprite.color = rageColor;
 
-        // Phóng to Boss (1.3 lần)
         transform.localScale = new Vector3(
             Mathf.Sign(transform.localScale.x) * Mathf.Abs(originalScale.x) * 1.3f,
             originalScale.y * 1.3f, 1);
 
-        // Nổ VFX kết thúc
         if (rageVFX != null) Instantiate(rageVFX, transform.position, Quaternion.identity);
-
-        Debug.Log("BOSS ĐÃ HÓA CHAOS XONG!");
     }
 
-    // Hàm sinh đá rơi ngẫu nhiên
     void SpawnFallingRock()
     {
-        // if (warningPrefab == null) return; // Nhớ đổi tên biến rockPrefab thành warningPrefab nhé
+        if (rockPrefab == null) return;
 
-        // Lấy phạm vi camera
         float camHeight = Camera.main.orthographicSize;
         float camWidth = camHeight * Camera.main.aspect;
         Vector3 camPos = Camera.main.transform.position;
-
-        // Random X trong màn hình
         float randomX = Random.Range(camPos.x - camWidth, camPos.x + camWidth);
-
-        // QUAN TRỌNG: Y phải ở dưới đất (Gần chân Player)
-        // Lấy Y của Player rồi trừ đi 1 xíu để nó nằm dưới chân
         float groundY = playerTransform.position.y - 1.5f;
 
-        // Nếu game bro có sàn bằng phẳng cố định thì điền số cố định (ví dụ -3.5f)
-        // Vector3 spawnPos = new Vector3(randomX, -3.5f, 0); 
-
-        Vector3 spawnPos = new Vector3(randomX, groundY, 0);
-
-        // Sinh ra CẢNH BÁO (chứ không phải sinh đá ngay)
-        Instantiate(rockPrefab, spawnPos, Quaternion.identity);
-        // (Lưu ý: Trong Inspector bro kéo Prefab CẢNH BÁO vào ô Rock Prefab nhé)
+        Instantiate(rockPrefab, new Vector3(randomX, groundY, 0), Quaternion.identity);
     }
 
-    // =========================================================
-    // PHẦN 3: HỆ THỐNG TẤN CÔNG (CHAIN ATTACK & SPREAD SHOT)
-    // =========================================================
-
-    // Hàm này được Animation Event gọi ("ShootProjectile")
+    // ===============================
+    // HỆ THỐNG ĐẠN DƯỢC
+    // ===============================
     public void ShootProjectile()
     {
-        // Khi Rage, tỉ lệ bắn chùm tăng từ 30% lên 60%
-        int currentMultiChance = isRaging ? 60 : 30;
-
-        if (Random.Range(0, 100) < currentMultiChance)
-        {
-            StartCoroutine(ShootSpread()); // Bắn chùm
-        }
+        if (Random.Range(0, 100) < (isRaging ? 70 : 30))
+            StartCoroutine(ShootSpread());
         else
-        {
-            StartCoroutine(SpawnChainAttack(0)); // Bắn thường
-        }
+            StartCoroutine(SpawnChainAttack(0));
     }
 
-    // Bắn 1 chuỗi 3 khúc (Có thể chỉnh góc lệch)
     IEnumerator SpawnChainAttack(float angleOffset)
     {
-        if (firePoint == null || playerTransform == null) yield break;
+        if (firePoint == null) yield break;
 
-        // Tính góc quay về phía Player
-        Vector2 direction = (playerTransform.position - firePoint.position).normalized;
-        float baseAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        Vector2 dir = (playerTransform.position - firePoint.position).normalized;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + angleOffset;
+        Quaternion rot = Quaternion.Euler(0, 0, angle);
+        Vector3 finalDir = rot * Vector3.right;
 
-        // Cộng thêm góc lệch (nếu bắn chùm)
-        Quaternion rotation = Quaternion.AngleAxis(baseAngle + angleOffset, Vector3.forward);
-        Vector3 finalDir = rotation * Vector3.right;
-
-        // Khúc 1
-        if (part1Prefab) Instantiate(part1Prefab, firePoint.position, rotation);
+        if (part1Prefab) Instantiate(part1Prefab, firePoint.position, rot);
         yield return new WaitForSeconds(spawnDelay);
 
-        // Khúc 2
-        if (part2Prefab)
-        {
-            Vector3 pos2 = firePoint.position + (finalDir * segmentLength);
-            Instantiate(part2Prefab, pos2, rotation);
-        }
+        if (part2Prefab) Instantiate(part2Prefab, firePoint.position + finalDir * segmentLength, rot);
         yield return new WaitForSeconds(spawnDelay);
 
-        // Khúc 3
-        if (part3Prefab)
-        {
-            Vector3 pos3 = firePoint.position + (finalDir * segmentLength * 2);
-            Instantiate(part3Prefab, pos3, rotation);
-        }
+        if (part3Prefab) Instantiate(part3Prefab, firePoint.position + finalDir * segmentLength * 2, rot);
     }
 
-    // Bắn chùm (3 tia tỏa ra)
     IEnumerator ShootSpread()
     {
-        StartCoroutine(SpawnChainAttack(0));   // Giữa
-        StartCoroutine(SpawnChainAttack(20));  // Lệch lên 20 độ
-        StartCoroutine(SpawnChainAttack(-20)); // Lệch xuống 20 độ
+        StartCoroutine(SpawnChainAttack(0));
+        StartCoroutine(SpawnChainAttack(25));
+        StartCoroutine(SpawnChainAttack(-25));
         yield return null;
     }
 }

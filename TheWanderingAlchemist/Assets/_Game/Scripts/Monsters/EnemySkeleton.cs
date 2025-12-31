@@ -38,11 +38,8 @@ public class EnemySkeleton : EnemyAI
 
         foreach (var hit in hits)
         {
-            Debug.Log("2. Chém trúng: " + hit.name); // Nó sẽ liệt kê những thứ nó chém trúng
-
             if (hit.GetComponent<PlayerStats>())
             {
-                Debug.Log("3. Đã tìm thấy PlayerStats -> Trừ máu!");
                 hit.GetComponent<PlayerStats>().TakeDamage(swordDamage);
             }
         }

@@ -1,36 +1,30 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-
-// Create item by using right click in Project
-[CreateAssetMenu(fileName ="New Item Data",menuName ="Alchemist/Item Data")]
+[CreateAssetMenu(fileName = "NewItem", menuName = "Alchemist/Item")]
 public class ItemData : ScriptableObject
 {
-    [Header("Display in4")]
     public string id;
     public string itemName;
     [TextArea] public string description;
     public Sprite icon;
 
-    [Header("Atribute Game")]
-    public ItemType typel;
+    public ItemType itemType;
     public int maxStackSize = 99;
     public int baseValue = 10;
 
-    // For w3
-    [Header("Image in Game")]
-    public GameObject worldPrefeb;
+    public GameObject worldPrefab;
 
-    [Header("Sử dụng (Consumable)")]
-    public bool isConsumable;      // Có dùng được không?
+    public bool isConsumable;
     public int healthRestore;
-}   
+    public float staminaRestore;
+    public float damagebuffAmount;
+    public float buffduration;
+}
 
-public enum ItemType 
+public enum ItemType
 {
-    Ingredient, //Material
-    Potion,     //medician
+    Ingredient,
+    Potion,
     Tool,
-    keyItem
+    KeyItem
 }

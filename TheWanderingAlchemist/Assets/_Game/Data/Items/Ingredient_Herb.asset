@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: Ingredient_Herb
   m_EditorClassIdentifier: 
   id: herb_green
-  itemName: "Th\u1EA3o D\u01B0\u1EE3c"
+  itemName: "Th\u1EA3o d\u01B0\u1EE3c"
   description: "M\u1ED9t lo\u1EA1i th\u1EA3o d\u01B0\u1EE3c ph\u1ED5 bi\u1EBFn d\xF9ng
     \u0111\u1EC3 n\u1EA5u thu\u1ED1c"
   icon: {fileID: -2095568174, guid: fe1cfeece9ccb56488bf46ade8c6fa40, type: 3}
-  typel: 0
+  itemType: 0
   maxStackSize: 99
   baseValue: 10
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
+  isConsumable: 0
+  healthRestore: 0

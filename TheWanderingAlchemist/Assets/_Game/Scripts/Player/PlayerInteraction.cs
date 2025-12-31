@@ -1,76 +1,102 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.Xml.Serialization;
 using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("Setting")]
+    // ==============================
+    // Settings
+    // ==============================
+    [Header("Interaction")]
     [SerializeField] private float checkRadius = 1f;
     [SerializeField] private LayerMask interactLayer;
-    [SerializeField] private float gatherDelay = 0.4f;
+    [SerializeField] private float interactDelay = 0.4f;
 
-    private GameControls gameControl;
+    // ==============================
+    // Components
+    // ==============================
+    private GameControls controls;
     private Animator animator;
-    private PlayerMovement playerMovement;
+    private PlayerMovement movement;
 
+    // ==============================
+    // State
+    // ==============================
+    private bool isInteracting;
+
+    // ==============================
+    // Unity Lifecycle
+    // ==============================
     private void Awake()
     {
-        gameControl = new GameControls();
+        controls = new GameControls();
         animator = GetComponent<Animator>();
-        playerMovement = GetComponent<PlayerMovement>();
+        movement = GetComponent<PlayerMovement>();
     }
 
     private void OnEnable()
     {
-        gameControl.Enable();
-
-        // Sign event
-        gameControl.Gameplay.Interact.performed += _ => TryInteract();
+        controls.Enable();
+        controls.Gameplay.Interact.performed += _ => TryInteract();
     }
 
     private void OnDisable()
     {
-        gameControl.Disable();
+        controls.Disable();
     }
 
+    // ==============================
+    // Interaction
+    // ==============================
     private void TryInteract()
     {
-        // Shooting circle to search item
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, checkRadius, interactLayer);
+        if (isInteracting) return;
 
-        // Search the first item
-        foreach(var hit in hitColliders)
-        {
-            // Check the item has Interact or not 
-            IInteractable interactable = hit.GetComponent<IInteractable>();
-            if(interactable != null)
-            {
-                StartCoroutine(PerformGather(interactable));
-                return;
-            }
-        }    
+        Collider2D hit = Physics2D.OverlapCircle(
+            transform.position,
+            checkRadius,
+            interactLayer
+        );
+
+        if (hit == null) return;
+
+        IInteractable interactable = hit.GetComponent<IInteractable>();
+        if (interactable == null) return;
+
+        StartCoroutine(InteractRoutine(interactable));
     }
-    // Function wait
-    IEnumerator PerformGather(IInteractable item)
+
+    private IEnumerator InteractRoutine(IInteractable interactable)
+{
+    isInteracting = true;
+
+    if (movement != null)
+        movement.enabled = false; 
+
+    if (animator != null)
+        animator.SetTrigger("Gather");
+
+    yield return new WaitForSeconds(interactDelay);
+
+    try
     {
-        // 1. Locked move
-        if (playerMovement != null) playerMovement.enabled = false;
-
-        // 2. Run ani
-        if (animator != null) animator.SetTrigger("Gather");
-
-        // 3. Time
-        yield return new WaitForSeconds(gatherDelay);
-
-        // 4. Gather
-        item.Interact();
-
-        // 5. Unlocked move
-        if (playerMovement != null) playerMovement.enabled = true;
+        interactable.Interact();
     }
+    catch (System.Exception e)
+    {
+        Debug.LogError("Lỗi khi tương tác: " + e.Message);
+    }
+    finally
+    {
+        if (movement != null)
+            movement.enabled = true;
+        
+        isInteracting = false;
+    }
+}
 
-    // Draw a Circle in Scene
+    // ==============================
+    // Gizmos
+    // ==============================
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

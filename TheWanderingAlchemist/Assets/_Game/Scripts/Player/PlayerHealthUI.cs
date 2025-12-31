@@ -3,45 +3,41 @@ using UnityEngine.UI;
 
 public class PlayerHealthUI : MonoBehaviour
 {
-    // Singleton vẫn giữ nguyên
     public static PlayerHealthUI Instance { get; private set; }
 
-    [Header("Máu (Health)")]
-    [SerializeField] private Image healthFillImage;
+    [Header("Health")]
+    [SerializeField] private Image healthFill;
 
-    [Header("Thể lực (Stamina)")]
-    [SerializeField] private Image staminaFillImage; // <--- THÊM DÒNG NÀY
+    [Header("Stamina")]
+    [SerializeField] private Image staminaFill;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null)
         {
             Destroy(gameObject);
+            return;
         }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    // Hàm cập nhật Máu cũ
-    public void UpdateHealth(int currentHealth, int maxHealth)
+    // ------------------ HEALTH ------------------
+
+    public void UpdateHealth(int current, int max)
     {
-        if (healthFillImage != null)
-        {
-            float ratio = (float)currentHealth / maxHealth;
-            healthFillImage.fillAmount = ratio;
-        }
+        if (!healthFill) return;
+
+        healthFill.fillAmount = (float)current / max;
     }
 
-    // --- HÀM CẬP NHẬT THỂ LỰC MỚI ---
-    public void UpdateStamina(float currentStamina, float maxStamina)
+    // ------------------ STAMINA ------------------
+
+    public void UpdateStamina(float current, float max)
     {
-        if (staminaFillImage != null)
-        {
-            float ratio = currentStamina / maxStamina;
-            staminaFillImage.fillAmount = ratio;
-        }
+        if (!staminaFill) return;
+
+        staminaFill.fillAmount = current / max;
     }
 }

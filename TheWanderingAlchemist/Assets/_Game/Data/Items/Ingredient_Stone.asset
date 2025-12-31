@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: Ingredient_Stone
   m_EditorClassIdentifier: 
   id: stone_chunk
-  itemName: "\u0110\xE1 V\u1EE5n"
+  itemName: "\u0110\xE1 v\u1EE5n"
   description: "M\u1ED9t lo\u1EA1i \u0111\xE1 v\u1EE5n n\u1EB1m r\u1EA3i r\xE1c"
   icon: {fileID: -530083500, guid: fe1cfeece9ccb56488bf46ade8c6fa40, type: 3}
-  typel: 0
+  itemType: 0
   maxStackSize: 99
   baseValue: 10
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
+  isConsumable: 0
+  healthRestore: 0

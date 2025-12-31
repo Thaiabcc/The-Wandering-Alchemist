@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections; // Cần cái này để dùng bộ đếm thời gian
+using System.Collections;
 using System.Collections.Generic;
 
 public class AlchemyUI : MonoBehaviour
 {
     public static AlchemyUI Instance { get; private set; }
 
+    // ==============================
+    // UI Components
+    // ==============================
     [Header("UI Components")]
     public GameObject alchemyPanel;
     public AlchemySlot inputSlot1;
@@ -15,192 +18,320 @@ public class AlchemyUI : MonoBehaviour
     public Image outputIcon;
     public TextMeshProUGUI outputAmountText;
 
-    [Header("Hiệu ứng Nấu")]
-    public GameObject smokeFX; // <--- Kéo cái Smoke_FX vào đây
-    public float cookTime = 1.0f; // Thời gian nấu (giây)
+    // ==============================
+    // [MỚI] Feedback (Phản hồi)
+    // ==============================
+    [Header("Feedback (Phản hồi)")]
+    [SerializeField] private GameObject successTextObj; // Kéo cái Text "Success!" vào đây
+    [SerializeField] private AudioClip successSound;    // Kéo file âm thanh "Ting" vào đây
+    [SerializeField] private float feedbackDuration = 1.5f; // Thời gian hiện chữ
 
+    // ==============================
+    // Animation Settings
+    // ==============================
+    [Header("Cài đặt Animation")]
+    public Animator alchemyAnimator; // Kéo object Effect_Lua_Nau vào đây
+    public float cookTime = 1.0f;
+
+    // ==============================
+    // Data
+    // ==============================
     [Header("Dữ liệu")]
     public List<RecipeData> allRecipes;
 
     private AlchemySlot currentSelectingSlot;
-    private int craftTimes = 0;
+    private int craftTimes;
 
+    // ==============================
+    // Unity Lifecycle
+    // ==============================
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // <--- BẮT BUỘC PHẢI CÓ
-        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
+        // Tắt bảng và tắt hiệu ứng lúc đầu
         alchemyPanel.SetActive(false);
-        outputAmountText.gameObject.SetActive(false);
-        if (smokeFX != null) smokeFX.SetActive(false); // Đảm bảo khói tắt lúc đầu
+        if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
+
+        if (successTextObj != null) successTextObj.SetActive(false); // Tắt chữ Success
+
+        ResetOutput();
     }
 
-    // --- CÁC HÀM CŨ (Giữ nguyên logic) ---
-    public void HidePanel() { alchemyPanel.SetActive(false); }
+    // ==============================
+    // Panel Control
+    // ==============================
+    public void OpenPanel()
+    {
+        alchemyPanel.SetActive(true);
+
+        if (InventoryUI.Instance != null)
+            InventoryUI.Instance.CloseInventory();
+    }
+
+    public void HidePanel()
+    {
+        alchemyPanel.SetActive(false);
+    }
 
     public void CloseButtonAction()
     {
-        alchemyPanel.SetActive(false);
+        HidePanel();
         inputSlot1.UpdateVisual(null, 0);
         inputSlot2.UpdateVisual(null, 0);
-        outputIcon.enabled = false;
-        outputIcon.sprite = null;
-        outputAmountText.gameObject.SetActive(false);
-        if (smokeFX != null) smokeFX.SetActive(false);
+        ResetOutput();
         CancelSelection();
+
+        // Tắt các hiệu ứng nếu lỡ đang chạy dở
+        if (successTextObj != null) successTextObj.SetActive(false);
+        StopAllCoroutines();
     }
 
-    public void StartSelection(AlchemySlot slot) { currentSelectingSlot = slot; if (InventoryUI.Instance) InventoryUI.Instance.OpenInventoryForSelection(); }
-    public bool IsSelecting() { return currentSelectingSlot != null; }
-    public void CancelSelection() { currentSelectingSlot = null; }
+    // ==============================
+    // Selection Logic
+    // ==============================
+    public void StartSelection(AlchemySlot slot)
+    {
+        currentSelectingSlot = slot;
+        if (InventoryUI.Instance != null)
+            InventoryUI.Instance.OpenInventoryForSelection();
+    }
+
+    public bool IsSelecting() => currentSelectingSlot != null;
+
+    public void CancelSelection() => currentSelectingSlot = null;
 
     public void ReceiveItemFromInventory(ItemData item)
     {
-        if (currentSelectingSlot != null)
+        if (currentSelectingSlot == null || item == null) return;
+
+        if (currentSelectingSlot.CurrentItem != item)
         {
-            if (currentSelectingSlot.currentItem != item)
-                currentSelectingSlot.UpdateVisual(item, 1);
-            else
-            {
-                int newAmount = currentSelectingSlot.currentAmount + 1;
-                if (InventoryManager.Instance.HasItem(item, newAmount))
-                    currentSelectingSlot.UpdateVisual(item, newAmount);
-            }
-            currentSelectingSlot = null;
-            if (InventoryUI.Instance) InventoryUI.Instance.CloseInventory();
-            alchemyPanel.SetActive(true);
-            CheckRecipe();
+            currentSelectingSlot.UpdateVisual(item, 1);
         }
+        else
+        {
+            int newAmount = currentSelectingSlot.CurrentAmount + 1;
+            if (InventoryManager.Instance.HasItem(item, newAmount))
+                currentSelectingSlot.UpdateVisual(item, newAmount);
+        }
+
+        currentSelectingSlot = null;
+
+        if (InventoryUI.Instance != null)
+            InventoryUI.Instance.CloseInventory();
+
+        alchemyPanel.SetActive(true);
+        CheckRecipe();
     }
 
+    // ==============================
+    // Recipe Logic
+    // ==============================
     public void CheckRecipe()
     {
-        outputIcon.enabled = false;
-        outputIcon.sprite = null;
-        outputAmountText.gameObject.SetActive(false);
+        ResetOutput();
         craftTimes = 0;
 
-        if (inputSlot1.currentItem == null || inputSlot2.currentItem == null) return;
+        if (inputSlot1.CurrentItem == null || inputSlot2.CurrentItem == null)
+            return;
 
         foreach (var recipe in allRecipes)
         {
-            int req1 = 0; int req2 = 0;
-            bool match1 = false; bool match2 = false;
+            if (!TryMatchRecipe(recipe, out int times))
+                continue;
 
-            foreach (var ing in recipe.ingredients)
-            {
-                if (ing.item == inputSlot1.currentItem) { req1 = ing.count; match1 = true; }
-                if (ing.item == inputSlot2.currentItem) { req2 = ing.count; match2 = true; }
-            }
-
-            if (match1 && match2)
-            {
-                int times1 = inputSlot1.currentAmount / req1;
-                int times2 = inputSlot2.currentAmount / req2;
-                craftTimes = Mathf.Min(times1, times2);
-
-                if (craftTimes > 0)
-                {
-                    outputIcon.sprite = recipe.resultItem.icon;
-                    outputIcon.enabled = true;
-                    outputIcon.color = Color.white;
-                    int totalResult = recipe.resultCount * craftTimes;
-                    outputAmountText.text = totalResult.ToString();
-                    outputAmountText.gameObject.SetActive(true);
-                }
-                return;
-            }
+            craftTimes = times;
+            ShowOutput(recipe);
+            return;
         }
     }
 
-    // --- HÀM NẤU MỚI (ĐƠN GIẢN HÓA) ---
-    // Gắn cái này vào nút COOK nhé
+    private bool TryMatchRecipe(RecipeData recipe, out int times)
+    {
+        times = 0;
+        int req1 = 0, req2 = 0;
+        bool match1 = false, match2 = false;
+
+        foreach (var ing in recipe.ingredients)
+        {
+            if (ing.item == inputSlot1.CurrentItem) { req1 = ing.count; match1 = true; }
+            if (ing.item == inputSlot2.CurrentItem) { req2 = ing.count; match2 = true; }
+        }
+
+        if (!match1 || !match2) return false;
+
+        int t1 = inputSlot1.CurrentAmount / req1;
+        int t2 = inputSlot2.CurrentAmount / req2;
+
+        times = Mathf.Min(t1, t2);
+        return times > 0;
+    }
+
+    private void ShowOutput(RecipeData recipe)
+    {
+        outputIcon.sprite = recipe.resultItem.icon;
+        outputIcon.enabled = true;
+        outputIcon.color = new Color(1, 1, 1, 0.5f); // Mờ (Preview)
+        int total = recipe.resultCount * craftTimes;
+        outputAmountText.text = total.ToString();
+        outputAmountText.gameObject.SetActive(true);
+    }
+
+    // ==============================
+    // Cooking Logic
+    // ==============================
     public void OnCookButtonPress()
     {
-        // Nếu chưa có kết quả hiện lên thì không cho nấu
         if (!outputIcon.enabled) return;
 
-        // Bắt đầu quy trình (Chạy cái đồng hồ đếm ngược)
         StartCoroutine(CookingRoutine());
     }
 
-    // Đây là cái "Đồng hồ đếm ngược"
-    IEnumerator CookingRoutine()
+    private IEnumerator CookingRoutine()
     {
-        // 1. Bật Khói lên
-        if (smokeFX != null) smokeFX.SetActive(true);
+        // 1. BẬT hoạt ảnh
+        if (alchemyAnimator != null)
+        {
+            alchemyAnimator.gameObject.SetActive(true);
+        }
 
-        // 2. Tạm ẩn cái hình thuốc đi (để tạo bất ngờ)
         outputIcon.enabled = false;
         outputAmountText.gameObject.SetActive(false);
 
-        // 3. Chờ 1 giây (hoặc số giây bạn chỉnh trong Inspector)
+        // 2. CHỜ nấu
         yield return new WaitForSeconds(cookTime);
 
-        // 4. Tắt Khói
-        if (smokeFX != null) smokeFX.SetActive(false);
+        // 3. TẮT hoạt ảnh
+        if (alchemyAnimator != null)
+        {
+            alchemyAnimator.gameObject.SetActive(false);
+        }
 
-        // 5. Thực hiện Logic Trừ đồ + Thêm thuốc
+        // 4. Trả đồ & Hiệu ứng thành công
         PerformCrafting();
     }
 
     private void PerformCrafting()
     {
         RecipeData validRecipe = null;
-        // Tìm lại công thức lần cuối để chắc ăn
         foreach (var recipe in allRecipes)
         {
             bool m1 = false, m2 = false;
             foreach (var ing in recipe.ingredients)
             {
-                if (ing.item == inputSlot1.currentItem) m1 = true;
-                if (ing.item == inputSlot2.currentItem) m2 = true;
+                if (ing.item == inputSlot1.CurrentItem) m1 = true;
+                if (ing.item == inputSlot2.CurrentItem) m2 = true;
             }
             if (m1 && m2) { validRecipe = recipe; break; }
         }
 
-        if (validRecipe != null)
+        if (validRecipe == null) return;
+
+        // Trừ đồ
+        int remove1 = 0, remove2 = 0;
+        foreach (var ing in validRecipe.ingredients)
         {
-            int remove1 = 0; int remove2 = 0;
-            foreach (var ing in validRecipe.ingredients)
-            {
-                if (ing.item == inputSlot1.currentItem) remove1 = ing.count;
-                if (ing.item == inputSlot2.currentItem) remove2 = ing.count;
-            }
+            if (ing.item == inputSlot1.CurrentItem) remove1 = ing.count;
+            if (ing.item == inputSlot2.CurrentItem) remove2 = ing.count;
+        }
 
-            // Trừ đồ
-            InventoryManager.Instance.RemoveItem(inputSlot1.currentItem, remove1 * craftTimes);
-            InventoryManager.Instance.RemoveItem(inputSlot2.currentItem, remove2 * craftTimes);
+        InventoryManager.Instance.RemoveItem(inputSlot1.CurrentItem, remove1 * craftTimes);
+        InventoryManager.Instance.RemoveItem(inputSlot2.CurrentItem, remove2 * craftTimes);
+        InventoryManager.Instance.AddItem(validRecipe.resultItem, validRecipe.resultCount * craftTimes);
 
-            // Thêm thuốc
-            InventoryManager.Instance.AddItem(validRecipe.resultItem, validRecipe.resultCount * craftTimes);
+        Debug.Log("Chế tạo thành công!");
 
-            Debug.Log("Chế tạo thành công!");
+        // --- CẬP NHẬT UI KẾT QUẢ ---
 
-            // Đóng bảng
-            CloseButtonAction();
+        // 1. Xóa Input
+        inputSlot1.UpdateVisual(null, 0);
+        inputSlot2.UpdateVisual(null, 0);
+
+        // 2. Hiện Output (Màu trắng rõ nét)
+        outputIcon.sprite = validRecipe.resultItem.icon;
+        outputIcon.enabled = true;
+        outputIcon.color = Color.white; // Màu gốc
+
+        int totalCreated = validRecipe.resultCount * craftTimes;
+        outputAmountText.text = totalCreated.ToString();
+        outputAmountText.gameObject.SetActive(true);
+
+        CancelSelection();
+
+        // 3. Gọi hiệu ứng ăn mừng
+        StartCoroutine(SuccessFeedbackRoutine());
+
+        // LƯU Ý: Không gọi CloseButtonAction() ở đây để người chơi ngắm kết quả
+    }
+
+    // --- HIỆU ỨNG THÀNH CÔNG ---
+    private IEnumerator SuccessFeedbackRoutine()
+    {
+        // 1. Chơi âm thanh
+        if (AudioManager.Instance != null && successSound != null)
+        {
+            AudioManager.Instance.PlaySFX(successSound, 1f);
+        }
+        else if (successSound != null)
+        {
+            AudioSource.PlayClipAtPoint(successSound, Camera.main.transform.position);
+        }
+
+        // 2. Hiện chữ Success
+        if (successTextObj != null)
+        {
+            successTextObj.SetActive(true);
+        }
+
+        // 3. Hiệu ứng nảy (Pop) icon kết quả
+        float timer = 0;
+        Vector3 originalScale = Vector3.one;
+        Vector3 punchScale = Vector3.one * 1.3f; // Phóng to 1.3 lần
+
+        // Phóng to
+        while (timer < 0.2f)
+        {
+            timer += Time.deltaTime;
+            outputIcon.transform.localScale = Vector3.Lerp(originalScale, punchScale, timer / 0.2f);
+            yield return null;
+        }
+
+        // Thu nhỏ
+        timer = 0;
+        while (timer < 0.1f)
+        {
+            timer += Time.deltaTime;
+            outputIcon.transform.localScale = Vector3.Lerp(punchScale, originalScale, timer / 0.1f);
+            yield return null;
+        }
+        outputIcon.transform.localScale = originalScale;
+
+        // 4. Chờ rồi tắt chữ
+        yield return new WaitForSeconds(feedbackDuration);
+
+        if (successTextObj != null)
+        {
+            successTextObj.SetActive(false);
         }
     }
-    public void OpenPanel()
-    {
-        // 1. Bật bảng Lò luyện lên
-        alchemyPanel.SetActive(true);
 
-        // 2. (Tùy chọn) Nếu muốn mở lò thì tắt túi đi cho đỡ vướng (Logic cũ)
-        // Nếu muốn hiện song song thì bỏ dòng dưới này đi
-        if (InventoryUI.Instance != null)
-        {
-            InventoryUI.Instance.CloseInventory();
-        }
+    private void ResetOutput()
+    {
+        outputIcon.enabled = false;
+        outputIcon.sprite = null;
+        outputAmountText.gameObject.SetActive(false);
+        // Reset scale đề phòng bị kẹt lúc animation scale
+        outputIcon.transform.localScale = Vector3.one;
     }
 }

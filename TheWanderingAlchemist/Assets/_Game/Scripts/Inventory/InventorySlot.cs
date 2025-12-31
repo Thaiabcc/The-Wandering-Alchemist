@@ -4,17 +4,17 @@ using UnityEngine;
 [Serializable]
 public class InventorySlot
 {
-    public ItemData itemData; 
-    public int quantity;      
+    public ItemData item;
+    public int quantity;
 
     public InventorySlot(ItemData item, int amount)
     {
-        itemData = item;
-        quantity = amount;
+        this.item = item;
+        quantity = Mathf.Clamp(amount, 0, item != null ? item.maxStackSize : 0);
     }
 
     public void AddQuantity(int amount)
     {
-        quantity += amount;
+        quantity = Mathf.Max(0, quantity + amount);
     }
 }

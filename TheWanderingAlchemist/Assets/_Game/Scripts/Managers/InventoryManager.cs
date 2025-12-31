@@ -8,121 +8,131 @@ public class InventoryManager : MonoBehaviour
 
     public event Action OnInventoryChanged;
 
-    [Header("Kinh tế")]
-    public int currentGold = 1000; // Tiền khởi điểm
+    [Header("Economy")]
+    public int currentGold = 1000;
 
-    // Hàm thay đổi tiền (Mua/Bán)
-    public void UpdateGold(int amount)
-    {
-        currentGold += amount;
-
-        // Không cho tiền âm
-        if (currentGold < 0) currentGold = 0;
-
-        // Báo cho UI biết để cập nhật số tiền hiển thị
-        OnInventoryChanged?.Invoke();
-    }
-
-    [Header("Setting")]
+    [Header("Inventory Settings")]
     [SerializeField] private int maxSlots = 25;
 
     public List<InventorySlot> inventory = new List<InventorySlot>();
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) Destroy(gameObject);
-        else
+        if (Instance != null)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            Destroy(gameObject);
+            return;
         }
 
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    public bool AddItem(ItemData itemToAdd, int amount = 1)
+    // ================= GOLD =================
+
+    public void UpdateGold(int amount)
     {
-        // 1. Kiểm tra Stack
-        foreach (InventorySlot slot in inventory)
+        currentGold = Mathf.Max(0, currentGold + amount);
+        OnInventoryChanged?.Invoke();
+    }
+
+    // ================= ADD ITEM =================
+
+    public bool AddItem(ItemData item, int amount = 1)
+    {
+        if (item == null || amount <= 0)
+            return false;
+
+        int remaining = amount;
+
+        // 1️⃣ Try stacking
+        foreach (var slot in inventory)
         {
-            if (slot.itemData == itemToAdd && slot.quantity < itemToAdd.maxStackSize)
+            if (slot.item != item)
+                continue;
+
+            if (slot.quantity >= item.maxStackSize)
+                continue;
+
+            int canAdd = item.maxStackSize - slot.quantity;
+            int addAmount = Mathf.Min(canAdd, remaining);
+
+            slot.AddQuantity(addAmount);
+            remaining -= addAmount;
+
+            if (remaining <= 0)
             {
-                slot.AddQuantity(amount); // <--- Sửa số 1 thành amount
                 OnInventoryChanged?.Invoke();
                 return true;
             }
         }
 
-        // 2. Kiểm tra ô trống
-        if (inventory.Count < maxSlots)
+        // 2️⃣ Add new slots if space
+        while (remaining > 0 && inventory.Count < maxSlots)
         {
-            InventorySlot newSlot = new InventorySlot(itemToAdd, amount); // <--- Sửa số 1 thành amount
-            inventory.Add(newSlot);
-            OnInventoryChanged?.Invoke();
-            return true;
+            int addAmount = Mathf.Min(item.maxStackSize, remaining);
+            inventory.Add(new InventorySlot(item, addAmount));
+            remaining -= addAmount;
         }
 
-        Debug.Log("Túi đã đầy!");
-        return false;
-    }
+        OnInventoryChanged?.Invoke();
 
-    // 1. Hàm kiểm tra xem trong túi có đủ đồ không
-    public bool HasItem(ItemData itemToCheck, int amountData)
-    {
-        int count = 0;
-        foreach (InventorySlot slot in inventory)
+        if (remaining > 0)
         {
-            if (slot.itemData == itemToCheck)
-            {
-                count += slot.quantity;
-            }
+            Debug.Log("Inventory is full!");
+            return false;
         }
-        return count >= amountData;
+
+        return true;
     }
 
-    // 2. Hàm xóa đồ (Trừ đi số lượng)
-    public void RemoveItem(ItemData itemToRemove, int amountToRemove)
-    {
-        int amountLeft = amountToRemove;
+    // ================= CHECK ITEM =================
 
-        // Duyệt ngược từ cuối lên đầu để xóa an toàn
+    public bool HasItem(ItemData item, int requiredAmount)
+    {
+        if (item == null || requiredAmount <= 0)
+            return false;
+
+        int total = 0;
+
+        foreach (var slot in inventory)
+        {
+            if (slot.item == item)
+                total += slot.quantity;
+        }
+
+        return total >= requiredAmount;
+    }
+
+    // ================= REMOVE ITEM =================
+
+    public void RemoveItem(ItemData item, int amount)
+    {
+        if (item == null || amount <= 0)
+            return;
+
+        int remaining = amount;
+
         for (int i = inventory.Count - 1; i >= 0; i--)
         {
-            if (inventory[i].itemData == itemToRemove)
+            if (inventory[i].item != item)
+                continue;
+
+            if (inventory[i].quantity > remaining)
             {
-                if (inventory[i].quantity > amountLeft)
-                {
-                    // Ô này đủ đồ để trừ
-                    inventory[i].quantity -= amountLeft;
-                    amountLeft = 0;
-                }
-                else
-                {
-                    // Ô này ít hơn hoặc bằng số cần trừ -> Xóa luôn ô này
-                    amountLeft -= inventory[i].quantity;
-                    inventory.RemoveAt(i);
-                }
-
-                if (amountLeft <= 0) break; // Đã trừ xong
+                inventory[i].quantity -= remaining;
+                remaining = 0;
             }
+            else
+            {
+                remaining -= inventory[i].quantity;
+                inventory.RemoveAt(i);
+            }
+
+            if (remaining <= 0)
+                break;
         }
 
-        // Cập nhật lại UI
         OnInventoryChanged?.Invoke();
-    }
-    private void Update()
-    {
-        // Bấm phím G (Gold) để hack thêm 1000 vàng
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            UpdateGold(1000);
-            Debug.Log("Cheat: Đã hack thêm 1000G!");
-        }
-
-        // Bấm phím H để tự hồi máu (Test bình máu)
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            // Giả sử bạn có PlayerStats, nếu chưa có thì bỏ qua dòng này
-            // PlayerStats.Instance.Heal(10); 
-        }
     }
 }

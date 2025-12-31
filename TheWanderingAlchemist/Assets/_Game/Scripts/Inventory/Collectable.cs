@@ -3,18 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(BoxCollider2D))]   
-
+[RequireComponent(typeof(BoxCollider2D))]
 public class Collectable : MonoBehaviour, IInteractable
 {
     [Header("Items Data")]
-    public ItemData itemData; // pull file so
+    public ItemData itemData;
 
     private SpriteRenderer spriteRenderer;
 
     private void OnValidate()
     {
-        // Run immediately when change value
         spriteRenderer = GetComponent<SpriteRenderer>();
         UpdateVisual();
     }
@@ -27,29 +25,32 @@ public class Collectable : MonoBehaviour, IInteractable
 
     public void UpdateVisual()
     {
-        if(itemData != null)
+        if (itemData != null)
         {
             spriteRenderer.sprite = itemData.icon;
             gameObject.name = "Item_" + itemData.itemName;
-        }    
-    }  
-    
+        }
+    }
+
     public void Interact()
     {
         if (InventoryManager.Instance != null)
         {
-            bool added = InventoryManager.Instance.AddItem(itemData);
+            bool added = InventoryManager.Instance.AddItem(itemData, 1);
 
             if (added)
-                if (AudioManager.Instance != null)
+            {
+                /*if (AudioManager.Instance != null && AudioManager.Instance.pickupItems != null)
                 {
                     AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 0.5f);
-                    Destroy(gameObject);
-                }
-                else
-                {
-                    Debug.Log("Túi đầy rồi, không nhặt được!");
-                }
+                }*/
+
+                Destroy(gameObject);
+            }
+            else
+            {
+                Debug.Log("Túi đầy rồi, không nhặt được!");
+            }
         }
         else
         {

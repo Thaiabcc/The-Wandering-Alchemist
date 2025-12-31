@@ -1,122 +1,148 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class ShopUI : MonoBehaviour
 {
     public static ShopUI Instance { get; private set; }
 
-    [Header("UI")]
+    [Header("UI References")]
     public GameObject shopPanel;
-    public Transform shopGrid; // Nơi chứa các slot
-    public GameObject shopSlotPrefab; // Prefab ô hàng
+    public Transform shopGrid;
+    public GameObject shopSlotPrefab;
 
-    [Header("Dữ liệu Hàng Hóa (Test)")]
-    public List<ItemData> itemsForSale; // Kéo Nấm, Thuốc... vào đây để bán
+    public ShopBuyPopup buyPopup;
+    private Canvas canvas;
 
-    private void Awake() { Instance = this; }
+    [Header("Data")]
+    public List<ItemData> itemsForSale;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        canvas = GetComponent<Canvas>();
+        if (canvas == null) canvas = GetComponentInParent<Canvas>();
+    }
 
     private void Start()
     {
         shopPanel.SetActive(false);
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
+        // ⚠️ QUAN TRỌNG: Không Load đồ ở đây để tránh lag lúc vào game
     }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
+        {
+            canvas.worldCamera = Camera.main;
+            canvas.planeDistance = 10;
+        }
+        CloseShop();
+    }
+
+    // --- LOGIC ĐÓNG MỞ (ĐÃ TỐI ƯU) ---
     public void ToggleShop()
     {
-        bool isOpening = !shopPanel.activeSelf; // Đảo ngược trạng thái hiện tại
-
-        if (isOpening)
-        {
-            OpenShop();
-        }
-        else
-        {
-            CloseShop();
-        }
+        if (shopPanel.activeSelf) CloseShop();
+        else OpenShop();
     }
 
-    // Hàm mở Shop (Sẽ được gọi bởi NPC)
     public void OpenShop()
     {
         shopPanel.SetActive(true);
-        if(InventoryUI.Instance != null)
+
+        if (InventoryUI.Instance != null)
+            InventoryUI.Instance.OpenInventoryForSelection();
+
+        // 🔥 TỐI ƯU HÓA Ở ĐÂY 🔥
+        // Kiểm tra: Nếu trong Grid chưa có gì (childCount == 0) thì mới Load.
+        // Nếu đã có đồ rồi thì không Load lại nữa -> Hết Lag ngay!
+        if (shopGrid.childCount == 0)
         {
-            InventoryUI.Instance.OpenInventory();
+            LoadShopItems();
         }
-        LoadShopItems();
     }
 
     public void CloseShop()
     {
         shopPanel.SetActive(false);
+        if (buyPopup != null) buyPopup.ClosePopup();
+
+        if (InventoryUI.Instance != null)
+            InventoryUI.Instance.CloseInventory();
     }
 
+    // --- LOAD ĐỒ ---
     private void LoadShopItems()
     {
-        // 1. Xóa sạch các ô cũ (để tránh bị nhân đôi)
-        foreach (Transform child in shopGrid)
-        {
-            Destroy(child.gameObject);
-        }
+        // Dọn dẹp cũ (Phòng hờ trường hợp refresh shop)
+        foreach (Transform child in shopGrid) Destroy(child.gameObject);
 
-        // 2. Tạo ô mới theo danh sách hàng
+        // Tạo mới
         foreach (ItemData item in itemsForSale)
         {
             GameObject newSlot = Instantiate(shopSlotPrefab, shopGrid);
-            ShopSlot_UI script = newSlot.GetComponent<ShopSlot_UI>();
-            script.SetShopItem(item);
+            newSlot.GetComponent<ShopSlot_UI>().SetShopItem(item);
         }
     }
 
-    // --- LOGIC MUA HÀNG ---
+    // --- MUA BÁN ---
     public void TryBuyItem(ItemData item)
     {
-        // 1. Kiểm tra tiền
-        if (InventoryManager.Instance.currentGold >= item.baseValue)
-        {
-            // 2. Thử thêm vào túi (Kiểm tra xem túi đầy không)
-            bool added = InventoryManager.Instance.AddItem(item);
+        buyPopup.OpenPopup(item);
+    }
 
-            if (added)
+    public void ProcessBuying(ItemData item, int quantity)
+    {
+        int totalCost = item.baseValue * quantity;
+
+        // Check tiền
+        if (InventoryManager.Instance.currentGold >= totalCost)
+        {
+            // Check túi đầy
+            if (InventoryManager.Instance.AddItem(item, quantity))
             {
-                // 3. Trừ tiền
-                InventoryManager.Instance.UpdateGold(-item.baseValue);
-                Debug.Log($"<color=green>Đã mua: {item.itemName}</color>");
+                InventoryManager.Instance.UpdateGold(-totalCost);
+                // Debug.Log($"Mua thành công {quantity} cái {item.itemName}"); // Tắt Log cho mượt
             }
             else
             {
-                Debug.Log("<color=red>Túi đầy rồi!</color>");
+                // Debug.Log("Túi đầy!"); // Nên thay bằng thông báo UI
             }
         }
         else
         {
-            Debug.Log("<color=red>Không đủ tiền!</color>");
+            // Debug.Log("Không đủ tiền!"); // Nên thay bằng thông báo UI
         }
     }
 
-    // Bán hàng
-    public bool IsShopOpen()
-    {
-        return shopPanel.activeSelf;
-    }
+    public bool IsShopOpen() => shopPanel.activeSelf;
+
     public void TrySellItem(ItemData item)
     {
         if (item == null) return;
-
-        // Bán = 50% mua
         int sellPrice = Mathf.FloorToInt(item.baseValue * 0.5f);
-
-        // Bán min = 1
         if (sellPrice < 1) sellPrice = 1;
 
-        // Giao dịch
-        if(InventoryManager.Instance.HasItem(item,1))
+        if (InventoryManager.Instance.HasItem(item, 1))
         {
-            // -1
             InventoryManager.Instance.RemoveItem(item, 1);
-
-            // + $
             InventoryManager.Instance.UpdateGold(sellPrice);
-
-            Debug.Log($"Đã bán {item.itemName} với giá {sellPrice}");
-        }    
+        }
     }
 }
