@@ -19,13 +19,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float staminaDrain = 20f;
 
     // ==============================
-    // Footstep Audio
+    // [MỚI] Audio Settings (Dành cho file loop dài)
     // ==============================
-    [Header("Footstep")]
-    [SerializeField] private float footstepDelay = 0.4f;
-    [SerializeField] private float runStepMultiplier = 0.6f;
-
-    private float footstepTimer;
+    [Header("Footstep Loop Audio")]
+    [SerializeField] private AudioSource footstepSource; // Kéo cái AudioSource trên người Player vào đây
+    [SerializeField] private float runPitchMultiplier = 1.5f; // Chạy thì tiếng nhanh gấp 1.5 lần
 
     // ==============================
     // Components
@@ -48,6 +46,10 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        // Tự động lấy AudioSource nếu quên kéo (miễn là đã Add Component)
+        if (footstepSource == null) footstepSource = GetComponent<AudioSource>();
+
         controls = new GameControls();
     }
 
@@ -84,7 +86,6 @@ public class PlayerMovement : MonoBehaviour
     private IEnumerator TeleportRoutine()
     {
         yield return null;
-
         if (GameManager.Instance == null) yield break;
         if (!GameManager.Instance.nextSpawnPosition.HasValue) yield break;
 
@@ -105,8 +106,9 @@ public class PlayerMovement : MonoBehaviour
         ReadInput();
         HandleStamina();
         UpdateAnimation();
-        UpdateFacing();
-        HandleFootstepAudio();
+
+        // 👇 GỌI HÀM XỬ LÝ ÂM THANH MỚI
+        HandleFootstepAudioLoop();
     }
 
     private void FixedUpdate()
@@ -128,17 +130,16 @@ public class PlayerMovement : MonoBehaviour
 
         if (isMoving && isRunning)
         {
-            if (PlayerStats.Instance.TryConsumeStamina(staminaDrain * Time.deltaTime))
+            if (PlayerStats.Instance != null && PlayerStats.Instance.TryConsumeStamina(staminaDrain * Time.deltaTime))
+            {
                 currentSpeed = runSpeed;
+            }
         }
     }
 
-    // ==============================
-    // Stamina
-    // ==============================
     private void HandleStamina()
     {
-        if (moveInput.sqrMagnitude == 0)
+        if (moveInput.sqrMagnitude == 0 && PlayerStats.Instance != null)
         {
             PlayerStats.Instance.RegenerateStamina(
                 PlayerStats.Instance.staminaRegenRate * Time.deltaTime
@@ -146,44 +147,50 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ==============================
-    // Animation & Facing
-    // ==============================
     private void UpdateAnimation()
     {
         if (animator != null)
             animator.SetFloat("Speed", moveInput.magnitude);
     }
 
-    private void UpdateFacing()
-    {
-        if (moveInput.x == 0) return;
-
-        transform.rotation = moveInput.x > 0
-            ? Quaternion.Euler(0, 0, 0)
-            : Quaternion.Euler(0, 180, 0);
-    }
-
     // ==============================
-    // Footstep Audio
+    // 👇 [QUAN TRỌNG] LOGIC ÂM THANH MỚI (CHO FILE LOOP)
     // ==============================
-    private void HandleFootstepAudio()
+    private void HandleFootstepAudioLoop()
     {
-        if (moveInput.sqrMagnitude == 0)
+        if (footstepSource == null) return;
+
+        // 1. Kiểm tra xem có đang di chuyển không
+        bool isMoving = moveInput.sqrMagnitude > 0;
+
+        if (isMoving)
         {
-            footstepTimer = 0;
-            return;
+            // Nếu đang đi mà loa chưa bật -> BẬT LOA
+            if (!footstepSource.isPlaying)
+            {
+                footstepSource.Play();
+            }
+
+            // 2. Điều chỉnh tốc độ âm thanh (Pitch)
+            // Nếu chạy -> Pitch cao (tiếng nhanh). Nếu đi bộ -> Pitch bình thường.
+            if (currentSpeed == runSpeed)
+            {
+                footstepSource.pitch = runPitchMultiplier; // Ví dụ: 1.5
+            }
+            else
+            {
+                footstepSource.pitch = 1f; // Bình thường
+            }
         }
-
-        footstepTimer -= Time.deltaTime;
-        if (footstepTimer > 0) return;
-
-        if (AudioManager.Instance != null)
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.footstep, 0.8f);
-
-        footstepTimer = currentSpeed == runSpeed
-            ? footstepDelay * runStepMultiplier
-            : footstepDelay;
+        else
+        {
+            // Nếu dừng lại mà loa vẫn đang kêu -> TẮT LOA
+            if (footstepSource.isPlaying)
+            {
+                footstepSource.Stop();
+                // Hoặc dùng footstepSource.Pause() nếu muốn giữ vị trí file âm thanh
+            }
+        }
     }
 
     // ==============================
@@ -192,7 +199,11 @@ public class PlayerMovement : MonoBehaviour
     public void StopMoving()
     {
         rb.velocity = Vector2.zero;
-        animator?.SetFloat("Speed", 0f);
+        if (animator != null) animator.SetFloat("Speed", 0f);
+
+        // Dừng luôn âm thanh nếu bị ép dừng
+        if (footstepSource != null && footstepSource.isPlaying)
+            footstepSource.Stop();
     }
 
     public void ApplyKnockback(Vector2 direction, float force, float duration)
@@ -200,6 +211,11 @@ public class PlayerMovement : MonoBehaviour
         isKnockedBack = true;
         rb.velocity = Vector2.zero;
         rb.AddForce(direction * force, ForceMode2D.Impulse);
+
+        // Khi bị đẩy lùi thì không phát tiếng bước chân
+        if (footstepSource != null && footstepSource.isPlaying)
+            footstepSource.Stop();
+
         StartCoroutine(KnockbackRoutine(duration));
     }
 

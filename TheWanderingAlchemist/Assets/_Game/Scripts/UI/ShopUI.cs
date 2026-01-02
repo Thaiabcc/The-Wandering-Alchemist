@@ -7,18 +7,19 @@ public class ShopUI : MonoBehaviour
     public static ShopUI Instance { get; private set; }
 
     [Header("UI References")]
-    public GameObject shopPanel;
-    public Transform shopGrid;
-    public GameObject shopSlotPrefab;
+    [SerializeField] private GameObject shopPanel;      
+    [SerializeField] private Transform shopGrid;        
+    [SerializeField] private GameObject shopSlotPrefab; 
 
-    public ShopBuyPopup buyPopup;
+    [SerializeField] private ShopBuyPopup buyPopup;     
     private Canvas canvas;
 
     [Header("Data")]
-    public List<ItemData> itemsForSale;
+    public List<ItemData> itemsForSale; 
 
     private void Awake()
     {
+        // Singleton Pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -26,8 +27,7 @@ public class ShopUI : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
-
+        DontDestroyOnLoad(gameObject); 
         canvas = GetComponent<Canvas>();
         if (canvas == null) canvas = GetComponentInParent<Canvas>();
     }
@@ -36,15 +36,12 @@ public class ShopUI : MonoBehaviour
     {
         shopPanel.SetActive(false);
         SceneManager.sceneLoaded += OnSceneLoaded;
-
-        // ⚠️ QUAN TRỌNG: Không Load đồ ở đây để tránh lag lúc vào game
     }
 
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
-
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
@@ -52,10 +49,8 @@ public class ShopUI : MonoBehaviour
             canvas.worldCamera = Camera.main;
             canvas.planeDistance = 10;
         }
-        CloseShop();
+        CloseShop(); 
     }
-
-    // --- LOGIC ĐÓNG MỞ (ĐÃ TỐI ƯU) ---
     public void ToggleShop()
     {
         if (shopPanel.activeSelf) CloseShop();
@@ -65,78 +60,76 @@ public class ShopUI : MonoBehaviour
     public void OpenShop()
     {
         shopPanel.SetActive(true);
-
         if (InventoryUI.Instance != null)
             InventoryUI.Instance.OpenInventoryForSelection();
-
-        // 🔥 TỐI ƯU HÓA Ở ĐÂY 🔥
-        // Kiểm tra: Nếu trong Grid chưa có gì (childCount == 0) thì mới Load.
-        // Nếu đã có đồ rồi thì không Load lại nữa -> Hết Lag ngay!
-        if (shopGrid.childCount == 0)
-        {
-            LoadShopItems();
-        }
+        LoadShopItems();
     }
 
     public void CloseShop()
     {
         shopPanel.SetActive(false);
+
         if (buyPopup != null) buyPopup.ClosePopup();
 
         if (InventoryUI.Instance != null)
             InventoryUI.Instance.CloseInventory();
     }
-
-    // --- LOAD ĐỒ ---
     private void LoadShopItems()
     {
-        // Dọn dẹp cũ (Phòng hờ trường hợp refresh shop)
-        foreach (Transform child in shopGrid) Destroy(child.gameObject);
-
-        // Tạo mới
+        foreach (Transform child in shopGrid)
+        {
+            Destroy(child.gameObject);
+        }
         foreach (ItemData item in itemsForSale)
         {
+            if (item == null) continue; 
+
             GameObject newSlot = Instantiate(shopSlotPrefab, shopGrid);
-            newSlot.GetComponent<ShopSlot_UI>().SetShopItem(item);
+            ShopSlot_UI slotUI = newSlot.GetComponent<ShopSlot_UI>();
+
+            if (slotUI != null)
+            {
+                slotUI.SetShopItem(item);
+            }
         }
     }
 
-    // --- MUA BÁN ---
+
     public void TryBuyItem(ItemData item)
     {
-        buyPopup.OpenPopup(item);
+        if (buyPopup != null)
+        {
+            buyPopup.OpenPopup(item);
+        }
+        else
+        {
+            Debug.LogError("Chưa gán ShopBuyPopup vào ShopUI!");
+        }
     }
-
     public void ProcessBuying(ItemData item, int quantity)
     {
         int totalCost = item.baseValue * quantity;
 
-        // Check tiền
         if (InventoryManager.Instance.currentGold >= totalCost)
         {
-            // Check túi đầy
             if (InventoryManager.Instance.AddItem(item, quantity))
             {
                 InventoryManager.Instance.UpdateGold(-totalCost);
-                // Debug.Log($"Mua thành công {quantity} cái {item.itemName}"); // Tắt Log cho mượt
             }
             else
             {
-                // Debug.Log("Túi đầy!"); // Nên thay bằng thông báo UI
+                Debug.Log("Túi đồ đã đầy!");
             }
         }
         else
         {
-            // Debug.Log("Không đủ tiền!"); // Nên thay bằng thông báo UI
+            Debug.Log("Không đủ tiền!");
         }
     }
-
-    public bool IsShopOpen() => shopPanel.activeSelf;
-
     public void TrySellItem(ItemData item)
     {
         if (item == null) return;
-        int sellPrice = Mathf.FloorToInt(item.baseValue * 0.5f);
+        int sellPrice = Mathf.FloorToInt(item.baseValue * 0.5f); 
         if (sellPrice < 1) sellPrice = 1;
 
         if (InventoryManager.Instance.HasItem(item, 1))
@@ -145,4 +138,6 @@ public class ShopUI : MonoBehaviour
             InventoryManager.Instance.UpdateGold(sellPrice);
         }
     }
+
+    public bool IsShopOpen() => shopPanel.activeSelf;
 }

@@ -135,4 +135,17 @@ public class InventoryManager : MonoBehaviour
 
         OnInventoryChanged?.Invoke();
     }
+    public int GetItemCount(ItemData item)
+    {
+        if (item == null) return 0;
+        int total = 0;
+        foreach (var slot in inventory)
+        {
+            if (slot.item == item)
+            {
+                total += slot.quantity;
+            }
+        }
+        return total;
+    }
 }

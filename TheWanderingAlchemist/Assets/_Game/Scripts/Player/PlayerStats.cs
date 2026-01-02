@@ -17,6 +17,9 @@ public class PlayerStats : MonoBehaviour
     public int currentHealth;
     public int MaxHealth => maxHealth;
 
+    // Biến kiểm tra bất tử
+    public bool isInvincible = false;
+
     private bool isDead;
 
     // ==============================
@@ -25,12 +28,8 @@ public class PlayerStats : MonoBehaviour
     [Header("Stamina")]
     public float maxStamina = 100f;
     public float currentStamina;
-
-    [Tooltip("Tốc độ hồi khi đứng im")]
     public float staminaRegenRate = 10f;
-
-    [Tooltip("Tốc độ hồi khi đang di chuyển (Nên thấp hơn đứng im)")]
-    public float movingRegenRate = 5f; // [MỚI] Biến này để chỉnh tốc độ hồi khi đi
+    public float movingRegenRate = 5f;
 
     // ==============================
     // Combat
@@ -69,7 +68,6 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
     }
 
-    // [MỚI] Thêm hàm Update để hồi Stamina theo thời gian thực
     private void Update()
     {
         if (isDead) return;
@@ -130,16 +128,17 @@ public class PlayerStats : MonoBehaviour
     {
         isDead = false;
         currentHealth = maxHealth;
+        isInvincible = false; // Reset bất tử khi hồi sinh
 
         ResetAnimator();
         EnablePlayer(true);
         UpdateUI();
+        ResetSpriteColor(); // Đảm bảo màu sắc trở lại bình thường
     }
 
     private void ResetAnimator()
     {
         if (animator == null) return;
-
         animator.Rebind();
         animator.Update(0f);
     }
@@ -155,27 +154,32 @@ public class PlayerStats : MonoBehaviour
     }
 
     // ==============================
-    // Logic Hồi Stamina Tự Động [MỚI]
+    // Stamina Logic
     // ==============================
     private void HandleStaminaRegeneration()
     {
-        // Nếu đã đầy cây thì không hồi nữa
         if (currentStamina >= maxStamina) return;
 
-        // Kiểm tra xem người chơi có đang bấm nút di chuyển không
-        // (Cách này nhanh nhất, không cần phụ thuộc vào script movement)
         bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
-
-        // Chọn tốc độ hồi dựa trên trạng thái
         float actualRegenRate = isMoving ? movingRegenRate : staminaRegenRate;
 
-        // Cộng Stamina theo thời gian thực
         currentStamina += actualRegenRate * Time.deltaTime;
-
-        // Đảm bảo không vượt quá Max
         if (currentStamina > maxStamina) currentStamina = maxStamina;
+        UpdateStaminaUI();
+    }
 
-        // Cập nhật UI (Nên tối ưu: Chỉ update khi giá trị thay đổi đáng kể để đỡ tốn)
+    public bool TryConsumeStamina(float amount)
+    {
+        if (currentStamina < amount) return false;
+        currentStamina -= amount;
+        UpdateStaminaUI();
+        return true;
+    }
+
+    public void RegenerateStamina(float amount)
+    {
+        if (currentStamina >= maxStamina) return;
+        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
         UpdateStaminaUI();
     }
 
@@ -184,12 +188,16 @@ public class PlayerStats : MonoBehaviour
     // ==============================
     public void TakeDamage(int damage)
     {
-        if (isDead) return;
+        if (isDead || isInvincible) return;
 
         currentHealth -= damage;
+        // Audio
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerTakeDamage);
         UpdateUI();
         StartCoroutine(FlashEffect());
 
+        CameraShake.Instance?.Shake(0.2f, 3f);
+        HitStop.Instance?.Stop(0.1f);
         if (currentHealth <= 0)
             Die();
     }
@@ -204,6 +212,61 @@ public class PlayerStats : MonoBehaviour
     }
 
     // ==============================
+    // Invincibility (Bất tử) Logic
+    // ==============================
+
+    // [SỬA TÊN] Invisible (Tàng hình) -> Invincible (Bất tử) cho đúng nghĩa
+    public void BecomeInvincible(float duration)
+    {
+        // Nếu đang bất tử rồi thì reset lại thời gian (dừng coroutine cũ chạy cái mới)
+        StopCoroutine("InvincibilityRoutine");
+        StartCoroutine(InvincibilityRoutine(duration));
+    }
+
+    // [SỬA TÊN] Rountines -> Routine (Lỗi chính tả)
+    // Thay đổi tốc độ nháy ở đây (càng nhỏ nháy càng nhanh)
+    [SerializeField] private float blinkInterval = 0.1f;
+
+    private IEnumerator InvincibilityRoutine(float duration)
+    {
+        isInvincible = true;
+        Debug.Log(">>> BẤT TỬ KÍCH HOẠT!");
+
+        float elapsed = 0f;
+
+        // Vòng lặp chạy liên tục cho đến khi hết thời gian duration
+        while (elapsed < duration)
+        {
+            // 1. Tắt hình (hoặc mờ tịt đi)
+            SetSpriteAlpha(0f);
+            yield return new WaitForSeconds(blinkInterval);
+
+            // 2. Bật hình lại
+            SetSpriteAlpha(1f);
+            yield return new WaitForSeconds(blinkInterval);
+
+            // Cộng dồn thời gian đã trôi qua
+            elapsed += (blinkInterval * 2);
+        }
+
+        // Đảm bảo khi hết giờ, nhân vật phải hiện rõ trở lại
+        SetSpriteAlpha(1f);
+        isInvincible = false;
+        Debug.Log(">>> Hết bất tử.");
+    }
+
+    // Hàm phụ trợ cho gọn code
+    private void SetSpriteAlpha(float alpha)
+    {
+        if (sprite != null)
+        {
+            Color c = sprite.color;
+            c.a = alpha;
+            sprite.color = c;
+        }
+    }
+
+    // ==============================
     // BuffDame Logic
     // ==============================
     public void ApplyBuffDamage(float amount, float duration)
@@ -215,9 +278,7 @@ public class PlayerStats : MonoBehaviour
     {
         currentDamage += amount;
         Debug.Log($"<color=green>BUFF ACTIVATED:</color> +{amount} Damage. Current: {currentDamage}");
-
         yield return new WaitForSeconds(duration);
-
         currentDamage -= amount;
         Debug.Log($"<color=yellow>BUFF ENDED:</color> Damage returned to: {currentDamage}");
     }
@@ -227,8 +288,9 @@ public class PlayerStats : MonoBehaviour
     // ==============================
     private void Die()
     {
+        // Audio
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerDie);
         isDead = true;
-
         StopAllCoroutines();
         ResetSpriteColor();
 
@@ -249,27 +311,6 @@ public class PlayerStats : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-
-    // ==============================
-    // Stamina (Manual Consume/Regen)
-    // ==============================
-    public bool TryConsumeStamina(float amount)
-    {
-        if (currentStamina < amount) return false; // [FIX] Sửa điều kiện: phải đủ stamina mới cho dùng
-
-        currentStamina -= amount; // Không cần Mathf.Max ở đây vì đã check if ở trên
-        UpdateStaminaUI();
-        return true;
-    }
-
-    // Hàm này dùng cho Potion (hồi tức thì một lượng lớn)
-    public void RegenerateStamina(float amount)
-    {
-        if (currentStamina >= maxStamina) return;
-
-        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
-        UpdateStaminaUI();
     }
 
     // ==============================
@@ -300,7 +341,6 @@ public class PlayerStats : MonoBehaviour
     private void UpdateUI()
     {
         if (PlayerHealthUI.Instance == null) return;
-
         PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
         PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
     }

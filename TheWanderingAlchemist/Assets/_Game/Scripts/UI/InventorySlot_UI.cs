@@ -50,7 +50,7 @@ public class InventorySlot_UI : MonoBehaviour
             amountText.gameObject.SetActive(false);
         }
     }
-    public void ClearSlot() 
+    public void ClearSlot()
     {
         Clear();
     }
@@ -95,34 +95,41 @@ public class InventorySlot_UI : MonoBehaviour
         bool itemUsed = false;
 
         // Health
-        if(item.healthRestore > 0 && player.currentHealth < player.MaxHealth)
+        if (item.healthRestore > 0 && player.currentHealth < player.MaxHealth)
         {
             player.Heal((int)item.healthRestore);
             itemUsed = true;
-        }    
+        }
 
         // Stamina
-        if(item.staminaRestore > 0 && player.currentStamina < player.maxStamina)
+        if (item.staminaRestore > 0 && player.currentStamina < player.maxStamina)
         {
             player.RegenerateStamina(item.staminaRestore);
             itemUsed = true;
         }
 
         // Buff Dame
-        if(item.damagebuffAmount > 0)
+        if (item.damagebuffAmount > 0)
         {
             player.ApplyBuffDamage(item.damagebuffAmount, item.buffduration);
             itemUsed = true;
         }
 
-        // End
+        // End - XỬ LÝ SAU KHI DÙNG THÀNH CÔNG
         if (itemUsed)
         {
+            // 👇 THÊM ÂM THANH UỐNG THUỐC Ở ĐÂY 👇
+            // Chỉ kêu khi dùng thành công (itemUsed = true)
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.potionUse);
+            }
+
             InventoryManager.Instance.RemoveItem(item, 1);
         }
         else
         {
-            Debug.Log("Error....!");
+            Debug.Log("Full stats, cannot use item!"); // Sửa lại log cho dễ hiểu
         }
     }
 

@@ -7,19 +7,31 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance { get; private set; }
 
     [Header("Audio Sources")]
-    [SerializeField] private AudioSource musicSource; // Để phát nhạc nền (Loop)
-    [SerializeField] private AudioSource sfxSource;   // Để phát tiếng động (One shot)
+    [SerializeField] private AudioSource musicSource; // Nhạc nền (Loop)
+    [SerializeField] private AudioSource sfxSource;   // Tiếng động (One shot)
 
-    [Header("Clips (Kéo file âm thanh vào đây)")]
+    [Header("--- NHẠC NỀN ---")]
     public AudioClip backgroundMusic;
-    public AudioClip swordSwing;
-    public AudioClip enemyHit;
-    public AudioClip footstep;
-    public AudioClip pickupItems;
+
+    [Header("--- NGƯỜI CHƠI (HÀNH ĐỘNG) ---")]
+    public AudioClip footstep;        // Đi bộ
+    public AudioClip pickupItems;     // Nhặt đồ
+    public AudioClip potionUse;       // Uống thuốc (ực ực)
+
+    [Header("--- NGƯỜI CHƠI (CHIẾN ĐẤU) ---")]
+    public AudioClip swordSwing;      // Tiếng chém kiếm
+    public AudioClip stoneThrow;      // Tiếng ném đá (vút)
+    public AudioClip stoneBreak;      // Tiếng đá vỡ khi chạm đất/quái (bụp/keng)
+    public AudioClip deflectSuccess;  // Đỡ đòn thành công (KENG!!!)
+    public AudioClip playerTakeDamage;// Người chơi bị đánh (Á!)
+    public AudioClip playerDie;       // Người chơi chết
+
+    [Header("--- KẺ ĐỊCH ---")]
+    public AudioClip enemyHit;        // Quái bị đánh trúng (Bộp)
+    public AudioClip enemyDie;        // Quái chết
 
     private void Awake()
     {
-        // Singleton Bất Tử
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -33,25 +45,36 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        AudioManager.Instance.PlayMusic(backgroundMusic, 0.1f);
+        // Tự động phát nhạc nền khi game bắt đầu
+        PlayMusic(backgroundMusic, 0.2f); // Volume nhạc nền nên để vừa phải (0.5)
     }
 
-    // Hàm phát nhạc nền (Nhạc nền chỉ có 1 bài chạy loop)
+    // Hàm phát nhạc nền
     public void PlayMusic(AudioClip clip, float volume = 1f)
     {
-        if (clip == null) return;
+        if (clip == null || musicSource == null) return;
 
         musicSource.clip = clip;
         musicSource.volume = volume;
-        musicSource.loop = true; // Lặp lại
+        musicSource.loop = true;
         musicSource.Play();
     }
 
-    // Hàm phát tiếng động (Tiếng đánh, tiếng bước chân...)
-    public void PlaySFX(AudioClip clip, float volume = 1f)
+    // Hàm phát tiếng động (SFX)
+    // Tôi thêm tham số pitch (độ cao) ngẫu nhiên để âm thanh đỡ nhàm chán
+    public void PlaySFX(AudioClip clip, float volume = 1f, bool randomPitch = false)
     {
-        if (clip == null) return;
-        // PlayOneShot cho phép chỉnh volumeScale
+        if (clip == null || sfxSource == null) return;
+
+        if (randomPitch)
+        {
+            sfxSource.pitch = Random.Range(0.85f, 1.15f); // Đổi giọng chút xíu cho tự nhiên
+        }
+        else
+        {
+            sfxSource.pitch = 1f;
+        }
+
         sfxSource.PlayOneShot(clip, volume);
     }
 }

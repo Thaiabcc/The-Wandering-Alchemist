@@ -117,6 +117,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fillImage: {fileID: 1009214141228568822}
   canvasObject: {fileID: 852310039772760144}
+  hideOnDeath: 1
+  hideWhenFull: 0
 --- !u!1 &1565051341617546364
 GameObject:
   m_ObjectHideFlags: 0
@@ -132,6 +134,7 @@ GameObject:
   - component: {fileID: 7741362471970022967}
   - component: {fileID: 4773636544411141528}
   - component: {fileID: 4771097540071412511}
+  - component: {fileID: -5188163565689428259}
   m_Layer: 6
   m_Name: Slime
   m_TagString: Monster
@@ -240,8 +243,8 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 50
-  m_LinearDrag: 20
+  m_Mass: 1
+  m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 6200000, guid: f9d1c1f14a9952e43b8f31bfc884981f, type: 2}
@@ -303,13 +306,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  enemyAI: {fileID: 0}
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
-  flashDuration: 0.1
-  healthBar: {fileID: 6300989077085360734}
-  lootPrefab: {fileID: 2477963370002911841, guid: 61a488bcab6fd674cbe91585b46b031f, type: 3}
   dropChance: 100
   destroyDelay: 1
+  enemyNameForQuest: Slime
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
+  enemyAI: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  lootPrefab: {fileID: 2477963370002911841, guid: 61a488bcab6fd674cbe91585b46b031f, type: 3}
+  healthBar: {fileID: 6300989077085360734}
 --- !u!114 &4771097540071412511
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -328,12 +333,37 @@ MonoBehaviour:
   attackCooldown: 1.5
   patrolRadius: 3
   waitTime: 2
+  stoppingDistance: 0.2
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 128
   combatCenterOffset: 0.5
   touchDamage: 10
   knockbackForce: 5
+  knockbackDuration: 0.2
+--- !u!114 &-5188163565689428259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565051341617546364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b31ce51a161f3434f89faad2848003cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 2
+  chaseRange: 5
+  attackRange: 1
+  attackCooldown: 1.5
+  patrolRadius: 3
+  waitTime: 2
+  stoppingDistance: 0.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  combatCenterOffset: 0.5
 --- !u!1 &4033386861210187413
 GameObject:
   m_ObjectHideFlags: 0

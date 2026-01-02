@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d798cd5532ebf4da06df31cf920808, type: 3}
+  m_Name: GatherMusroom
+  m_EditorClassIdentifier: 
+  questName: GatherMushroom
+  type: 1
+  targetName: RedMushroom
+  requiredAmount: 2
+  requiredItem: {fileID: 11400000, guid: 258cbb58f66db954480bb004c7bb0b51, type: 2}
+  goldReward: 50
+  itemReward: {fileID: 0}
+  startDialogue:
+  - "\"\xC2y da~\""
+  - "\"Sao thi\u1EBFu \xEDt \"N\u1EA5m \u0111\u1ECF\" pha thu\u1ED1c r\u1ED3i\""
+  - "\"C\xF3 ai \u0111i l\u01B0\u1EE3m h\u1ED9 th\xEC t\u1ED1t qu\xE1\""
+  - '"Hehehehe~"'
+  progressDialogue:
+  - "\"Lu\u1EE3m xong ch\u01B0a m\xE0 quay l\u1EA1i \u0111\xE2y r\u1ED3i\""
+  - "\"Ch\u01B0a xong th\xEC v\xE1c c\xE1i m\xF4ng \u0111i \u0111ii\""
+  - "\"Sao c\xF2n \u0111\u1EE9ng \u0111\xE2y ?i\""
+  completeDialogue:
+  - "\"\u0110a t\u1EA1 ng\u01B0\u1EDDi anh em l\u1EA7n n\u1EEFa nh\xE9\""
+  - '"Hehehehe~~"'

@@ -1,38 +1,67 @@
 ﻿using UnityEngine;
+using Cinemachine;
 
 public class CameraShake : MonoBehaviour
 {
-    public static CameraShake Instance; // Singleton để Boss gọi dễ dàng
+    public static CameraShake Instance { get; private set; }
 
-    private Vector3 originalPos;
     private float shakeTimer;
-    private float shakeAmount;
+    private float shakeTimerTotal;
+    private float startingIntensity;
 
-    void Awake()
+    // Biến lưu trữ tạm camera hiện tại
+    private CinemachineVirtualCamera currentVcam;
+
+    private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
-        originalPos = transform.localPosition;
+        DontDestroyOnLoad(gameObject); // Bất tử
     }
 
-    void Update()
+    public void Shake(float duration, float intensity)
+    {
+        // 1. Tự động đi tìm Virtual Camera đang hoạt động trong Scene hiện tại
+        // (Cách này giúp bro không cần quan tâm camera cũ hay mới)
+        if (currentVcam == null || !currentVcam.gameObject.activeInHierarchy)
+        {
+            currentVcam = FindObjectOfType<CinemachineVirtualCamera>();
+        }
+
+        // Nếu tìm mãi không thấy (ví dụ scene Menu không có cam) thì bỏ qua
+        if (currentVcam == null) return;
+
+        // 2. Lấy Noise
+        var noise = currentVcam.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+
+        if (noise != null)
+        {
+            noise.m_AmplitudeGain = intensity;
+            startingIntensity = intensity;
+            shakeTimerTotal = duration;
+            shakeTimer = duration;
+        }
+    }
+
+    private void Update()
     {
         if (shakeTimer > 0)
         {
-            // Rung lắc vị trí ngẫu nhiên trong vòng tròn nhỏ
-            transform.localPosition = originalPos + Random.insideUnitSphere * shakeAmount;
             shakeTimer -= Time.deltaTime;
-        }
-        else
-        {
-            shakeTimer = 0f;
-            transform.localPosition = originalPos; // Trả về vị trí cũ
-        }
-    }
 
-    // Hàm để Boss gọi: Shake(Thời gian rung, Độ mạnh)
-    public void Shake(float duration, float magnitude)
-    {
-        shakeTimer = duration;
-        shakeAmount = magnitude;
+            // Logic giảm dần độ rung
+            if (currentVcam != null)
+            {
+                var noise = currentVcam.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+                if (noise != null)
+                {
+                    noise.m_AmplitudeGain = Mathf.Lerp(startingIntensity, 0f, 1 - (shakeTimer / shakeTimerTotal));
+                }
+            }
+        }
     }
 }

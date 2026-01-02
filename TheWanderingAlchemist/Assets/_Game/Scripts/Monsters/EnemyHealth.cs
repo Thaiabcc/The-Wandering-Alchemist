@@ -6,8 +6,12 @@ public class EnemyHealth : MonoBehaviour
     #region Configuration
     [Header("Stats")]
     [SerializeField] private float maxHealth = 100f;
-    [SerializeField] private float dropChance = 50f;
+    [SerializeField] private float dropChance = 100f;
     [SerializeField] private float destroyDelay = 1f;
+
+    [Header("Quest Info")]
+    [Tooltip("Điền tên quái giống hệt trong Quest của NPC (VD: Slime)")]
+    [SerializeField] private string enemyNameForQuest = "Slime";
 
     [Header("Visual Effects")]
     [SerializeField] private Color flashColor = Color.red;
@@ -17,13 +21,15 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private EnemyAI enemyAI;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private GameObject lootPrefab;
-    [SerializeField] private EnemyHealthBar healthBar; // UI cho quái thường
+    [SerializeField] private EnemyHealthBar healthBar;
     #endregion
 
     #region State Variables
     private float currentHealth;
-    private FlyingRangeBoss bossScript; // Reference Boss (nếu có)
-    private WaitForSeconds flashWait;   // Cache để tối ưu hiệu năng
+    private FlyingRangeBoss bossScript;
+    private WaitForSeconds flashWait;
+    // Biến để đảm bảo chỉ chết 1 lần
+    private bool isDead = false;
     #endregion
 
     #region Unity Lifecycle
@@ -32,17 +38,17 @@ public class EnemyHealth : MonoBehaviour
         InitializeStats();
         InitializeComponents();
         SetupBossConfiguration();
-        UpdateUI(); // Setup UI ban đầu
+        UpdateUI();
     }
     #endregion
 
     #region Main Logic
     public void TakeDamage(float damageAmount)
     {
-        if (currentHealth <= 0) return;
+        if (isDead || currentHealth <= 0) return;
 
         ApplyDamage(damageAmount);
-        ProcessBossLogic(damageAmount); // Logic riêng nếu là Boss (Poise, Rage)
+        ProcessBossLogic(damageAmount);
         UpdateUI();
         PlayHitEffect();
 
@@ -53,32 +59,26 @@ public class EnemyHealth : MonoBehaviour
     }
     #endregion
 
-    #region Helper Methods
-
+    #region Helper Methods (Standard)
     private void InitializeStats()
     {
         currentHealth = maxHealth;
         flashWait = new WaitForSeconds(flashDuration);
+        isDead = false;
     }
 
     private void InitializeComponents()
     {
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
         if (enemyAI == null) enemyAI = GetComponent<EnemyAI>();
-
-        // Cố gắng lấy script Boss
         bossScript = GetComponent<FlyingRangeBoss>();
     }
 
     private void SetupBossConfiguration()
     {
-        // Nếu đây là Boss
         if (bossScript != null && bossScript.bossHUD != null)
         {
-            // 1. Tắt thanh máu nhỏ (Quái thường)
             if (healthBar != null) healthBar.gameObject.SetActive(false);
-
-            // 2. Setup thanh máu to (BossHUD)
             bossScript.bossHUD.SetMaxStats(maxHealth, bossScript.maxPoise);
         }
     }
@@ -90,13 +90,10 @@ public class EnemyHealth : MonoBehaviour
 
     private void UpdateUI()
     {
-        // UI Quái thường
         if (healthBar != null && healthBar.gameObject.activeSelf)
         {
             healthBar.UpdateHealthBar((int)currentHealth, (int)maxHealth);
         }
-
-        // UI Boss (Chỉ update HP, phần Rage/Poise xử lý ở logic Boss)
         if (bossScript != null && bossScript.bossHUD != null)
         {
             bossScript.bossHUD.UpdateHP(currentHealth);
@@ -106,11 +103,7 @@ public class EnemyHealth : MonoBehaviour
     private void ProcessBossLogic(float damageAmount)
     {
         if (bossScript == null) return;
-
-        // Trừ Poise bên script Boss
         bossScript.TakeDamage(damageAmount);
-
-        // Kích hoạt Rage nếu máu < 50%
         if (currentHealth <= maxHealth / 2)
         {
             bossScript.ActivateRage();
@@ -119,9 +112,9 @@ public class EnemyHealth : MonoBehaviour
 
     private void PlayHitEffect()
     {
-        if (gameObject.activeInHierarchy) // Chỉ chạy coroutine khi object đang active
+        if (gameObject.activeInHierarchy)
         {
-            StopCoroutine(nameof(FlashRoutine)); // Reset nếu đang nháy dở
+            StopCoroutine(nameof(FlashRoutine));
             StartCoroutine(nameof(FlashRoutine));
         }
     }
@@ -132,43 +125,82 @@ public class EnemyHealth : MonoBehaviour
         {
             Color originalColor = spriteRenderer.color;
             spriteRenderer.color = flashColor;
-
-            yield return flashWait; // Sử dụng biến đã cache
-
+            yield return flashWait;
             spriteRenderer.color = originalColor;
         }
     }
+    #endregion
 
     private void Die()
     {
-        HandleQuestProgress();
-        HandleLootDrop();
-        if (bossScript != null && bossScript.bossHUD != null) 
-        {
-            bossScript.bossHUD.gameObject.SetActive(false);
-        }
+        if (isDead) return;
+        isDead = true;
 
-        // Báo cho AI biết đã chết để dừng di chuyển/anim
+        // 1. Tắt va chạm/hình ảnh
+        if (GetComponent<Collider2D>()) GetComponent<Collider2D>().enabled = false;
+        if (healthBar != null) healthBar.gameObject.SetActive(false);
+        if (bossScript != null && bossScript.bossHUD != null) bossScript.bossHUD.gameObject.SetActive(false);
         if (enemyAI != null) enemyAI.TriggerDeath();
 
+        // ====================================================
+        // 👇 SỬA ĐOẠN NÀY: TÁCH RIÊNG 2 KHỐI TRY-CATCH RA
+        // ====================================================
+
+        // ƯU TIÊN 1: Rơi đồ trước (Dù Quest lỗi thì vẫn phải có tiền!)
+        try
+        {
+            // Audio
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.enemyDie, 0.8f, true);
+            HandleLootDrop();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Lỗi rơi đồ: " + e.Message);
+        }
+
+        // ƯU TIÊN 2: Tính Quest sau
+        try
+        {
+            HandleQuestProgress();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Lỗi tính Quest: " + e.Message);
+        }
+
+        // ====================================================
+
+        // 4. Hủy Object
         Destroy(gameObject, destroyDelay);
     }
 
     private void HandleQuestProgress()
     {
-        // Chỉ tính kill cho quái thường (Boss thường có logic Quest riêng hoặc xử lý sau)
-        if (QuestManager.Instance != null && bossScript == null)
+        // Kiểm tra kỹ QuestManager có tồn tại không
+        if (QuestManager.Instance != null)
         {
-            QuestManager.Instance.AddKill();
+            // Chỉ gọi nếu là quái thường (Boss thường có logic riêng, hoặc xóa check bossScript nếu muốn boss cũng tính)
+            if (bossScript == null)
+            {
+                QuestManager.Instance.AddKill(enemyNameForQuest);
+            }
         }
     }
 
     private void HandleLootDrop()
     {
+        // 1. Ưu tiên dùng LootManager nếu bro có dùng (mở comment bên dưới nếu dùng)
+        /*
+        if (LootManager.Instance != null) {
+             LootManager.Instance.SpawnLoot(transform.position);
+             return;
+        }
+        */
+
+        // 2. Nếu không dùng Manager thì dùng Prefab có sẵn trong script này
         if (lootPrefab != null && Random.Range(0f, 100f) <= dropChance)
         {
             Instantiate(lootPrefab, transform.position, Quaternion.identity);
         }
     }
-    #endregion
 }

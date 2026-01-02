@@ -4,39 +4,48 @@ using TMPro;
 
 public class ShopSlot_UI : MonoBehaviour
 {
-    [Header("Tham chiếu UI")]
-    public Image iconImage;
-    public TextMeshProUGUI nameText;
-    public TextMeshProUGUI priceText;
-
-    // 1. THÊM DÒNG NÀY: Để code biết cái nút nằm đâu
-    public Button buyButton;
+    [Header("UI References (Kéo thả vào đây)")]
+    [SerializeField] private Image iconImage;           
+    [SerializeField] private TextMeshProUGUI nameText;  
+    [SerializeField] private TextMeshProUGUI priceText; 
+    [SerializeField] private Button buyButton;         
 
     private ItemData currentItem;
-
     public void SetShopItem(ItemData item)
     {
         currentItem = item;
 
         if (item != null)
         {
-            iconImage.sprite = item.icon;
-            nameText.text = item.itemName;
-            priceText.text = item.baseValue.ToString() + " G";
-
-            // 2. THÊM ĐOẠN NÀY: "Hàn dây điện" cho nút bấm
-            // Xóa lệnh cũ (nếu có) để tránh lỗi bấm 1 lần mua 2 lần
-            buyButton.onClick.RemoveAllListeners();
-
-            // Bảo cái nút là: "Khi bị bấm, hãy chạy hàm OnBuyClick ngay!"
-            buyButton.onClick.AddListener(OnBuyClick);
+            if (iconImage != null)
+            {
+                if (item.icon != null)
+                {
+                    iconImage.sprite = item.icon;
+                    iconImage.enabled = true; 
+                    iconImage.preserveAspect = true;
+                }
+                else
+                {
+                    iconImage.enabled = false;
+                }
+            }
+            if (nameText != null) nameText.text = item.itemName;
+            if (priceText != null) priceText.text = $"{item.baseValue} G"; // Format giá tiền
+            if (buyButton != null)
+            {
+                buyButton.onClick.RemoveAllListeners();
+                buyButton.onClick.AddListener(OnBuyClick);
+            }
+            else
+            {
+                Debug.LogWarning($"Slot {item.itemName} chưa được gán Button trong Prefab!");
+            }
         }
     }
-
-    // Hàm này giữ nguyên
-    public void OnBuyClick()
+    private void OnBuyClick()
     {
-        if (currentItem != null)
+        if (currentItem != null && ShopUI.Instance != null)
         {
             ShopUI.Instance.TryBuyItem(currentItem);
         }

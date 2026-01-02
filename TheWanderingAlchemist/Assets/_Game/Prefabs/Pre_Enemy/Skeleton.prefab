@@ -197,6 +197,7 @@ GameObject:
   - component: {fileID: 2239066588699825830}
   - component: {fileID: 6201993242261452005}
   - component: {fileID: 135026101892923453}
+  - component: {fileID: -7405843421371777737}
   m_Layer: 6
   m_Name: Skeleton
   m_TagString: Monster
@@ -369,13 +370,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 150
-  enemyAI: {fileID: 0}
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
-  flashDuration: 0.1
-  healthBar: {fileID: 5888279701397250552}
-  lootPrefab: {fileID: 8261378303904186502, guid: 70becc68d04af584da00c78a15c02c01, type: 3}
   dropChance: 50
   destroyDelay: 1
+  enemyNameForQuest: Skeleton
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
+  enemyAI: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  lootPrefab: {fileID: 8261378303904186502, guid: 70becc68d04af584da00c78a15c02c01, type: 3}
+  healthBar: {fileID: 5888279701397250552}
 --- !u!114 &135026101892923453
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -394,6 +397,7 @@ MonoBehaviour:
   attackCooldown: 1.3
   patrolRadius: 4
   waitTime: 1.2
+  stoppingDistance: 0.2
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -401,6 +405,29 @@ MonoBehaviour:
   hitPoint: {fileID: 730048840046830075}
   hitRadius: 2
   swordDamage: 10
+--- !u!114 &-7405843421371777737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8017318280962498047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b31ce51a161f3434f89faad2848003cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 2
+  chaseRange: 5
+  attackRange: 1
+  attackCooldown: 1.5
+  patrolRadius: 3
+  waitTime: 2
+  stoppingDistance: 0.2
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  combatCenterOffset: 0.5
 --- !u!1 &8056094221948540099
 GameObject:
   m_ObjectHideFlags: 0
@@ -518,3 +545,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fillImage: {fileID: 1322689293130666528}
   canvasObject: {fileID: 8056094221948540099}
+  hideOnDeath: 1
+  hideWhenFull: 0

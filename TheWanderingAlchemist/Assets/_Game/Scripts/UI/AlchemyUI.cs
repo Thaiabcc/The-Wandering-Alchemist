@@ -19,18 +19,24 @@ public class AlchemyUI : MonoBehaviour
     public TextMeshProUGUI outputAmountText;
 
     // ==============================
-    // [MỚI] Feedback (Phản hồi)
+    // [MỚI] Audio & Feedback
     // ==============================
-    [Header("Feedback (Phản hồi)")]
-    [SerializeField] private GameObject successTextObj; // Kéo cái Text "Success!" vào đây
-    [SerializeField] private AudioClip successSound;    // Kéo file âm thanh "Ting" vào đây
-    [SerializeField] private float feedbackDuration = 1.5f; // Thời gian hiện chữ
+    [Header("Audio & Feedback")]
+    [SerializeField] private GameObject successTextObj;
+    [SerializeField] private float feedbackDuration = 1.5f;
+
+    // 👇 HAI BIẾN ÂM THANH RIÊNG BIỆT 👇
+    [Tooltip("Kéo file tiếng sôi sùng sục vào đây")]
+    [SerializeField] private AudioClip cookingSound;
+
+    [Tooltip("Kéo file tiếng Ting thành công vào đây")]
+    [SerializeField] private AudioClip successSound;
 
     // ==============================
     // Animation Settings
     // ==============================
     [Header("Cài đặt Animation")]
-    public Animator alchemyAnimator; // Kéo object Effect_Lua_Nau vào đây
+    public Animator alchemyAnimator;
     public float cookTime = 1.0f;
 
     // ==============================
@@ -59,11 +65,9 @@ public class AlchemyUI : MonoBehaviour
 
     private void Start()
     {
-        // Tắt bảng và tắt hiệu ứng lúc đầu
         alchemyPanel.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
-
-        if (successTextObj != null) successTextObj.SetActive(false); // Tắt chữ Success
+        if (successTextObj != null) successTextObj.SetActive(false);
 
         ResetOutput();
     }
@@ -74,7 +78,6 @@ public class AlchemyUI : MonoBehaviour
     public void OpenPanel()
     {
         alchemyPanel.SetActive(true);
-
         if (InventoryUI.Instance != null)
             InventoryUI.Instance.CloseInventory();
     }
@@ -92,7 +95,6 @@ public class AlchemyUI : MonoBehaviour
         ResetOutput();
         CancelSelection();
 
-        // Tắt các hiệu ứng nếu lỡ đang chạy dở
         if (successTextObj != null) successTextObj.SetActive(false);
         StopAllCoroutines();
     }
@@ -182,7 +184,7 @@ public class AlchemyUI : MonoBehaviour
     {
         outputIcon.sprite = recipe.resultItem.icon;
         outputIcon.enabled = true;
-        outputIcon.color = new Color(1, 1, 1, 0.5f); // Mờ (Preview)
+        outputIcon.color = new Color(1, 1, 1, 0.5f);
         int total = recipe.resultCount * craftTimes;
         outputAmountText.text = total.ToString();
         outputAmountText.gameObject.SetActive(true);
@@ -206,10 +208,16 @@ public class AlchemyUI : MonoBehaviour
             alchemyAnimator.gameObject.SetActive(true);
         }
 
+        // 👇👇👇 GIAI ĐOẠN 1: CHƠI TIẾNG SÔI (BOILING) LÚC ĐANG NẤU 👇👇👇
+        if (AudioManager.Instance != null && cookingSound != null)
+        {
+            AudioManager.Instance.PlaySFX(cookingSound, 1f);
+        }
+
         outputIcon.enabled = false;
         outputAmountText.gameObject.SetActive(false);
 
-        // 2. CHỜ nấu
+        // 2. CHỜ nấu (Thời gian sôi bằng thời gian animation)
         yield return new WaitForSeconds(cookTime);
 
         // 3. TẮT hoạt ảnh
@@ -253,15 +261,12 @@ public class AlchemyUI : MonoBehaviour
         Debug.Log("Chế tạo thành công!");
 
         // --- CẬP NHẬT UI KẾT QUẢ ---
-
-        // 1. Xóa Input
         inputSlot1.UpdateVisual(null, 0);
         inputSlot2.UpdateVisual(null, 0);
 
-        // 2. Hiện Output (Màu trắng rõ nét)
         outputIcon.sprite = validRecipe.resultItem.icon;
         outputIcon.enabled = true;
-        outputIcon.color = Color.white; // Màu gốc
+        outputIcon.color = Color.white;
 
         int totalCreated = validRecipe.resultCount * craftTimes;
         outputAmountText.text = totalCreated.ToString();
@@ -269,23 +274,17 @@ public class AlchemyUI : MonoBehaviour
 
         CancelSelection();
 
-        // 3. Gọi hiệu ứng ăn mừng
+        // 3. Gọi hiệu ứng ăn mừng (Kèm tiếng Ting)
         StartCoroutine(SuccessFeedbackRoutine());
-
-        // LƯU Ý: Không gọi CloseButtonAction() ở đây để người chơi ngắm kết quả
     }
 
     // --- HIỆU ỨNG THÀNH CÔNG ---
     private IEnumerator SuccessFeedbackRoutine()
     {
-        // 1. Chơi âm thanh
+        // 👇👇👇 GIAI ĐOẠN 2: CHƠI TIẾNG TING (SUCCESS) LÚC XONG VIỆC 👇👇👇
         if (AudioManager.Instance != null && successSound != null)
         {
             AudioManager.Instance.PlaySFX(successSound, 1f);
-        }
-        else if (successSound != null)
-        {
-            AudioSource.PlayClipAtPoint(successSound, Camera.main.transform.position);
         }
 
         // 2. Hiện chữ Success
@@ -297,7 +296,7 @@ public class AlchemyUI : MonoBehaviour
         // 3. Hiệu ứng nảy (Pop) icon kết quả
         float timer = 0;
         Vector3 originalScale = Vector3.one;
-        Vector3 punchScale = Vector3.one * 1.3f; // Phóng to 1.3 lần
+        Vector3 punchScale = Vector3.one * 1.3f;
 
         // Phóng to
         while (timer < 0.2f)
@@ -331,7 +330,6 @@ public class AlchemyUI : MonoBehaviour
         outputIcon.enabled = false;
         outputIcon.sprite = null;
         outputAmountText.gameObject.SetActive(false);
-        // Reset scale đề phòng bị kẹt lúc animation scale
         outputIcon.transform.localScale = Vector3.one;
     }
 }

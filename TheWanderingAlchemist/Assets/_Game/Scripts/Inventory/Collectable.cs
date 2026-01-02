@@ -36,20 +36,25 @@ public class Collectable : MonoBehaviour, IInteractable
     {
         if (InventoryManager.Instance != null)
         {
+            // Thử thêm vào túi
             bool added = InventoryManager.Instance.AddItem(itemData, 1);
 
             if (added)
             {
-                /*if (AudioManager.Instance != null && AudioManager.Instance.pickupItems != null)
+                // 👇 [ĐÃ SỬA] Bật âm thanh nhặt đồ lên
+                if (AudioManager.Instance != null)
                 {
-                    AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 0.5f);
-                }*/
+                    // Volume 1f, Random Pitch = true (để nhặt nhiều cái nghe cho sướng)
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 1f, true);
+                }
 
+                // Hủy vật phẩm trên mặt đất
                 Destroy(gameObject);
             }
             else
             {
                 Debug.Log("Túi đầy rồi, không nhặt được!");
+                // Có thể thêm âm thanh báo lỗi ở đây nếu muốn
             }
         }
         else

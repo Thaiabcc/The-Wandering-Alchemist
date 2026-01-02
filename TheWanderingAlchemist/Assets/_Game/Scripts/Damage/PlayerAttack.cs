@@ -1,169 +1,131 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems; // [MỚI 1] Thêm thư viện này để check UI
+using UnityEngine.EventSystems;
 
 public class PlayerAttack : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform attackPoint;
     [SerializeField] private Animator animator;
+    [SerializeField] private GameObject rockPrefab;
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [Header("Combat Stats")]
+    [Header("Stats")]
     [SerializeField] private float critChance = 30f;
     [SerializeField] private float critMultiplier = 2f;
-    [SerializeField] private float attackRange = 1f;
-    [SerializeField] private LayerMask enemyLayers;
 
-    [Header("Timing")]
-    [SerializeField] private float hitDelay = 0.1f;
+    // 👇 [MỚI] Thêm tốn thể lực khi đánh
+    [Header("Stamina Cost")]
+    [Tooltip("Mỗi lần bắn tốn bao nhiêu thể lực")]
+    [SerializeField] private float staminaCost = 10f;
+
+    [Header("Timing & Settings")]
+    [Tooltip("Delay để khớp animation vung tay")]
+    [SerializeField] private float hitDelay = 0.3f;
     [SerializeField] private float cooldown = 0.5f;
-    [SerializeField] private float attackOffset = 0.8f;
+
+    [Tooltip("Khoảng cách điểm bắn so với người")]
+    [SerializeField] private float spawnDistance = 1.0f;
+    [Tooltip("Độ cao điểm bắn (để bắn từ ngực/đầu thay vì chân)")]
+    [SerializeField] private float heightOffset = 0.8f;
 
     private bool isAttacking;
-    private Vector2 attackDirection = Vector2.right;
+    private Vector2 mouseDirection;
 
     private void Awake()
     {
         if (!animator) animator = GetComponent<Animator>();
+        if (!spriteRenderer) spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     private void Update()
     {
-        // [MỚI 2] Kiểm tra nếu chuột đang đè lên UI (Nút, Bảng, Thanh máu...)
-        // IsPointerOverGameObject() trả về true nếu chuột đang trỏ vào bất kỳ object UI nào có Raycast Target
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            return; // Dừng lại ngay, không chạy logic bên dưới
-        }
-        // -----------------------------------------------------------
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
-        UpdateAttackDirection();
-        UpdateAttackPoint();
+        UpdateMouseDirection();
 
         if (isAttacking) return;
 
-        if (Input.GetButtonDown("Fire1") || Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetButtonDown("Fire1"))
         {
-            StartCoroutine(AttackRoutine());
+            // 👇 [MỚI] Kiểm tra Stamina trước khi đánh
+            // Hàm TryConsumeStamina sẽ tự trừ và trả về true nếu đủ, false nếu thiếu
+            if (PlayerStats.Instance != null && PlayerStats.Instance.TryConsumeStamina(staminaCost))
+            {
+                StartCoroutine(AttackRoutine());
+            }
+            else
+            {
+                // (Tùy chọn) Hiệu ứng khi hết hơi (vd: Âm thanh "cạch cạch")
+                Debug.Log("Hết hơi rồi, không bắn được!");
+            }
         }
     }
 
-    // ------------------ DIRECTION ------------------
-
-    private void UpdateAttackDirection()
+    private void UpdateMouseDirection()
     {
-        float x = Input.GetAxisRaw("Horizontal");
-        float y = Input.GetAxisRaw("Vertical");
+        // 1. Lấy vị trí chuột
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePos.z = 0;
 
-        if (x != 0) attackDirection = x > 0 ? Vector2.right : Vector2.left;
-        else if (y != 0) attackDirection = y > 0 ? Vector2.up : Vector2.down;
-    }
+        // 2. Tính tâm nhân vật
+        Vector3 playerCenter = transform.position + Vector3.up * heightOffset;
 
-    private void UpdateAttackPoint()
-    {
+        // 3. Tính hướng
+        mouseDirection = (mousePos - playerCenter).normalized;
+
+        // 4. Cập nhật vị trí AttackPoint
         if (attackPoint)
-            attackPoint.localPosition = attackDirection * attackOffset;
-    }
+        {
+            attackPoint.position = playerCenter + (Vector3)(mouseDirection * spawnDistance);
 
-    // ------------------ ATTACK ------------------
+            float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
+            attackPoint.rotation = Quaternion.Euler(0, 0, angle);
+        }
+
+        // 5. Lật Sprite theo hướng chuột
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = (mouseDirection.x < 0);
+        }
+
+        // 6. Cập nhật Animator
+        if (!isAttacking && animator != null)
+        {
+            animator.SetFloat("InputX", mouseDirection.x);
+            animator.SetFloat("InputY", mouseDirection.y);
+        }
+    }
 
     private IEnumerator AttackRoutine()
     {
         isAttacking = true;
 
-        PlayAttackAnimation();
-        PlaySwingSound();
+        animator.SetTrigger("Attack");
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.swordSwing, 0.5f);
 
         yield return new WaitForSeconds(hitDelay);
 
-        DealDamage();
+        SpawnProjectile();
 
         yield return new WaitForSeconds(Mathf.Max(0, cooldown - hitDelay));
         isAttacking = false;
     }
 
-    private void DealDamage()
+    private void SpawnProjectile()
     {
-        // 1. Quét va chạm
-        Collider2D[] hits = Physics2D.OverlapCircleAll(
-            attackPoint.position,
-            attackRange,
-            enemyLayers
-        );
+        if (rockPrefab == null) return;
 
-        if (hits.Length == 0) return;
+        float statsDamage = (PlayerStats.Instance != null) ? PlayerStats.Instance.currentDamage : 10;
+        bool isCrit = Random.Range(0f, 100f) < critChance;
+        int finalDamage = Mathf.RoundToInt(isCrit ? statsDamage * critMultiplier : statsDamage);
 
-        // 2. Âm thanh
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.enemyHit, 0.5f);
+        GameObject rock = Instantiate(rockPrefab, attackPoint.position, Quaternion.identity);
+        RockProjectile rockScript = rock.GetComponent<RockProjectile>();
 
-        // 3. Hashset chém quái nhiều lần
-        HashSet<EnemyHealth> damaged = new HashSet<EnemyHealth>();
-
-        foreach (var hit in hits)
+        if (rockScript != null)
         {
-            EnemyHealth enemy = hit.GetComponent<EnemyHealth>();
-            if (enemy == null || damaged.Contains(enemy)) continue;
-
-            // ===========================================================
-            // LOGIC TÍNH DAME
-            // ===========================================================
-
-            // Lấy dame từ PlayerStats
-            float statsDamage = 0;
-            if (PlayerStats.Instance != null)
-            {
-                statsDamage = PlayerStats.Instance.currentDamage;
-            }
-            else
-            {
-                // Fallback: Nếu quên chưa bỏ PlayerStats vào scene thì lấy tạm số 10
-                statsDamage = 10;
-                Debug.LogWarning("Thiếu PlayerStats trong Scene!");
-            }
-
-            // Chí mạng
-            bool isCrit = Random.Range(0f, 100f) < critChance;
-
-            // Final Damage 
-            float calculatedDamage = isCrit
-                ? statsDamage * critMultiplier
-                : statsDamage;
-
-            // Làm tròn Damage 
-            int finalDamage = Mathf.RoundToInt(calculatedDamage);
-
-            // ===========================================================
-            enemy.TakeDamage(finalDamage);
-            damaged.Add(enemy);
-            DamagePopupGenerator.Instance?.Create(
-                hit.transform.position,
-                finalDamage,
-                isCrit
-            );
+            rockScript.Setup(mouseDirection, finalDamage, isCrit);
         }
-    }
-
-    private void PlayAttackAnimation()
-    {
-        if (!animator) return;
-
-        animator.SetFloat("InputX", attackDirection.x);
-        animator.SetFloat("InputY", attackDirection.y);
-        animator.SetTrigger("Attack");
-    }
-
-    private void PlaySwingSound()
-    {
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.swordSwing, 0.5f);
-    }
-
-    // ------------------ DEBUG ------------------
-
-    private void OnDrawGizmosSelected()
-    {
-        if (!attackPoint) return;
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
     }
 }

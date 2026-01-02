@@ -1,5 +1,97 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3243061086453182082
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5162965319871722086}
+  - component: {fileID: 3921400521291939726}
+  - component: {fileID: 1637763225393683978}
+  m_Layer: 8
+  m_Name: DeflictHitBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &5162965319871722086
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3243061086453182082}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.32, y: 0.69, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1309372339968589079}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3921400521291939726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3243061086453182082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bf6b9d7826be11438047799db0f2070, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  knockbackForce: 15
+  counterDamage: 20
+--- !u!61 &1637763225393683978
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3243061086453182082}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.20346636, y: -0.06358564}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1.4069325, y: 1.8901644}
+  m_EdgeRadius: 0
 --- !u!1 &3911563356774350189
 GameObject:
   m_ObjectHideFlags: 0
@@ -10,7 +102,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1795986126008091139}
   - component: {fileID: 5031813227613968890}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Light 2D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101,7 +193,8 @@ GameObject:
   - component: {fileID: 8222662028975532577}
   - component: {fileID: 2212047729604321192}
   - component: {fileID: 1103294224960074546}
-  m_Layer: 0
+  - component: {fileID: 6725596368337273217}
+  m_Layer: 8
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -117,12 +210,13 @@ Transform:
   m_GameObject: {fileID: 5850448356051248001}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -82.2, y: 66.9, z: 0}
+  m_LocalPosition: {x: 10.76, y: 56.6, z: 0}
   m_LocalScale: {x: 0.85, y: 0.85, z: 0.85}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1795986126008091139}
   - {fileID: 6017558602105581353}
+  - {fileID: 5162965319871722086}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7229564075825646297
@@ -306,12 +400,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a6e4d36785c5744383dcac4f095a3db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 10000
+  maxHealth: 100
   currentHealth: 0
   maxStamina: 100
   currentStamina: 0
-  staminaRegenRate: 5
-  baseDamage: 10
+  staminaRegenRate: 15
+  movingRegenRate: 5
+  baseDamage: 100
   currentDamage: 0
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
@@ -330,15 +425,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackPoint: {fileID: 6017558602105581353}
   animator: {fileID: 0}
+  rockPrefab: {fileID: 4615129029004237654, guid: 3570f357f7d841d4a8b66d57643cc6fa, type: 3}
+  spriteRenderer: {fileID: 0}
   critChance: 10
   critMultiplier: 2
-  attackRange: 2.5
-  enemyLayers:
-    serializedVersion: 2
-    m_Bits: 64
-  hitDelay: 0.1
+  hitDelay: 0.5
   cooldown: 0.5
-  attackOffset: 0.8
+  spawnDistance: 0.5
+  heightOffset: 0.8
 --- !u!61 &2212047729604321192
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -410,10 +504,26 @@ MonoBehaviour:
   - {x: 0.71875, y: 0, z: 0}
   m_ShapePathHash: 0
   m_Mesh: {fileID: 0}
-  m_InstanceId: -88896
+  m_InstanceId: -163204
   m_LocalBounds:
     m_Center: {x: 0, y: 0.90625, z: 0}
     m_Extent: {x: 0.71875, y: 0.90625, z: 0}
+--- !u!114 &6725596368337273217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5850448356051248001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee5d22a4a2106f544aa81b04e1758da7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deflectHitbox: {fileID: 3243061086453182082}
+  animator: {fileID: 9014516498403646517}
+  activeTime: 0.2
+  cooldown: 1
 --- !u!1 &8387018972461828036
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,7 +534,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6017558602105581353}
   - component: {fileID: 6649096382875618053}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AttackPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -440,7 +550,7 @@ Transform:
   m_GameObject: {fileID: 8387018972461828036}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.5, y: -0.1000006, z: 0}
+  m_LocalPosition: {x: 1.43, y: 1.74, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
