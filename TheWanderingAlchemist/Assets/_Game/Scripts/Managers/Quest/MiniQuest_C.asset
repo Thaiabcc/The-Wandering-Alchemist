@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d798cd5532ebf4da06df31cf920808, type: 3}
+  m_Name: MiniQuest_C
+  m_EditorClassIdentifier: 
+  questName: "\"T\xECm t\u1EA5m b\u1EA3n d\u1ED3 c\u0169\""
+  description: 
+  type: 1
+  prerequisiteQuest: {fileID: 11400000, guid: 2e044e069845dbd4cadabaf35206bc7f, type: 2}
+  targetName: Oldmap
+  requiredAmount: 1
+  requiredItem: {fileID: 11400000, guid: 54546851df1972741aa03ba230f45444, type: 2}
+  goldReward: 500
+  itemReward: {fileID: 0}
+  startDialogue:
+  - "\"Ta nghe n\xF3i g\u1EA7n \u0111\xE2y ng\u01B0\u1EDDi ta \u0111ang \u0111\u1ED3n
+    th\u1ED5i v\u1EC1 1 t\u1EA5m b\u1EA3n \u0111\u1ED3 kho b\xE1u..! \""
+  - "\"Nghe c\xF3 v\u1EBB r\u1EA5t qu\xFD gi\xE1\""
+  - "\"N\u1EBFu kh\xF4ng phi\u1EC1n c\u1EADu c\xF3 th\u1EC3 gi\xFAp ta t\xECm ki\u1EBFm
+    n\xF3 \u0111\u01B0\u1EE3c kh\xF4ng ?\""
+  progressDialogue: []
+  completeDialogue: []

@@ -1,30 +1,28 @@
 ﻿using UnityEngine;
-using TMPro; // Nhớ dùng TextMeshPro cho đẹp
+using TMPro;
 
 public class QuestHUD : MonoBehaviour
 {
     [Header("UI Settings")]
-    [SerializeField] private GameObject questPanel;     // Cái khung chứa (Panel)
-    [SerializeField] private TextMeshProUGUI questText; // Dòng chữ hiển thị
+    [SerializeField] private GameObject questPanel;
+    [SerializeField] private TextMeshProUGUI questText;
 
     private void Start()
     {
-        // Đăng ký nhận tin từ QuestManager
+        // Kiểm tra an toàn
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.OnQuestUpdated += UpdateUI;
-            UpdateUI(); // Cập nhật ngay khi game bắt đầu
+            UpdateUI();
         }
         else
         {
-            // Nếu map này chưa có Manager thì ẩn đi
             questPanel.SetActive(false);
         }
     }
 
     private void OnDestroy()
     {
-        // QUAN TRỌNG: Hủy đăng ký khi chuyển map để tránh lỗi
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.OnQuestUpdated -= UpdateUI;
@@ -33,17 +31,22 @@ public class QuestHUD : MonoBehaviour
 
     private void UpdateUI()
     {
+        // 1. Kiểm tra Manager có tồn tại không
+        if (QuestManager.Instance == null) return;
+
+        // 2. Lấy quest đang làm
         Quest q = QuestManager.Instance.activeQuest;
 
-        // Chỉ hiện bảng nếu: Có quest VÀ Quest đó chưa xong
-        if (q != null && !q.isCompleted)
+        // 3. [QUAN TRỌNG] Kiểm tra xem Quest có tồn tại không (Khắc phục lỗi Null)
+        if (q != null && q.info != null && !q.isCompleted)
         {
+            // Nếu có quest -> Hiện bảng
             questPanel.SetActive(true);
             questText.text = $"{q.info.questName}\nTiến độ: {q.currentAmount} / {q.info.requiredAmount}";
         }
         else
         {
-            // Không có quest hoặc làm xong rồi thì ẩn bảng đi
+            // Nếu KHÔNG có quest (Null) hoặc đã xong -> Ẩn bảng
             questPanel.SetActive(false);
         }
     }

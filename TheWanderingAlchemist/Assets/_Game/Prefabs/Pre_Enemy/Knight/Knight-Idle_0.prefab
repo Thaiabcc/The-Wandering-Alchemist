@@ -157,6 +157,7 @@ MonoBehaviour:
   attackCooldown: 1.75
   patrolRadius: 3
   waitTime: 2
+  stoppingDistance: 0.2
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 0
@@ -180,13 +181,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  enemyAI: {fileID: 0}
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
-  flashDuration: 0.1
-  healthBar: {fileID: 5386854455226890796}
-  lootPrefab: {fileID: 0}
   dropChance: 50
   destroyDelay: 1
+  enemyNameForQuest: Knight
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
+  enemyAI: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  lootPrefab: {fileID: 0}
+  healthBar: {fileID: 5386854455226890796}
 --- !u!58 &1096276475898629080
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -446,6 +449,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fillImage: {fileID: 1605113952682315709}
   canvasObject: {fileID: 6949610685768115492}
+  hideOnDeath: 1
+  hideWhenFull: 0
 --- !u!1 &8119860600006993683
 GameObject:
   m_ObjectHideFlags: 0

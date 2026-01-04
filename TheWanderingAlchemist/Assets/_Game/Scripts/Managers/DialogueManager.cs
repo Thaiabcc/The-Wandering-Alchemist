@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections.Generic; // Cần cái này để dùng Queue
+using System.Collections.Generic;
+using System; // 👈 [MỚI] Cần cái này để dùng Action
 
 public class DialogueManager : MonoBehaviour
 {
@@ -12,11 +13,11 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI contentText;
 
-    // Hàng đợi để chứa các câu thoại
     private Queue<string> sentences;
-
-    // Biến kiểm tra trạng thái mở/đóng
     public bool IsDialogueActive { get; private set; } = false;
+
+    // 👇 [MỚI] Biến này chứa hành động sẽ làm sau khi nói xong
+    public Action onDialogueEnded;
 
     private void Awake()
     {
@@ -27,42 +28,43 @@ public class DialogueManager : MonoBehaviour
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
     }
 
-    // Hàm Bắt đầu hội thoại (Nhận vào 1 danh sách các câu)
     public void StartDialogue(string name, string[] lines)
     {
-        IsDialogueActive = true; // Đánh dấu mở
+        IsDialogueActive = true;
         if (dialoguePanel != null) dialoguePanel.SetActive(true);
 
         nameText.text = name;
-        sentences.Clear(); // Xóa sạch các câu cũ (nếu có)
+        sentences.Clear();
 
-        // Nạp từng câu vào hàng đợi
         foreach (string line in lines)
         {
             sentences.Enqueue(line);
         }
 
-        DisplayNextSentence(); // Hiện câu đầu tiên luôn
+        DisplayNextSentence();
     }
 
-    // Hàm hiện câu tiếp theo (Gắn vào nút bấm hoặc phím E)
     public void DisplayNextSentence()
     {
-        // Nếu hết câu rồi thì tắt bảng
         if (sentences.Count == 0)
         {
             EndDialogue();
             return;
         }
 
-        // Lấy câu tiếp theo ra khỏi hàng đợi và hiển thị
         string sentence = sentences.Dequeue();
         contentText.text = sentence;
     }
 
     public void EndDialogue()
     {
-        IsDialogueActive = false; // Đánh dấu đóng
+        IsDialogueActive = false;
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
+
+        // 👇 [MỚI] Kích hoạt hành động chờ (Ví dụ: Mở bảng Quest)
+        onDialogueEnded?.Invoke();
+
+        // 👇 [MỚI] Xóa hành động đi để lần sau nói chuyện phiếm không bị lặp lại
+        onDialogueEnded = null;
     }
 }

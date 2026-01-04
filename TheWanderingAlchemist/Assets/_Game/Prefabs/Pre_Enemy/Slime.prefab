@@ -306,7 +306,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  dropChance: 100
+  dropChance: 75
   destroyDelay: 1
   enemyNameForQuest: Slime
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -341,6 +341,7 @@ MonoBehaviour:
   touchDamage: 10
   knockbackForce: 5
   knockbackDuration: 0.2
+  damageRate: 1
 --- !u!114 &-5188163565689428259
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -31,7 +31,7 @@ public class ShopSlot_UI : MonoBehaviour
                 }
             }
             if (nameText != null) nameText.text = item.itemName;
-            if (priceText != null) priceText.text = $"{item.baseValue} G"; // Format giá tiền
+            if (priceText != null) priceText.text = $"{item.baseValue} G";
             if (buyButton != null)
             {
                 buyButton.onClick.RemoveAllListeners();

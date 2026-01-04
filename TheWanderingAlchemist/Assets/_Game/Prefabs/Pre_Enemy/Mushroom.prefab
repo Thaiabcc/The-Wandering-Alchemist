@@ -489,14 +489,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 50
-  dropChance: 50
+  dropChance: 75
   destroyDelay: 1
   enemyNameForQuest: Mushroom
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
   enemyAI: {fileID: 0}
   spriteRenderer: {fileID: 0}
-  lootPrefab: {fileID: 0}
+  lootPrefab: {fileID: 149277341406653692, guid: 813e0625bee002b469ed6483705fbb1a, type: 3}
   healthBar: {fileID: 8099275945230931065}
 --- !u!114 &6172390190373294234
 MonoBehaviour:
