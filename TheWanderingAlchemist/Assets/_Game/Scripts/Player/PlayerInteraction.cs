@@ -1,31 +1,19 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    // ==============================
-    // Settings
-    // ==============================
     [Header("Interaction")]
     [SerializeField] private float checkRadius = 1f;
     [SerializeField] private LayerMask interactLayer;
     [SerializeField] private float interactDelay = 0.4f;
 
-    // ==============================
-    // Components
-    // ==============================
     private GameControls controls;
     private Animator animator;
     private PlayerMovement movement;
 
-    // ==============================
-    // State
-    // ==============================
     private bool isInteracting;
-
-    // ==============================
-    // Unity Lifecycle
-    // ==============================
     private void Awake()
     {
         controls = new GameControls();
@@ -43,14 +31,9 @@ public class PlayerInteraction : MonoBehaviour
     {
         controls.Disable();
     }
-
-    // ==============================
-    // Interaction
-    // ==============================
     private void TryInteract()
     {
         if (isInteracting) return;
-
         Collider2D hit = Physics2D.OverlapCircle(
             transform.position,
             checkRadius,
@@ -58,45 +41,46 @@ public class PlayerInteraction : MonoBehaviour
         );
 
         if (hit == null) return;
-
         IInteractable interactable = hit.GetComponent<IInteractable>();
+        if (interactable == null)
+            interactable = hit.GetComponentInParent<IInteractable>();
+
         if (interactable == null) return;
-
-        StartCoroutine(InteractRoutine(interactable));
+        StartCoroutine(InteractRoutine(interactable, hit.gameObject));
     }
 
-    private IEnumerator InteractRoutine(IInteractable interactable)
-{
-    isInteracting = true;
-
-    if (movement != null)
-        movement.enabled = false; 
-
-    if (animator != null)
-        animator.SetTrigger("Gather");
-
-    yield return new WaitForSeconds(interactDelay);
-
-    try
+    private IEnumerator InteractRoutine(IInteractable interactable, GameObject targetObj)
     {
-        interactable.Interact();
+        isInteracting = true;
+        if (movement != null) movement.enabled = false;
+        if (animator != null) animator.SetTrigger("Gather");
+        yield return new WaitForSeconds(interactDelay);
+        if (targetObj == null || interactable == null || (interactable as Object) == null)
+        {
+            Debug.LogWarning("⚠️ Mục tiêu đã biến mất trong lúc chờ!");
+            UnlockMovement();
+            yield break; 
+        }
+
+        try
+        {
+            interactable.Interact();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ LỖI CODE TRONG NPC: {e.Message}\nStack Trace: {e.StackTrace}");
+        }
+        finally
+        {
+            UnlockMovement();
+        }
     }
-    catch (System.Exception e)
+
+    private void UnlockMovement()
     {
-        Debug.LogError("Lỗi khi tương tác: " + e.Message);
-    }
-    finally
-    {
-        if (movement != null)
-            movement.enabled = true;
-        
+        if (movement != null) movement.enabled = true;
         isInteracting = false;
     }
-}
-
-    // ==============================
-    // Gizmos
-    // ==============================
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

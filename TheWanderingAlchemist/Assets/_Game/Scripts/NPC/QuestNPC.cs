@@ -1,89 +1,272 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
+
+[System.Serializable]
+public class FlavorOption
+{
+    public string buttonText;
+    public InteractionType type = InteractionType.Chat;
+    [TextArea(2, 5)] public string[] npcResponse;
+    public string nextGroupID;
+    public bool returnToMain = false;
+    public bool closeDialogue = false;
+    public bool isOneTimeOnly = false;
+    public UnityEvent onOptionSelected;
+    [HideInInspector] public bool hasBeenClicked = false;
+}
+
+[System.Serializable]
+public class DialogueGroup
+{
+    public string groupID;
+    public List<FlavorOption> options;
+}
 
 public class QuestNPC : MonoBehaviour, IInteractable
 {
-    [Header("Cài đặt NPC")]
+    [Header("--- NPC ---")]
     public string npcName;
     public List<QuestData> questsToGive;
-    [TextArea(2, 5)] public string[] defaultLines = { "Chào người anh em thiện lành!" };
+    public bool destroyAfterTalk = false;
+
+    [Header("--- DIALOGUE ---")]
+    [TextArea(2, 5)] public string[] defaultLines = { "Xin chào." };
+    [TextArea(2, 5)] public string[] questIntroLines = { "..." };
+
+    [Header("--- DIALOGUE TREE ---")]
+    public List<DialogueGroup> dialogueGroups = new();
+
+    private bool isPlayerInRange;
+    private string currentGroupID = "MAIN";
 
     public void Interact()
     {
-        // Lấy các Manager (Giả sử đã Setup đúng trong Scene)
+        if (!isPlayerInRange) return;
+
         var qm = QuestManager.Instance;
         var dm = DialogueManager.Instance;
 
-        // 1. NẾU ĐANG NÓI CHUYỆN -> BẤM E ĐỂ NEXT CÂU TIẾP THEO
+        if (qm == null || dm == null)
+        {
+            Debug.LogError("Missing QuestManager hoặc DialogueManager");
+            return;
+        }
         if (dm.IsDialogueActive)
         {
             dm.DisplayNextSentence();
             return;
         }
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        if (QuestPopupUI.Instance != null &&
+            QuestPopupUI.Instance.popupPanel != null &&
+            QuestPopupUI.Instance.popupPanel.activeSelf)
+        {
+            QuestPopupUI.Instance.popupPanel.SetActive(false);
+        }
 
-        // 2. NẾU ĐANG LÀM QUEST -> KIỂM TRA TIẾN ĐỘ / TRẢ NHIỆM VỤ
+        currentGroupID = "MAIN";
         if (qm.activeQuest != null && qm.activeQuest.info != null)
         {
-            // Trường hợp A: Quest yêu cầu gặp NPC này (TalkToNPC)
-            if (qm.activeQuest.info.type == QuestType.TalkToNPC &&
-                qm.activeQuest.info.targetName == npcName)
+            var info = qm.activeQuest.info;
+            if (info.type == QuestType.TalkToNPC &&
+                !string.IsNullOrEmpty(info.targetName) &&
+                info.targetName == npcName)
             {
-                qm.TalkToNPC(npcName);
-                dm.StartDialogue(npcName, qm.activeQuest.info.progressDialogue);
+                dm.onDialogueEnded = ShowCurrentDialogueGroup;
+                dm.StartDialogue(
+                    npcName,
+                    (questIntroLines != null && questIntroLines.Length > 0) ? questIntroLines : defaultLines
+                );
                 return;
             }
+            if (IsMyQuest(info.questName))
+            {
+                dm.onDialogueEnded = ShowCurrentDialogueGroup;
+                dm.StartDialogue(
+                    npcName,
+                    (info.progressDialogue != null && info.progressDialogue.Length > 0)
+                        ? info.progressDialogue
+                        : new[] { "Việc ta nhờ thế nào rồi?" }
+                );
+                return;
+            }
+        }
 
-            // Trường hợp B: Trả Quest do NPC này giao
-            if (questsToGive.Contains(qm.activeQuest.info))
+        if (questsToGive != null)
+        {
+            foreach (var quest in questsToGive)
+            {
+                if (quest == null || string.IsNullOrEmpty(quest.questName)) continue;
+                if (quest.prerequisiteQuest != null)
+                {
+                    if (!qm.IsQuestCompleted(quest.prerequisiteQuest.questName)) continue;
+                }
+                if (qm.IsQuestCompleted(quest.questName)) continue;
+                if (qm.activeQuest != null && qm.activeQuest.info != null &&
+                    qm.activeQuest.info.questName == quest.questName) continue;
+                quest.startDialogue ??= new string[0];
+
+                dm.onDialogueEnded = () =>
+                {
+                    if (QuestPopupUI.Instance != null)
+                        QuestPopupUI.Instance.ShowPopup(quest);
+                };
+
+                if (quest.startDialogue.Length > 0)
+                    dm.StartDialogue(npcName, quest.startDialogue);
+                else
+                    QuestPopupUI.Instance.ShowPopup(quest);
+
+                return;
+            }
+        }
+        dm.onDialogueEnded = ShowCurrentDialogueGroup;
+        dm.StartDialogue(npcName, defaultLines);
+    }
+    private void ShowCurrentDialogueGroup()
+    {
+        var dm = DialogueManager.Instance;
+        var qm = QuestManager.Instance;
+        if (dm == null) return;
+
+        var group = dialogueGroups.Find(g => g.groupID == currentGroupID) ??
+                    dialogueGroups.Find(g => g.groupID == "MAIN");
+
+        var uiOptions = new List<ChoiceOption>();
+
+        if (group != null && group.options != null)
+        {
+            foreach (var opt in group.options)
+            {
+                if (opt.isOneTimeOnly && opt.hasBeenClicked) continue;
+
+                uiOptions.Add(new ChoiceOption(opt.buttonText, opt.type, () =>
+                {
+                    opt.hasBeenClicked = true;
+                    opt.onOptionSelected?.Invoke();
+
+                    if (opt.closeDialogue) return;
+
+                    currentGroupID = opt.returnToMain ? "MAIN" :
+                                     (string.IsNullOrEmpty(opt.nextGroupID) ? currentGroupID : opt.nextGroupID);
+
+                    opt.npcResponse ??= new string[0];
+
+                    if (opt.npcResponse.Length > 0)
+                    {
+                        dm.onDialogueEnded = ShowCurrentDialogueGroup;
+                        dm.StartDialogue(npcName, opt.npcResponse);
+                    }
+                    else
+                    {
+                        ShowCurrentDialogueGroup();
+                    }
+                }));
+            }
+        }
+
+        if (currentGroupID == "MAIN" && qm != null && qm.activeQuest != null && qm.activeQuest.info != null)
+        {
+            var info = qm.activeQuest.info;
+
+            if (IsMyQuest(info.questName))
             {
                 if (qm.CheckCompletionCondition())
                 {
-                    // Hoàn thành -> Nói xong thì nhận thưởng
-                    dm.onDialogueEnded = () => qm.CompleteQuest();
-                    dm.StartDialogue(npcName, qm.activeQuest.info.completeDialogue);
+                    uiOptions.Add(new ChoiceOption("[HOÀN THÀNH] Báo cáo", InteractionType.Quest, () =>
+                    {
+                        dm.ShowDynamicChoices(new List<ChoiceOption>());
+                        bool isFirstTime = !qm.IsQuestCompleted(info.questName);
+                        string storyContent = info.endStoryText;
+                        string[] thanksLines = (info.completeDialogue != null && info.completeDialogue.Length > 0)
+                                                ? info.completeDialogue
+                                                : new[] { "Cảm ơn con rất nhiều!" };
+
+                        System.Action runCompletionLogic = () =>
+                        {
+                            qm.CompleteQuest();
+                            dm.onDialogueEnded = null;
+                            dm.StartDialogue(npcName, thanksLines);
+                        };
+                        if (isFirstTime && !string.IsNullOrEmpty(storyContent) && StoryTransitionUI.Instance != null)
+                        {
+                            dm.ForceClose();
+                            StoryTransitionUI.Instance.PlayStory(storyContent, onComplete: runCompletionLogic);
+                        }
+                        else
+                        {
+                            runCompletionLogic.Invoke();
+                        }
+                    }));
                 }
                 else
                 {
-                    // Chưa xong -> Nhắc nhở
-                    dm.StartDialogue(npcName, qm.activeQuest.info.progressDialogue);
+                    uiOptions.Add(new ChoiceOption("[QUEST] Tiến độ nhiệm vụ?", InteractionType.Chat, () =>
+                    {
+                        dm.onDialogueEnded = ShowCurrentDialogueGroup;
+                        dm.StartDialogue(
+                            npcName,
+                            (info.progressDialogue != null && info.progressDialogue.Length > 0)
+                                ? info.progressDialogue
+                                : new[] { "Vẫn chưa xong à?" }
+                        );
+                    }));
                 }
-                return;
             }
-        }
-
-        // 3. NẾU CHƯA CÓ QUEST -> TÌM QUEST MỚI ĐỂ GIAO
-        foreach (var quest in questsToGive)
-        {
-            if (quest == null) continue; // Bỏ qua ô trống
-            if (qm.IsQuestCompleted(quest.questName)) continue; // Bỏ qua quest đã làm
-
-            // Kiểm tra Quest tiền đề (Quest Chain)
-            if (quest.prerequisiteQuest != null)
+            else if (info.type == QuestType.TalkToNPC && !string.IsNullOrEmpty(info.targetName) && info.targetName == npcName)
             {
-                if (!qm.IsQuestCompleted(quest.prerequisiteQuest.questName))
+                uiOptions.Add(new ChoiceOption("[QUEST] Nói về nhiệm vụ...", InteractionType.Quest, () =>
                 {
-                    dm.StartDialogue(npcName, new string[] { "Ta chưa có việc gì cho ngươi. Hãy hoàn thành công việc trước đó đi." });
-                    return;
-                }
+                    qm.UpdateQuestProgress(1);
+                    dm.onDialogueEnded = destroyAfterTalk
+                        ? () => Destroy(gameObject)
+                        : ShowCurrentDialogueGroup;
+
+                    dm.StartDialogue(
+                        npcName,
+                        (info.targetDialogue != null && info.targetDialogue.Length > 0)
+                            ? info.targetDialogue
+                            : new[] { "..." }
+                    );
+                }));
             }
-
-            // --- ĐỦ ĐIỀU KIỆN GIAO QUEST ---
-
-            // Cài đặt: Nói xong thì hiện bảng Popup
-            dm.onDialogueEnded = () => {
-                QuestPopupUI.Instance.ShowPopup(quest);
-            };
-
-            // Bắt đầu hội thoại dẫn dắt (nếu có), không thì hiện bảng luôn
-            if (quest.startDialogue != null && quest.startDialogue.Length > 0)
-                dm.StartDialogue(npcName, quest.startDialogue);
-            else
-                QuestPopupUI.Instance.ShowPopup(quest);
-
-            return;
         }
 
-        // 4. HẾT VIỆC -> NÓI CHUYỆN PHIẾM
-        dm.StartDialogue(npcName, defaultLines);
+        uiOptions.Add(new ChoiceOption("Tạm biệt", InteractionType.Exit, () =>
+        {
+            dm.onDialogueEnded = null;
+            dm.StartDialogue(npcName, new[] { "Hẹn gặp lại." });
+        }));
+
+        dm.ShowDynamicChoices(uiOptions);
+    }
+
+    public bool IsMyQuest(string questName)
+    {
+        if (questsToGive == null || string.IsNullOrEmpty(questName)) return false;
+
+        foreach (var q in questsToGive)
+            if (q != null && q.questName == questName)
+                return true;
+
+        return false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.CompareTag("Player")) isPlayerInRange = true;
+    }
+
+    private void OnTriggerExit2D(Collider2D col)
+    {
+        if (!col.CompareTag("Player")) return;
+
+        isPlayerInRange = false;
+        currentGroupID = "MAIN";
+        DialogueManager.Instance?.ForceClose();
+        if (QuestPopupUI.Instance != null && QuestPopupUI.Instance.popupPanel != null)
+            QuestPopupUI.Instance.popupPanel.SetActive(false);
     }
 }

@@ -61,7 +61,6 @@ public class EnemyAI : MonoBehaviour
     {
         if (isDead) return;
 
-        // Nếu mất dấu player hoặc player chết -> Tuần tra
         if (playerTransform == null)
         {
             Patroling();
@@ -117,7 +116,6 @@ public class EnemyAI : MonoBehaviour
 
     protected virtual void PerformAttack()
     {
-        // Class con sẽ override logic này (gây damage, play sound, v.v.)
     }
 
     #endregion
@@ -138,7 +136,6 @@ public class EnemyAI : MonoBehaviour
         if (player != null) playerTransform = player.transform;
     }
 
-    // Tính khoảng cách dựa trên Offset ngực/tâm thay vì chân
     protected float GetCombatDistanceToPlayer()
     {
         Vector2 myCenter = GetCombatCenter(transform);
@@ -164,14 +161,14 @@ public class EnemyAI : MonoBehaviour
     private void HandlePatrolWait()
     {
         StopMoving();
-        stuckTimer = 0; // Reset stuck khi đã đến đích
+        stuckTimer = 0; 
 
         if (!isWaiting) // Bắt đầu chờ
         {
             waitTimer = waitTime;
             isWaiting = true;
         }
-        else // Đang chờ
+        else
         {
             waitTimer -= Time.fixedDeltaTime;
             if (waitTimer <= 0)
@@ -184,7 +181,6 @@ public class EnemyAI : MonoBehaviour
 
     private void CheckIfStuck()
     {
-        // Kiểm tra quãng đường di chuyển được so với frame trước
         float movedDistance = Vector2.Distance(transform.position, lastPosition);
         float expectedMinDistance = MIN_MOVE_DISTANCE * moveSpeed * Time.fixedDeltaTime * 5f;
 
@@ -193,13 +189,13 @@ public class EnemyAI : MonoBehaviour
             stuckTimer += Time.fixedDeltaTime;
             if (stuckTimer > STUCK_THRESHOLD_TIME)
             {
-                PickNewPatrolPoint(); // Kẹt quá lâu -> đổi điểm
+                PickNewPatrolPoint();
                 stuckTimer = 0;
             }
         }
         else
         {
-            stuckTimer = 0; // Di chuyển tốt
+            stuckTimer = 0;
         }
 
         lastPosition = transform.position;
@@ -226,7 +222,6 @@ public class EnemyAI : MonoBehaviour
                 return;
             }
         }
-        // Fallback: Đứng yên nếu không tìm được điểm
         patrolTarget = transform.position;
     }
 
@@ -257,7 +252,6 @@ public class EnemyAI : MonoBehaviour
 
     protected void FlipSprite(Vector2 target)
     {
-        // So sánh x để lật mặt
         spriteRenderer.flipX = target.x < transform.position.x;
     }
 

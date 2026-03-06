@@ -28,7 +28,6 @@ public class EnemyHealth : MonoBehaviour
     private float currentHealth;
     private FlyingRangeBoss bossScript;
     private WaitForSeconds flashWait;
-    // Biến để đảm bảo chỉ chết 1 lần
     private bool isDead = false;
     #endregion
 
@@ -135,21 +134,13 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
-
-        // 1. Tắt va chạm/hình ảnh
         if (GetComponent<Collider2D>()) GetComponent<Collider2D>().enabled = false;
         if (healthBar != null) healthBar.gameObject.SetActive(false);
         if (bossScript != null && bossScript.bossHUD != null) bossScript.bossHUD.gameObject.SetActive(false);
         if (enemyAI != null) enemyAI.TriggerDeath();
 
-        // ====================================================
-        // 👇 SỬA ĐOẠN NÀY: TÁCH RIÊNG 2 KHỐI TRY-CATCH RA
-        // ====================================================
-
-        // ƯU TIÊN 1: Rơi đồ trước (Dù Quest lỗi thì vẫn phải có tiền!)
         try
         {
-            // Audio
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.enemyDie, 0.8f, true);
             HandleLootDrop();
         }
@@ -158,7 +149,6 @@ public class EnemyHealth : MonoBehaviour
             Debug.LogError("Lỗi rơi đồ: " + e.Message);
         }
 
-        // ƯU TIÊN 2: Tính Quest sau
         try
         {
             HandleQuestProgress();
@@ -168,18 +158,13 @@ public class EnemyHealth : MonoBehaviour
             Debug.LogError("Lỗi tính Quest: " + e.Message);
         }
 
-        // ====================================================
-
-        // 4. Hủy Object
         Destroy(gameObject, destroyDelay);
     }
 
     private void HandleQuestProgress()
     {
-        // Kiểm tra kỹ QuestManager có tồn tại không
         if (QuestManager.Instance != null)
         {
-            // Chỉ gọi nếu là quái thường (Boss thường có logic riêng, hoặc xóa check bossScript nếu muốn boss cũng tính)
             if (bossScript == null)
             {
                 QuestManager.Instance.AddKill(enemyNameForQuest);
@@ -189,7 +174,7 @@ public class EnemyHealth : MonoBehaviour
 
     private void HandleLootDrop()
     {
-        // 1. Ưu tiên dùng LootManager nếu bro có dùng (mở comment bên dưới nếu dùng)
+        // 1. Ưu tiên dùng LootManager 
         /*
         if (LootManager.Instance != null) {
              LootManager.Instance.SpawnLoot(transform.position);

@@ -23,7 +23,8 @@ MonoBehaviour:
   requiredAmount: 1
   requiredItem: {fileID: 0}
   goldReward: 10000
-  itemReward: {fileID: 0}
+  itemReward: {fileID: 11400000, guid: a133368e572e46f4fac1bc86cbbe46ad, type: 2}
   startDialogue: []
   progressDialogue: []
   completeDialogue: []
+  targetDialogue: []

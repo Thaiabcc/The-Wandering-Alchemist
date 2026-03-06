@@ -4,14 +4,14 @@ using UnityEngine;
 public class PlayerDeflect : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("Kéo cái Gameobject con chứa Collider phản đòn vào đây")]
+    [Tooltip("Gameobject con chứa Collider")]
     [SerializeField] private GameObject deflectHitbox;
     [SerializeField] private Animator animator;
 
     [Header("Settings")]
     [SerializeField] private float activeTime = 0.2f;
     [SerializeField] private float cooldown = 1f;
-    [SerializeField] private float offsetDistance = 1.0f; // Khoảng cách từ người đến tấm khiên
+    [SerializeField] private float offsetDistance = 1.0f;
 
     [Header("Stamina Cost")]
     [SerializeField] private float staminaCost = 20f;
@@ -44,43 +44,42 @@ public class PlayerDeflect : MonoBehaviour
         isDeflecting = true;
         canDeflect = false;
 
-        // --- [MỚI] XOAY HITBOX THEO HƯỚNG CHUỘT ---
+        // Rotate Zone to Mouse
         RotateHitboxToMouse();
 
-        // 1. Chạy Animation
+        // 1. Run Anim Deflict
         if (animator) animator.SetTrigger("Deflect");
 
-        // 2. BẬT vùng va chạm
+        // 2. Turn Zone
         if (deflectHitbox) deflectHitbox.SetActive(true);
 
-        // 3. Giữ trong thời gian active
+        // 3. Exist Time
         yield return new WaitForSeconds(activeTime);
 
-        // 4. TẮT vùng va chạm
+        // 4. Off Zone
         if (deflectHitbox) deflectHitbox.SetActive(false);
         isDeflecting = false;
 
-        // 5. Hồi chiêu
+        // 5. CoolDown
         yield return new WaitForSeconds(cooldown - activeTime);
         canDeflect = true;
     }
 
-    // --- HÀM MỚI ĐỂ XOAY VÀ ĐẶT VỊ TRÍ KHIÊN ---
     private void RotateHitboxToMouse()
     {
         if (deflectHitbox == null) return;
 
-        // 1. Lấy vị trí chuột trong thế giới game
+        // 1. Position Mouse
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePos.z = 0; // Đảm bảo z = 0 cho 2D
+        mousePos.z = 0;
 
-        // 2. Tính hướng từ Player -> Chuột
+        // 2. Caculate Mouse -> Player
         Vector3 direction = (mousePos - transform.position).normalized;
 
-        // 3. Đặt vị trí Hitbox (cách người 1 khoảng offsetDistance)
+        // 3. Position Hitbox
         deflectHitbox.transform.position = transform.position + (direction * offsetDistance);
 
-        // 4. Xoay Hitbox để mặt của nó hướng về phía chuột
+        // 4. Flip Hitbox
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         deflectHitbox.transform.rotation = Quaternion.Euler(0, 0, angle);
     }

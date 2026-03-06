@@ -3,7 +3,6 @@
 public class RockWarning : MonoBehaviour
 {
     [Header("--- CẤU HÌNH ---")]
-    // [THAY ĐỔI]: Đổi thành mảng [] để chứa nhiều loại đá
     public GameObject[] rockPrefabs;
 
     public float warningDuration = 0.8f;
@@ -20,8 +19,6 @@ public class RockWarning : MonoBehaviour
     void Update()
     {
         timer -= Time.deltaTime;
-
-        // Hiệu ứng vòng tròn to dần
         float scale = 1f - (timer / warningDuration);
         transform.localScale = Vector3.Lerp(Vector3.zero, new Vector3(1.5f, 0.5f, 1f), scale);
 
@@ -34,12 +31,9 @@ public class RockWarning : MonoBehaviour
 
     void SpawnRock()
     {
-        // Kiểm tra xem có cục đá nào trong danh sách không
         if (rockPrefabs != null && rockPrefabs.Length > 0)
         {
-            // [THAY ĐỔI]: Chọn ngẫu nhiên 1 chỉ số từ 0 đến độ dài mảng
             int randomIndex = Random.Range(0, rockPrefabs.Length);
-
             GameObject rockToSpawn = rockPrefabs[randomIndex];
 
             if (rockToSpawn != null)
@@ -50,7 +44,7 @@ public class RockWarning : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Chưa kéo Prefab đá vào RockWarning kìa bro!");
+            Debug.LogWarning("Chưa kéo Prefab đá vào RockWarning");
         }
     }
 }

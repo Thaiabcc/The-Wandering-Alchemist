@@ -16,6 +16,8 @@ MonoBehaviour:
   description: 
   type: 1
   prerequisiteQuest: {fileID: 11400000, guid: 2e044e069845dbd4cadabaf35206bc7f, type: 2}
+  nextQuest: {fileID: 11400000, guid: 4433b00191b1fe14697f548af88cedae, type: 2}
+  autoAcceptNextQuest: 1
   targetName: Oldmap
   requiredAmount: 1
   requiredItem: {fileID: 11400000, guid: 54546851df1972741aa03ba230f45444, type: 2}
@@ -29,3 +31,5 @@ MonoBehaviour:
     n\xF3 \u0111\u01B0\u1EE3c kh\xF4ng ?\""
   progressDialogue: []
   completeDialogue: []
+  targetDialogue: []
+  endStoryText: 

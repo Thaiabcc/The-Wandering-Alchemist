@@ -34,11 +34,7 @@ public class CameraBoundsManager : MonoBehaviour
             if (boundsCollider != null)
             {
                 confiner.m_BoundingShape2D = boundsCollider;
-
-                // [SỬA LẠI DÒNG NÀY]
-                // Xóa bộ nhớ đệm để nó tính toán lại khung mới
                 confiner.InvalidateCache();
-
                 Debug.Log($"[Camera] Đã cập nhật biên giới cho map: {scene.name}");
             }
         }

@@ -1,69 +1,37 @@
 ﻿using UnityEngine;
 
-// Định nghĩa các loại nhiệm vụ
-public enum QuestType
-{
-    KillEnemy,   // Giết quái
-    GatherItem,  // Thu thập vật phẩm
-    TalkToNPC    // Nói chuyện với NPC (Đi đưa tin/Thám thính)
-}
+public enum QuestType { KillEnemy, GatherItem, TalkToNPC }
 
 [CreateAssetMenu(fileName = "New Quest", menuName = "Quest System/New Quest")]
 public class QuestData : ScriptableObject
 {
-    // ==========================================
-    // 1. THÔNG TIN CƠ BẢN (HIỂN THỊ UI)
-    // ==========================================
     [Header("--- THÔNG TIN CHUNG ---")]
-    public string questName; // Tên nhiệm vụ (VD: Bí mật rừng sâu)
+    public string questName;
+    [TextArea(3, 10)] public string description;
 
-    [Tooltip("Nội dung sẽ hiện trên bảng Accept/Decline")]
-    [TextArea(3, 10)]
-    public string description; // Mô tả ngắn gọn (VD: Hãy đi gặp Skeleton để hỏi chuyện...)
-
-    // ==========================================
-    // 2. LOGIC & CHUỖI NHIỆM VỤ
-    // ==========================================
-    [Header("--- CẤU HÌNH LOGIC ---")]
+    [Header("--- LOGIC ---")]
     public QuestType type;
-
-    [Tooltip("Phải làm xong Quest này mới được nhận Quest hiện tại (Móc xích nhiệm vụ)")]
     public QuestData prerequisiteQuest;
+    public QuestData nextQuest;
+    public bool autoAcceptNextQuest = false;
 
-    // ==========================================
-    // 3. YÊU CẦU ĐỂ HOÀN THÀNH
-    // ==========================================
     [Header("--- YÊU CẦU ---")]
-    [Tooltip("Điền Tên Quái (nếu Kill) hoặc Tên NPC (nếu Talk)")]
     public string targetName;
-
-    [Tooltip("Số lượng cần giết hoặc thu thập (Nếu là TalkToNPC thì để là 1)")]
     public int requiredAmount;
-
-    [Tooltip("Kéo Item vào đây nếu là Quest thu thập (GatherItem)")]
     public ItemData requiredItem;
 
-    // ==========================================
-    // 4. PHẦN THƯỞNG
-    // ==========================================
     [Header("--- PHẦN THƯỞNG ---")]
     public int goldReward;
-    public ItemData itemReward; // Ví dụ: Chìa khóa Dungeon
+    public ItemData itemReward;
 
-    // ==========================================
-    // 5. HỘI THOẠI (KẾT NỐI VỚI DIALOGUE MANAGER)
-    // ==========================================
-    [Header("--- KỊCH BẢN HỘI THOẠI ---")]
+    [Header("--- HỘI THOẠI ---")]
+    [TextArea(2, 5)] public string[] startDialogue;
+    [TextArea(2, 5)] public string[] progressDialogue;
+    [TextArea(2, 5)] public string[] completeDialogue;
+    [TextArea(2, 5)] public string[] targetDialogue;
 
-    [Tooltip("Nói câu này TRƯỚC khi hiện bảng nhận Quest (Dẫn dắt cốt truyện)")]
-    [TextArea(2, 5)]
-    public string[] startDialogue;
+    [Header("Scene trả Quest")]
+    [TextArea(3, 10)]
+    public string endStoryText;
 
-    [Tooltip("Nói câu này khi người chơi bấm vào NPC lúc ĐANG làm nhiệm vụ (Nhắc nhở)")]
-    [TextArea(2, 5)]
-    public string[] progressDialogue;
-
-    [Tooltip("Nói câu này khi người chơi hoàn thành nhiệm vụ (Khen ngợi/Cảm ơn)")]
-    [TextArea(2, 5)]
-    public string[] completeDialogue;
 }

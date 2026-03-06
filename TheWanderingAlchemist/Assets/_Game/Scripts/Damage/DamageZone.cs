@@ -8,8 +8,7 @@ public class DamageZone : MonoBehaviour
 {
     [Header("Sức mạnh")]
     [SerializeField] private int damage = 1;
-    [SerializeField] private string targetTag = "Monster"; // Chỉ đánh kẻ địch
-
+    [SerializeField] private string targetTag = "Monster"; 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag(targetTag))

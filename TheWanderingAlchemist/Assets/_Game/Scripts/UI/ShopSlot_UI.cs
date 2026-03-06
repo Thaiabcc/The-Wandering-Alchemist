@@ -4,7 +4,7 @@ using TMPro;
 
 public class ShopSlot_UI : MonoBehaviour
 {
-    [Header("UI References (Kéo thả vào đây)")]
+    [Header("UI References")]
     [SerializeField] private Image iconImage;           
     [SerializeField] private TextMeshProUGUI nameText;  
     [SerializeField] private TextMeshProUGUI priceText; 

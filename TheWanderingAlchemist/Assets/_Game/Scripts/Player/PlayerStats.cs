@@ -74,16 +74,6 @@ public class PlayerStats : MonoBehaviour
         HandleStaminaRegeneration();
     }
 
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
     // ==============================
     // Initialization
     // ==============================
@@ -108,32 +98,28 @@ public class PlayerStats : MonoBehaviour
 
     private void InitStats()
     {
-        if (currentHealth <= 0)
-            currentHealth = maxHealth;
-
-        if (currentStamina <= 0)
-            currentStamina = maxStamina;
+        if (currentHealth <= 0) currentHealth = maxHealth;
+        if (currentStamina <= 0) currentStamina = maxStamina;
         currentDamage = baseDamage;
     }
 
     // ==============================
-    // Scene Reload / Respawn
+    // Logic return
     // ==============================
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        Respawn();
-    }
-
-    private void Respawn()
+    public void HealFullAndReset()
     {
         isDead = false;
         currentHealth = maxHealth;
-        isInvincible = false; // Reset bất tử khi hồi sinh
+        currentStamina = maxStamina;
+        isInvincible = false;
 
-        ResetAnimator();
+        // Reset Components
         EnablePlayer(true);
+        ResetAnimator();
+        ResetSpriteColor();
         UpdateUI();
-        ResetSpriteColor(); // Đảm bảo màu sắc trở lại bình thường
+        
+        Debug.Log("Player stats reset success!");
     }
 
     private void ResetAnimator()
@@ -141,16 +127,19 @@ public class PlayerStats : MonoBehaviour
         if (animator == null) return;
         animator.Rebind();
         animator.Update(0f);
+        animator.Play("Idle"); 
     }
 
     private void EnablePlayer(bool value)
     {
         if (movement != null)
+        {
             movement.enabled = value;
+            if (value) movement.enabled = true; 
+        }
 
         Collider2D col = GetComponent<Collider2D>();
-        if (col != null)
-            col.enabled = value;
+        if (col != null) col.enabled = value;
     }
 
     // ==============================
@@ -196,8 +185,9 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
         StartCoroutine(FlashEffect());
 
-        CameraShake.Instance?.Shake(0.2f, 3f);
-        HitStop.Instance?.Stop(0.1f);
+        // CameraShake.Instance?.Shake(0.2f, 3f); // Uncomment nếu có
+        // HitStop.Instance?.Stop(0.1f);          // Uncomment nếu có
+        
         if (currentHealth <= 0)
             Die();
     }
@@ -212,50 +202,32 @@ public class PlayerStats : MonoBehaviour
     }
 
     // ==============================
-    // Invincibility (Bất tử) Logic
+    // Invincibility Logic
     // ==============================
-
-    // [SỬA TÊN] Invisible (Tàng hình) -> Invincible (Bất tử) cho đúng nghĩa
     public void BecomeInvincible(float duration)
     {
-        // Nếu đang bất tử rồi thì reset lại thời gian (dừng coroutine cũ chạy cái mới)
         StopCoroutine("InvincibilityRoutine");
         StartCoroutine(InvincibilityRoutine(duration));
     }
-
-    // [SỬA TÊN] Rountines -> Routine (Lỗi chính tả)
-    // Thay đổi tốc độ nháy ở đây (càng nhỏ nháy càng nhanh)
+     
     [SerializeField] private float blinkInterval = 0.1f;
 
     private IEnumerator InvincibilityRoutine(float duration)
     {
         isInvincible = true;
-        Debug.Log(">>> BẤT TỬ KÍCH HOẠT!");
-
         float elapsed = 0f;
-
-        // Vòng lặp chạy liên tục cho đến khi hết thời gian duration
         while (elapsed < duration)
         {
-            // 1. Tắt hình (hoặc mờ tịt đi)
             SetSpriteAlpha(0f);
             yield return new WaitForSeconds(blinkInterval);
-
-            // 2. Bật hình lại
             SetSpriteAlpha(1f);
             yield return new WaitForSeconds(blinkInterval);
-
-            // Cộng dồn thời gian đã trôi qua
             elapsed += (blinkInterval * 2);
         }
-
-        // Đảm bảo khi hết giờ, nhân vật phải hiện rõ trở lại
         SetSpriteAlpha(1f);
         isInvincible = false;
-        Debug.Log(">>> Hết bất tử.");
     }
 
-    // Hàm phụ trợ cho gọn code
     private void SetSpriteAlpha(float alpha)
     {
         if (sprite != null)
@@ -277,10 +249,8 @@ public class PlayerStats : MonoBehaviour
     private IEnumerator DamageBuffRoutine(float amount, float duration)
     {
         currentDamage += amount;
-        Debug.Log($"<color=green>BUFF ACTIVATED:</color> +{amount} Damage. Current: {currentDamage}");
         yield return new WaitForSeconds(duration);
         currentDamage -= amount;
-        Debug.Log($"<color=yellow>BUFF ENDED:</color> Damage returned to: {currentDamage}");
     }
 
     // ==============================
@@ -288,38 +258,58 @@ public class PlayerStats : MonoBehaviour
     // ==============================
     private void Die()
     {
-        // Audio
+        if (isDead) return; 
+        
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerDie);
         isDead = true;
         StopAllCoroutines();
         ResetSpriteColor();
 
-        if (animator != null)
-            animator.SetTrigger("die");
+        if (animator != null) animator.SetTrigger("die");
 
         if (movement != null)
         {
-            movement.StopMoving();
             movement.enabled = false;
         }
 
         EnablePlayer(false);
-        StartCoroutine(GameOverSequence());
+        StartCoroutine(RespawnSequence());
     }
 
-    private IEnumerator GameOverSequence()
+    private IEnumerator RespawnSequence()
     {
-        yield return new WaitForSeconds(2f);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        yield return new WaitForSeconds(1.5f);
+        if (DeathUI.Instance != null)
+        {
+            yield return StartCoroutine(DeathUI.Instance.FadeInBlack(1f));
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RespawnPlayer();
+        }
+        else
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            yield break; 
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        if (DeathUI.Instance != null)
+        {
+            yield return StartCoroutine(DeathUI.Instance.FadeOutBlack(1f));
+        }
+
+        EnablePlayer(true);
     }
 
     // ==============================
-    // Effects
+    // Effects & UI
     // ==============================
     private IEnumerator FlashEffect()
     {
         if (sprite == null) yield break;
-
         for (int i = 0; i < flashCount; i++)
         {
             sprite.color = flashColor;
@@ -331,13 +321,9 @@ public class PlayerStats : MonoBehaviour
 
     private void ResetSpriteColor()
     {
-        if (sprite != null)
-            sprite.color = Color.white;
+        if (sprite != null) sprite.color = Color.white;
     }
 
-    // ==============================
-    // UI
-    // ==============================
     private void UpdateUI()
     {
         if (PlayerHealthUI.Instance == null) return;

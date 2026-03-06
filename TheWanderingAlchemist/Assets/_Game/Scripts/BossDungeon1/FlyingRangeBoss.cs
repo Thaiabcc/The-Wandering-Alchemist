@@ -3,12 +3,12 @@ using System.Collections;
 
 public class FlyingRangeBoss : EnemyAI
 {
-    [Header("--- CÀI ĐẶT DI CHUYỂN ---")]
+    [Header("--- DI CHUYỂN ---")]
     public float stopDistance = 5f;
     public float flyHeight = 2f;
     public float bobSpeed = 2f;
 
-    [Header("--- TẤN CÔNG (3 KHÚC) ---")]
+    [Header("--- TẤN CÔNG ---")]
     public Transform firePoint;
     public GameObject part1Prefab;
     public GameObject part2Prefab;
@@ -16,35 +16,32 @@ public class FlyingRangeBoss : EnemyAI
     public float segmentLength = 1.5f;
     public float spawnDelay = 0.1f;
 
-    [Header("--- KỸ NĂNG: TELEPORT (SÁT THỦ) ---")]
-    [Tooltip("Tỉ lệ dùng Teleport (0-100)")]
+    [Header("--- KỸ NĂNG: TELEPORT ---")]
+    [Tooltip("Tỉ lệ dùng Teleport")]
     public int teleportChance = 30;
     public float teleportDuration = 0.5f;
     public float teleportOffset = 3.0f;
-    [Tooltip("Thời gian đứng cảnh báo sau khi hiện hình rồi mới đánh")]
+    [Tooltip("Time warning")]
     public float postTeleportIdleTime = 1.0f;
 
-    [Header("--- KỸ NĂNG: HÓA ĐIÊN (RAGE) ---")]
+    [Header("--- KỸ NĂNG: HÓA ĐIÊN ---")]
     public bool enableRage = true;
     public Color rageColor = Color.red;
     public GameObject rageVFX;
     public float chargeDuration = 3.0f;
-    public GameObject rockPrefab; // Prefab đá rơi/cảnh báo
+    public GameObject rockPrefab; 
     public float rockSpawnRate = 0.2f;
 
-    [Header("--- CƠ CHẾ POISE (SEKIRO STYLE) ---")]
+    [Header("--- CƠ CHẾ POISE ---")]
     public float maxPoise = 100f;
     public float poiseRecoveryRate = 5f;
 
     [Header("--- UI KẾT NỐI ---")]
     public BossHUD bossHUD;
 
-    [Header("--- TUẦN TRA (WAYPOINTS) ---")]
+    [Header("--- TUẦN TRA ---")]
     public Transform[] patrolPoints;
 
-    // ===============================
-    // BIẾN NỘI BỘ
-    // ===============================
     private int currentPatrolIndex = 0;
     private float waypointWaitTimer = 0;
 
@@ -52,7 +49,7 @@ public class FlyingRangeBoss : EnemyAI
     private bool isCharging = false;
     private bool isTeleporting = false;
     private bool isStunned = false;
-    private bool isFightStarted = false; // Check xem đã vào trận chưa
+    private bool isFightStarted = false; 
 
     private float currentPoise;
 
@@ -60,13 +57,10 @@ public class FlyingRangeBoss : EnemyAI
     private Collider2D myCollider;
     private Vector3 originalScale;
 
-    // ===============================
-    // KHỞI TẠO
-    // ===============================
     protected override void Start()
     {
         base.Start();
-        rb.gravityScale = 0; // Boss bay không chịu trọng lực
+        rb.gravityScale = 0; 
         attackRange = stopDistance;
         currentPoise = maxPoise;
 
@@ -74,46 +68,35 @@ public class FlyingRangeBoss : EnemyAI
         myCollider = GetComponent<Collider2D>();
         originalScale = transform.localScale;
 
-        // Setup UI nhưng ẨN đi (Chờ kích hoạt)
         if (bossHUD != null)
         {
-            bossHUD.gameObject.SetActive(false); // <--- QUAN TRỌNG: Ẩn ngay lập tức
+            bossHUD.gameObject.SetActive(false); 
         }
     }
 
-    // ===============================
-    // LOGIC CHÍNH (BRAIN)
-    // ===============================
     protected override void FixedUpdate()
     {
         if (isDead || playerTransform == null) return;
 
-        // 1. Hồi phục Poise nếu không bị choáng và chưa vào trận găng
         if (!isStunned && currentPoise < maxPoise && !isCharging)
         {
             currentPoise += poiseRecoveryRate * Time.fixedDeltaTime;
             if (bossHUD != null) bossHUD.UpdatePoise(currentPoise);
         }
 
-        // 2. Nếu đang bận (Gồng/Tele/Stun) -> Đứng im
         if (isCharging || isTeleporting || isStunned)
         {
             rb.velocity = Vector2.zero;
             animator.SetBool("isMoving", false);
             return;
         }
-
-        // 3. Đo khoảng cách
         float distance = Vector2.Distance(transform.position, playerTransform.position);
 
-        // --- LOGIC KÍCH HOẠT TRẬN ĐẤU (AGGRO) ---
-        // Nếu thấy Player VÀ Trận đấu chưa bắt đầu -> Kích hoạt!
         if (distance < chaseRange && !isFightStarted && CheckLineOfSight())
         {
             StartBossFight();
         }
 
-        // --- LOGIC QUAY MẶT ---
         if (distance < chaseRange)
         {
             float face = (playerTransform.position.x > transform.position.x) ? 1 : -1;
@@ -121,26 +104,21 @@ public class FlyingRangeBoss : EnemyAI
             transform.localScale = new Vector3(currentScaleX * face, transform.localScale.y, 1);
         }
 
-        // --- LOGIC DI CHUYỂN & TẤN CÔNG ---
-        // Chỉ đuổi khi đã vào trận VÀ nhìn thấy Player
         if (isFightStarted && distance < chaseRange && CheckLineOfSight())
         {
-            // Nếu chưa đến tầm bắn -> Đuổi theo
             if (distance > stopDistance)
             {
                 animator.SetBool("isMoving", true);
 
                 Vector2 targetPos = playerTransform.position;
-                targetPos.y += flyHeight + Mathf.Sin(Time.time * bobSpeed) * 0.5f; // Bay nhấp nhô
+                targetPos.y += flyHeight + Mathf.Sin(Time.time * bobSpeed) * 0.5f; 
 
                 rb.MovePosition(Vector2.MoveTowards(transform.position, targetPos, moveSpeed * Time.fixedDeltaTime));
             }
-            // Nếu đã đến tầm -> Dừng & Đánh
             else
             {
                 animator.SetBool("isMoving", false);
 
-                // Cơ chế Spacing: Nếu Player lại quá gần -> Lùi lại 1 chút
                 if (distance < stopDistance * 0.5f)
                 {
                     Vector2 back = Vector2.MoveTowards(transform.position, playerTransform.position, -moveSpeed * Time.fixedDeltaTime);
@@ -160,7 +138,6 @@ public class FlyingRangeBoss : EnemyAI
         }
         else
         {
-            // Không thấy Player hoặc chưa vào trận -> Đi tuần tra
             Patroling();
         }
     }
@@ -171,17 +148,15 @@ public class FlyingRangeBoss : EnemyAI
     void StartBossFight()
     {
         isFightStarted = true;
-
-        // Hiện thanh máu lên
         if (bossHUD != null)
             bossHUD.gameObject.SetActive(true);
 
         Debug.Log("BOSS FIGHT STARTED!");
-        // Bro có thể thêm code phát nhạc Boss ở đây
+        // Thêm nhạc 
     }
 
     // ===============================
-    // LOGIC TUẦN TRA (WAYPOINTS)
+    // LOGIC TUẦN TRA
     // ===============================
     protected override void Patroling()
     {
@@ -195,7 +170,6 @@ public class FlyingRangeBoss : EnemyAI
         Transform target = patrolPoints[currentPatrolIndex];
         float dist = Vector2.Distance(transform.position, target.position);
 
-        // Quay mặt về điểm đến
         float face = (target.position.x > transform.position.x) ? 1 : -1;
         float currentScaleX = Mathf.Abs(transform.localScale.x);
         transform.localScale = new Vector3(currentScaleX * face, transform.localScale.y, 1);
@@ -223,26 +197,17 @@ public class FlyingRangeBoss : EnemyAI
             rb.MovePosition(next);
         }
     }
-
-    // ===============================
-    // CÁC HÀM HỖ TRỢ & NHẬN DAME
-    // ===============================
     private bool CheckLineOfSight()
     {
         Vector2 dir = (playerTransform.position - transform.position).normalized;
         float dist = Vector2.Distance(transform.position, playerTransform.position);
-
-        // Bắn tia Raycast chỉ va chạm với lớp Obstacle
         return Physics2D.Raycast(transform.position, dir, dist, obstacleLayer).collider == null;
     }
 
-    // Hàm này được gọi từ EnemyHealth.cs
     public void TakeDamage(float damage)
     {
-        // Nếu bị đánh lén mà chưa bật Mode chiến đấu -> BẬT LUÔN
         if (!isFightStarted) StartBossFight();
 
-        // Xử lý Poise
         if (!isStunned && !isCharging)
         {
             currentPoise -= damage * 2f;
@@ -258,14 +223,14 @@ public class FlyingRangeBoss : EnemyAI
     IEnumerator StunState()
     {
         isStunned = true;
-        animator.SetTrigger("Hurt"); // Animation bị choáng
+        animator.SetTrigger("Hurt"); // Chưa có ani stun 
 
         Color old = mySprite.color;
-        mySprite.color = Color.gray; // Đổi màu báo hiệu
+        mySprite.color = Color.gray; 
 
-        yield return new WaitForSeconds(2.0f); // Thời gian choáng
+        yield return new WaitForSeconds(2.0f); 
 
-        currentPoise = maxPoise; // Hồi phục lại
+        currentPoise = maxPoise; 
         if (bossHUD != null) bossHUD.UpdatePoise(currentPoise);
 
         mySprite.color = old;
@@ -315,7 +280,7 @@ public class FlyingRangeBoss : EnemyAI
         float newFacing = (playerTransform.position.x > transform.position.x) ? 1 : -1;
         transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * newFacing, transform.localScale.y, 1);
 
-        // 4. Hăm dọa (Chờ)
+        // 4. Hăm dọa
         float timer = 0;
         float wait = isRaging ? postTeleportIdleTime * 0.5f : postTeleportIdleTime;
         Color baseColor = isRaging ? rageColor : Color.white;
@@ -342,7 +307,7 @@ public class FlyingRangeBoss : EnemyAI
     }
 
     // ===============================
-    // KỸ NĂNG: HÓA ĐIÊN (RAGE MODE)
+    // KỸ NĂNG: HÓA ĐIÊN 
     // ===============================
     public void ActivateRage()
     {
@@ -353,7 +318,7 @@ public class FlyingRangeBoss : EnemyAI
     IEnumerator RageTransitionSequence()
     {
         isRaging = true;
-        isCharging = true; // Khóa di chuyển
+        isCharging = true; 
 
         if (myCollider) myCollider.enabled = false;
 

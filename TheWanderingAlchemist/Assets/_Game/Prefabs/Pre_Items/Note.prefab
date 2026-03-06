@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3998887589515542348}
   - component: {fileID: 2245982080592097246}
   m_Layer: 3
-  m_Name: Note
+  m_Name: Item_Note Dungeon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

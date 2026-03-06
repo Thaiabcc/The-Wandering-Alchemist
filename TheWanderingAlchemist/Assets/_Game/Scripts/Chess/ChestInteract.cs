@@ -7,9 +7,9 @@ public class ChestInteract : MonoBehaviour
     private bool isOpened = false;
 
     [Header("Cài đặt Phần Thưởng")]
-    public GameObject goldPrefab; // Kéo Prefab vàng vào đây
-    public int goldAmount = 1;    // Số lượng vàng rớt ra (nếu muốn rớt nhiều cục)
-    public float popForce = 3f;   // Lực bắn vàng lên cao
+    public GameObject goldPrefab; 
+    public int goldAmount = 1;    
+    public float popForce = 3f;  
 
     void Start()
     {
@@ -30,17 +30,15 @@ public class ChestInteract : MonoBehaviour
         anim.SetTrigger("Open");
         Debug.Log("Rương đã mở!");
 
-        // --- PHẦN TẠO VÀNG ---
         if (goldPrefab != null)
         {
             SpawnLoot();
         }
         else
         {
-            Debug.LogWarning("Chưa gắn Prefab vàng vào rương kìa bro!");
+            Debug.LogWarning("Chưa gắn Prefab vàng");
         }
 
-        // Xóa rương sau 0.5 giây
         Destroy(gameObject, 0.5f);
     }
 
@@ -48,18 +46,12 @@ public class ChestInteract : MonoBehaviour
     {
         for (int i = 0; i < goldAmount; i++)
         {
-            // 1. Tạo cục vàng ngay tại vị trí rương
             GameObject loot = Instantiate(goldPrefab, transform.position, Quaternion.identity);
-
-            // 2. Lấy Rigidbody2D của cục vàng để thêm lực đẩy
             Rigidbody2D rb = loot.GetComponent<Rigidbody2D>();
 
             if (rb != null)
             {
-                // Bắn vàng ra mọi hướng xung quanh (360 độ) thay vì chỉ bắn lên trên
                 Vector2 dropDirection = Random.insideUnitCircle.normalized;
-
-                // Thêm lực bắn mạnh
                 rb.AddForce(dropDirection * popForce, ForceMode2D.Impulse);
             }
         }

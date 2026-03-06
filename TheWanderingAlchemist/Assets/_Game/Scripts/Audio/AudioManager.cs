@@ -7,28 +7,28 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance { get; private set; }
 
     [Header("Audio Sources")]
-    [SerializeField] private AudioSource musicSource; // Nhạc nền (Loop)
-    [SerializeField] private AudioSource sfxSource;   // Tiếng động (One shot)
+    [SerializeField] private AudioSource musicSource;
+    [SerializeField] private AudioSource sfxSource;
 
     [Header("--- NHẠC NỀN ---")]
     public AudioClip backgroundMusic;
 
     [Header("--- NGƯỜI CHƠI (HÀNH ĐỘNG) ---")]
-    public AudioClip footstep;        // Đi bộ
-    public AudioClip pickupItems;     // Nhặt đồ
-    public AudioClip potionUse;       // Uống thuốc (ực ực)
+    public AudioClip footstep;      
+    public AudioClip pickupItems;     
+    public AudioClip potionUse;     
 
     [Header("--- NGƯỜI CHƠI (CHIẾN ĐẤU) ---")]
-    public AudioClip swordSwing;      // Tiếng chém kiếm
-    public AudioClip stoneThrow;      // Tiếng ném đá (vút)
-    public AudioClip stoneBreak;      // Tiếng đá vỡ khi chạm đất/quái (bụp/keng)
-    public AudioClip deflectSuccess;  // Đỡ đòn thành công (KENG!!!)
-    public AudioClip playerTakeDamage;// Người chơi bị đánh (Á!)
-    public AudioClip playerDie;       // Người chơi chết
+    public AudioClip swordSwing;      
+    public AudioClip stoneThrow;     
+    public AudioClip stoneBreak;     
+    public AudioClip deflectSuccess;  
+    public AudioClip playerTakeDamage;
+    public AudioClip playerDie;       
 
     [Header("--- KẺ ĐỊCH ---")]
-    public AudioClip enemyHit;        // Quái bị đánh trúng (Bộp)
-    public AudioClip enemyDie;        // Quái chết
+    public AudioClip enemyHit;        
+    public AudioClip enemyDie;       
 
     private void Awake()
     {
@@ -45,8 +45,7 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        // Tự động phát nhạc nền khi game bắt đầu
-        PlayMusic(backgroundMusic, 0.2f); // Volume nhạc nền nên để vừa phải (0.5)
+        PlayMusic(backgroundMusic, 0.028f);
     }
 
     // Hàm phát nhạc nền
@@ -60,15 +59,14 @@ public class AudioManager : MonoBehaviour
         musicSource.Play();
     }
 
-    // Hàm phát tiếng động (SFX)
-    // Tôi thêm tham số pitch (độ cao) ngẫu nhiên để âm thanh đỡ nhàm chán
+    // Hàm SFX
     public void PlaySFX(AudioClip clip, float volume = 1f, bool randomPitch = false)
     {
         if (clip == null || sfxSource == null) return;
 
         if (randomPitch)
         {
-            sfxSource.pitch = Random.Range(0.85f, 1.15f); // Đổi giọng chút xíu cho tự nhiên
+            sfxSource.pitch = Random.Range(0.85f, 1.15f);
         }
         else
         {

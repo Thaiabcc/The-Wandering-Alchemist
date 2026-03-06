@@ -12,24 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2d798cd5532ebf4da06df31cf920808, type: 3}
   m_Name: MainQuest_1
   m_EditorClassIdentifier: 
-  questName: "\"B\xED m\u1EADt r\u1EEBng s\xE2u\""
+  questName: "B\xED m\u1EADt r\u1EEBng s\xE2u"
   description: "\"Tr\u01B0\u1EDFng l\xE0ng nghe th\u1EA5y ti\u1EBFng \u0111\u1ED9ng
-    l\u1EA1. H\xE3y \u0111i t\xECm Skeleton VIP \u1EDF b\xECa r\u1EEBng \u0111\u1EC3
-    h\u1ECFi chuy\u1EC7n.\""
+    l\u1EA1. Gi\xFAp tr\u01B0\u1EDFng l\xE0ng \u0111i \u0111i\u1EC1u tra\""
   type: 2
   prerequisiteQuest: {fileID: 0}
-  targetName: SkeletonVIP
+  nextQuest: {fileID: 11400000, guid: 57d814927eaeb0a4bb8c8e73e0415eba, type: 2}
+  autoAcceptNextQuest: 1
+  targetName: "Orc b\xED \u1EA9n"
   requiredAmount: 1
   requiredItem: {fileID: 0}
-  goldReward: 1000
+  goldReward: 200
   itemReward: {fileID: 0}
   startDialogue:
   - "\"Ch\xE0o c\u1EADu ! Xin h\u1ECFi c\u1EADu c\xF3 th\u1EDDi gian cho ta kh\xF4ng
     ?\""
-  - "\"\u1EDE r\u1EEBng x\u1EA3y ra ch\xFAt hi\u1EC7n t\u01B0\u1EE3ng l\u1EA1, c\u1EADu
-    c\xF3 th\u1EC3 gi\xFAp ta kh\xE1m ph\xE1 xem \u1EDF \u0111\xF3 x\u1EA3y ra g\xEC
-    \u0111\u01B0\u1EE3c kh\xF4ng ?\""
+  - "Trong r\u1EEBng c\xF3 hi\u1EC7n t\u01B0\u1EE3ng l\u1EA1, kh\xE1m ph\xE1 gi\xFAp
+    ta xem c\xF3 g\xEC x\u1EA3y ra \u1EDF \u0111\xF3 \u0111\u01B0\u1EE3c kh\xF4ng?\""
   progressDialogue:
-  - "\"C\xF4ng vi\u1EC7c ti\u1EBFn h\xE0nh \u0111\u1EBFn \u0111\xE2u r\u1ED3i\""
+  - "\"\u1EDE trong r\u1EEBng x\u1EA3y ra chy\u1EC7n g\xEC v\u1EADy ?\""
+  - "\"C\u1EADu \u0111\xE3 t\xECm ra ch\u01B0a ?\""
   completeDialogue:
-  - "\"C\u1EA3m \u01A1n th\xF4ng tin h\u1EEFu \xEDch c\u1EE7a c\u1EADu nh\xE9\""
+  - "\"Ra l\xE0 v\u1EADy\""
+  - "\"C\u1EA3m \u01A1n th\xF4ng tin c\u1EE7a c\u1EADu\""
+  - "\"Ta c\xF3 th\xEAm th\u1EED th\xE1ch kh\xE1c cho c\u1EADu \u0111\xE2y ?                                                                                                                                                                                                                                                                                                                                   
+    \""
+  targetDialogue:
+  - "\"C\xF3 1 b\xED m\u1EADt m\xE0 n\u01A1i y\xEAn b\xECnh n\xE0y \u0111ang c\u1EA5t
+    gi\u1EA5u....\""
+  - "\"N\u01A1i m\xE0 sinh m\u1EA1ng c\u1EE7a k\u1EBB n\xE0y ch\u1EC9 l\xE0 th\u1EE9c
+    \u0103n \u0111\u1EC3 hi\u1EBFn t\u1EBF cho k\u1EBB kh\xE1c...\""
+  - "\"...v\xEC th\u1EBF n\xEAn c\u1EADu h\xE3y c\u1EA9n th\u1EADn\""
+  endStoryText: "\"Sau khi k\u1EC3 cho \xF4ng l\xE3o nghe v\u1EC1 c\xE2u truy\u1EC7n
+    trong r\u1EEBng\""

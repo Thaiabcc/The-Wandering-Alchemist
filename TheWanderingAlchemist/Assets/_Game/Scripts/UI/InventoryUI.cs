@@ -15,10 +15,6 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI goldTextInventory;
 
     private InventorySlot_UI[] slots;
-
-    // ==============================
-    // Unity Lifecycle
-    // ==============================
     private void Awake()
     {
         SetupSingleton();
@@ -74,10 +70,6 @@ public class InventoryUI : MonoBehaviour
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnInventoryChanged -= RefreshUI;
     }
-
-    // ==============================
-    // Input
-    // ==============================
     private void HandleInput()
     {
         if (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I))
@@ -85,10 +77,6 @@ public class InventoryUI : MonoBehaviour
             ToggleInventory();
         }
     }
-
-    // ==============================
-    // UI Update
-    // ==============================
     private void RefreshUI()
     {
         UpdateSlots();
@@ -103,7 +91,7 @@ public class InventoryUI : MonoBehaviour
 
         if (slots == null || slots.Length == 0)
         {
-            Debug.LogError("Chưa tìm thấy Slot UI nào! Hãy kiểm tra Slots Parent.");
+            Debug.LogError("Chưa tìm thấy Slot UI nào");
             return;
         }
 

@@ -13,24 +13,17 @@ public class PlayerAttack : MonoBehaviour
     [Header("Stats")]
     [SerializeField] private float critChance = 30f;
     [SerializeField] private float critMultiplier = 2f;
-
-    // 👇 [MỚI] Thêm tốn thể lực khi đánh
-    [Header("Stamina Cost")]
-    [Tooltip("Mỗi lần bắn tốn bao nhiêu thể lực")]
     [SerializeField] private float staminaCost = 10f;
 
     [Header("Timing & Settings")]
-    [Tooltip("Delay để khớp animation vung tay")]
     [SerializeField] private float hitDelay = 0.3f;
     [SerializeField] private float cooldown = 0.5f;
-
-    [Tooltip("Khoảng cách điểm bắn so với người")]
     [SerializeField] private float spawnDistance = 1.0f;
-    [Tooltip("Độ cao điểm bắn (để bắn từ ngực/đầu thay vì chân)")]
     [SerializeField] private float heightOffset = 0.8f;
 
     private bool isAttacking;
     private Vector2 mouseDirection;
+    private float lastAttackTime;
 
     private void Awake()
     {
@@ -41,80 +34,87 @@ public class PlayerAttack : MonoBehaviour
     private void Update()
     {
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-
-        UpdateMouseDirection();
-
-        if (isAttacking) return;
-
-        if (Input.GetButtonDown("Fire1"))
+        CalculateMouseDirection();
+        UpdateAttackPointTransform();
+        if (Input.GetButton("Fire1") && Time.time >= lastAttackTime + cooldown && !isAttacking)
         {
-            // 👇 [MỚI] Kiểm tra Stamina trước khi đánh
-            // Hàm TryConsumeStamina sẽ tự trừ và trả về true nếu đủ, false nếu thiếu
             if (PlayerStats.Instance != null && PlayerStats.Instance.TryConsumeStamina(staminaCost))
             {
                 StartCoroutine(AttackRoutine());
             }
             else
             {
-                // (Tùy chọn) Hiệu ứng khi hết hơi (vd: Âm thanh "cạch cạch")
-                Debug.Log("Hết hơi rồi, không bắn được!");
+                // Hết mana/stamina
+                // Debug.Log("Cạch cạch!"); 
             }
         }
     }
 
-    private void UpdateMouseDirection()
+    private void CalculateMouseDirection()
     {
-        // 1. Lấy vị trí chuột
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 0;
-
-        // 2. Tính tâm nhân vật
         Vector3 playerCenter = transform.position + Vector3.up * heightOffset;
-
-        // 3. Tính hướng
         mouseDirection = (mousePos - playerCenter).normalized;
+    }
 
-        // 4. Cập nhật vị trí AttackPoint
+    private void UpdateAttackPointTransform()
+    {
         if (attackPoint)
         {
+            Vector3 playerCenter = transform.position + Vector3.up * heightOffset;
             attackPoint.position = playerCenter + (Vector3)(mouseDirection * spawnDistance);
 
             float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
             attackPoint.rotation = Quaternion.Euler(0, 0, angle);
         }
-
-        // 5. Lật Sprite theo hướng chuột
-        if (spriteRenderer != null)
+    }
+    private void FaceMouseDirection()
+    {
+        /*if (spriteRenderer != null)
         {
+            // Nếu chuột bên trái -> Flip, ngược lại thì thôi
             spriteRenderer.flipX = (mouseDirection.x < 0);
-        }
+        }*/
 
-        // 6. Cập nhật Animator
-        if (!isAttacking && animator != null)
+        // Cập nhật Animator để phát animation đánh đúng hướng (nếu game có anim 4 hướng)
+        if (animator != null)
         {
-            animator.SetFloat("InputX", mouseDirection.x);
-            animator.SetFloat("InputY", mouseDirection.y);
+            animator.SetFloat("Horizontal", mouseDirection.x);
+            animator.SetFloat("Vertical", mouseDirection.y);
         }
     }
 
     private IEnumerator AttackRoutine()
     {
         isAttacking = true;
+        lastAttackTime = Time.time;
+
+        // Khi bắt đầu đánh, ta ép nhân vật quay mặt về hướng chuột 1 cái
+        // Để tránh việc bắn ra sau lưng
+        FaceMouseDirection();
+        // ----------------------
 
         animator.SetTrigger("Attack");
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.swordSwing, 0.5f);
 
+        // Chờ đến thời điểm vung tay/bắn ra
         yield return new WaitForSeconds(hitDelay);
 
+        // Bắn đạn
         SpawnProjectile();
 
-        yield return new WaitForSeconds(Mathf.Max(0, cooldown - hitDelay));
+        // (Tùy chọn) Nếu muốn trong lúc đánh nhân vật vẫn luôn nhìn theo chuột thì bỏ FaceMouseDirection() vào Update với điều kiện if(isAttacking)
+
         isAttacking = false;
     }
 
     private void SpawnProjectile()
     {
         if (rockPrefab == null) return;
+
+        // Cập nhật lại hướng bắn 1 lần nữa ngay lúc đạn bay ra cho chuẩn (nếu người chơi vẩy chuột nhanh)
+        CalculateMouseDirection();
 
         float statsDamage = (PlayerStats.Instance != null) ? PlayerStats.Instance.currentDamage : 10;
         bool isCrit = Random.Range(0f, 100f) < critChance;

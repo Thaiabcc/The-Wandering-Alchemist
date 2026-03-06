@@ -7,16 +7,15 @@ public class QuestPopupUI : MonoBehaviour
     public static QuestPopupUI Instance { get; private set; }
 
     [Header("UI Components")]
-    public GameObject popupPanel;       // Panel chính
-    public TextMeshProUGUI titleText;   // Tên Quest
-    public TextMeshProUGUI descText;    // Mô tả (NPC nói gì)
-    public TextMeshProUGUI rewardText;  // Phần thưởng
+    public GameObject popupPanel;       
+    public TextMeshProUGUI titleText;   
+    public TextMeshProUGUI descText;    
+    public TextMeshProUGUI rewardText;  
 
     public Button acceptButton;
     public Button declineButton;
 
-    private QuestData pendingQuest;    // Quest đang chờ chọn
-
+    private QuestData pendingQuest;   
     private void Awake()
     {
         Instance = this;
@@ -46,7 +45,7 @@ public class QuestPopupUI : MonoBehaviour
 
     private void OnDecline()
     {
-        ClosePopup(); // Chỉ tắt bảng, không nhận
+        ClosePopup(); 
     }
 
     private void ClosePopup()

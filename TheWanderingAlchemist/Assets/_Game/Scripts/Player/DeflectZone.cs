@@ -5,8 +5,6 @@ public class DeflectZone : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float knockbackForce = 15f;
     [SerializeField] private int counterDamage = 20;
-
-    // 👇 [MỚI] Thời gian bất tử (phải khai báo biến này để truyền sang Player)
     [SerializeField] private float iframeDuration = 1.0f;
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -17,7 +15,6 @@ public class DeflectZone : MonoBehaviour
 
             if (enemyRb != null)
             {
-                // Logic tính hướng đẩy (Giữ nguyên của bạn - Đã chuẩn)
                 Transform playerTransform = transform.parent;
                 Vector2 originPos = playerTransform != null ? playerTransform.position : transform.position;
                 Vector2 targetPos = collision.transform.position;
@@ -33,7 +30,7 @@ public class DeflectZone : MonoBehaviour
                 Debug.Log("Đã đẩy lùi quái về hướng: " + pushDirection);
             }
 
-            // Gây dame (Giữ nguyên)
+            // Dame
             EnemyHealth enemyHealth = collision.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
@@ -41,8 +38,6 @@ public class DeflectZone : MonoBehaviour
                 DamagePopupGenerator.Instance?.Create(collision.transform.position, counterDamage, true);
             }
 
-            // 👇 [QUAN TRỌNG] GỌI HÀM BẤT TỬ CHO PLAYER
-            // Tìm script PlayerStats ở object cha (Player)
             PlayerStats playerStats = GetComponentInParent<PlayerStats>();
             if (playerStats != null)
             {

@@ -17,6 +17,8 @@ MonoBehaviour:
     3 c\xE1i n\u1EA5m \u0111\u1ECF.\""
   type: 1
   prerequisiteQuest: {fileID: 11400000, guid: 57d814927eaeb0a4bb8c8e73e0415eba, type: 2}
+  nextQuest: {fileID: 11400000, guid: 63a62ebc95064df488a8d4788bc4fb38, type: 2}
+  autoAcceptNextQuest: 1
   targetName: RedMushroom
   requiredAmount: 2
   requiredItem: {fileID: 11400000, guid: 258cbb58f66db954480bb004c7bb0b51, type: 2}
@@ -24,5 +26,9 @@ MonoBehaviour:
   itemReward: {fileID: 0}
   startDialogue:
   - "\"Gi\xFAp ta t\xECm 2 c\xE2y n\u1EA5m \u0111\u1ECF nh\xE9 !\""
-  progressDialogue: []
-  completeDialogue: []
+  progressDialogue:
+  - "\"L\xE0m \u0111\u1EBFn \u0111\xE2u r\u1ED3i nh\xE0 l\u1EEF h\xE0nh\""
+  completeDialogue:
+  - 
+  targetDialogue: []
+  endStoryText: 

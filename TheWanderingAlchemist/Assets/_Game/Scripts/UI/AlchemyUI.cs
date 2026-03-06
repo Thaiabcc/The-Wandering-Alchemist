@@ -8,9 +8,6 @@ public class AlchemyUI : MonoBehaviour
 {
     public static AlchemyUI Instance { get; private set; }
 
-    // ==============================
-    // UI Components
-    // ==============================
     [Header("UI Components")]
     public GameObject alchemyPanel;
     public AlchemySlot inputSlot1;
@@ -18,18 +15,14 @@ public class AlchemyUI : MonoBehaviour
     public Image outputIcon;
     public TextMeshProUGUI outputAmountText;
 
+
     // ==============================
-    // [MỚI] Audio & Feedback
+    // Audio & Feedback
     // ==============================
     [Header("Audio & Feedback")]
     [SerializeField] private GameObject successTextObj;
     [SerializeField] private float feedbackDuration = 1.5f;
-
-    // 👇 HAI BIẾN ÂM THANH RIÊNG BIỆT 👇
-    [Tooltip("Kéo file tiếng sôi sùng sục vào đây")]
     [SerializeField] private AudioClip cookingSound;
-
-    [Tooltip("Kéo file tiếng Ting thành công vào đây")]
     [SerializeField] private AudioClip successSound;
 
     // ==============================
@@ -111,23 +104,16 @@ public class AlchemyUI : MonoBehaviour
 
     public bool IsSelecting() => currentSelectingSlot != null;
 
-    public void CancelSelection() => currentSelectingSlot = null;
+    public void CancelSelection()
+    {
+        currentSelectingSlot = null;
+    }
 
+    // HÀM NHẬN ITEM TỪ KHO
     public void ReceiveItemFromInventory(ItemData item)
     {
         if (currentSelectingSlot == null || item == null) return;
-
-        if (currentSelectingSlot.CurrentItem != item)
-        {
-            currentSelectingSlot.UpdateVisual(item, 1);
-        }
-        else
-        {
-            int newAmount = currentSelectingSlot.CurrentAmount + 1;
-            if (InventoryManager.Instance.HasItem(item, newAmount))
-                currentSelectingSlot.UpdateVisual(item, newAmount);
-        }
-
+        currentSelectingSlot.SetItem(item);
         currentSelectingSlot = null;
 
         if (InventoryUI.Instance != null)
@@ -193,40 +179,30 @@ public class AlchemyUI : MonoBehaviour
     // ==============================
     // Cooking Logic
     // ==============================
+    private bool isCooking = false;
     public void OnCookButtonPress()
     {
-        if (!outputIcon.enabled) return;
+        if (!outputIcon.enabled || isCooking) return;
 
         StartCoroutine(CookingRoutine());
     }
 
     private IEnumerator CookingRoutine()
     {
-        // 1. BẬT hoạt ảnh
-        if (alchemyAnimator != null)
-        {
-            alchemyAnimator.gameObject.SetActive(true);
-        }
+        isCooking = true;
 
-        // 👇👇👇 GIAI ĐOẠN 1: CHƠI TIẾNG SÔI (BOILING) LÚC ĐANG NẤU 👇👇👇
+        if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(true);
+
         if (AudioManager.Instance != null && cookingSound != null)
-        {
             AudioManager.Instance.PlaySFX(cookingSound, 1f);
-        }
 
         outputIcon.enabled = false;
         outputAmountText.gameObject.SetActive(false);
 
-        // 2. CHỜ nấu (Thời gian sôi bằng thời gian animation)
         yield return new WaitForSeconds(cookTime);
 
-        // 3. TẮT hoạt ảnh
-        if (alchemyAnimator != null)
-        {
-            alchemyAnimator.gameObject.SetActive(false);
-        }
+        if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
 
-        // 4. Trả đồ & Hiệu ứng thành công
         PerformCrafting();
     }
 
@@ -246,7 +222,6 @@ public class AlchemyUI : MonoBehaviour
 
         if (validRecipe == null) return;
 
-        // Trừ đồ
         int remove1 = 0, remove2 = 0;
         foreach (var ing in validRecipe.ingredients)
         {
@@ -260,7 +235,6 @@ public class AlchemyUI : MonoBehaviour
 
         Debug.Log("Chế tạo thành công!");
 
-        // --- CẬP NHẬT UI KẾT QUẢ ---
         inputSlot1.UpdateVisual(null, 0);
         inputSlot2.UpdateVisual(null, 0);
 
@@ -274,31 +248,20 @@ public class AlchemyUI : MonoBehaviour
 
         CancelSelection();
 
-        // 3. Gọi hiệu ứng ăn mừng (Kèm tiếng Ting)
         StartCoroutine(SuccessFeedbackRoutine());
     }
 
-    // --- HIỆU ỨNG THÀNH CÔNG ---
     private IEnumerator SuccessFeedbackRoutine()
     {
-        // 👇👇👇 GIAI ĐOẠN 2: CHƠI TIẾNG TING (SUCCESS) LÚC XONG VIỆC 👇👇👇
         if (AudioManager.Instance != null && successSound != null)
-        {
             AudioManager.Instance.PlaySFX(successSound, 1f);
-        }
 
-        // 2. Hiện chữ Success
-        if (successTextObj != null)
-        {
-            successTextObj.SetActive(true);
-        }
+        if (successTextObj != null) successTextObj.SetActive(true);
 
-        // 3. Hiệu ứng nảy (Pop) icon kết quả
         float timer = 0;
         Vector3 originalScale = Vector3.one;
         Vector3 punchScale = Vector3.one * 1.3f;
 
-        // Phóng to
         while (timer < 0.2f)
         {
             timer += Time.deltaTime;
@@ -306,7 +269,6 @@ public class AlchemyUI : MonoBehaviour
             yield return null;
         }
 
-        // Thu nhỏ
         timer = 0;
         while (timer < 0.1f)
         {
@@ -316,13 +278,13 @@ public class AlchemyUI : MonoBehaviour
         }
         outputIcon.transform.localScale = originalScale;
 
-        // 4. Chờ rồi tắt chữ
         yield return new WaitForSeconds(feedbackDuration);
 
-        if (successTextObj != null)
-        {
-            successTextObj.SetActive(false);
-        }
+        if (successTextObj != null) successTextObj.SetActive(false);
+
+        ResetOutput();
+
+        isCooking = false;
     }
 
     private void ResetOutput()

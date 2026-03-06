@@ -11,31 +11,27 @@ public class BossAI : EnemyAI
     [Header("--- HIỆU ỨNG (PREFABS) ---")]
     public GameObject vfxAttack1;
     public GameObject vfxAttack2;
-    [Tooltip("Thời gian tồn tại của VFX (giây). Giảm xuống 0.3 hoặc 0.4 để biến mất nhanh hơn.")]
-    [SerializeField] private float vfxDuration = 0.4f; // <--- MỚI: Mặc định 0.4 giây
+    [Tooltip("Thời gian tồn tại của VFX")]
+    [SerializeField] private float vfxDuration = 0.4f; 
 
-    // Biến riêng của Boss
     private bool canAttack = true;
     private int currentAttackType = 1;
 
     protected override void Start()
     {
         base.Start();
-        // chaseRange = 999f; // Bỏ comment nếu muốn boss đuổi vô hạn
+        // chaseRange = 999f;
     }
 
     protected override void FixedUpdate()
     {
         if (isDead) return;
         if (playerTransform == null) return;
-
-        // --- LOGIC QUAY MẶT (GIỮ NGUYÊN FIX SCALE) ---
         if (playerTransform.position.x > transform.position.x)
             transform.localScale = new Vector3(1, 1, 1);
         else
             transform.localScale = new Vector3(-1, 1, 1);
 
-        // --- DI CHUYỂN ---
         float distance = Vector2.Distance(transform.position, playerTransform.position);
 
         if (distance > attackRange)
@@ -74,7 +70,7 @@ public class BossAI : EnemyAI
         canAttack = true;
     }
 
-    // --- HÀM VFX (CẬP NHẬT THỜI GIAN) ---
+    // --- HÀM VFX ---
     public void SpawnSkillEffect()
     {
         GameObject vfxToSpawn = (currentAttackType == 1) ? vfxAttack1 : vfxAttack2;
@@ -93,8 +89,6 @@ public class BossAI : EnemyAI
             }
 
             vfx.transform.localScale = newScale;
-
-            // --- MỚI: Hủy theo biến vfxDuration ---
             Destroy(vfx, vfxDuration);
         }
 

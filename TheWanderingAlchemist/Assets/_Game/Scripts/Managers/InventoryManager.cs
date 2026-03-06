@@ -135,7 +135,7 @@ public class InventoryManager : MonoBehaviour
 
         OnInventoryChanged?.Invoke();
     }
-    public int GetItemCount(ItemData item)
+    public int GetItemAmount(ItemData item)
     {
         if (item == null) return 0;
         int total = 0;

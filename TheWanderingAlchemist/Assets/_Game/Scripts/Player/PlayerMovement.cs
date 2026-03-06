@@ -9,21 +9,22 @@ public class PlayerMovement : MonoBehaviour
     // Movement Settings
     // ==============================
     [Header("Movement")]
-    [SerializeField] private float walkSpeed = 5f;
-    [SerializeField] private float runSpeed = 8f;
+    [SerializeField] public float walkSpeed = 5f;
+    [SerializeField] public float runSpeed = 8f;
 
     // ==============================
     // Stamina
     // ==============================
     [Header("Stamina")]
     [SerializeField] private float staminaDrain = 20f;
+    [SerializeField] private float staminaRegen = 10f;
 
     // ==============================
-    // [MỚI] Audio Settings (Dành cho file loop dài)
+    // Audio Settings
     // ==============================
     [Header("Footstep Loop Audio")]
-    [SerializeField] private AudioSource footstepSource; // Kéo cái AudioSource trên người Player vào đây
-    [SerializeField] private float runPitchMultiplier = 1.5f; // Chạy thì tiếng nhanh gấp 1.5 lần
+    [SerializeField] private AudioSource footstepSource;
+    [SerializeField] private float runPitchMultiplier = 1.5f;
 
     // ==============================
     // Components
@@ -31,23 +32,21 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
     private GameControls controls;
+    private SpriteRenderer spriteRenderer;
 
     // ==============================
     // State
     // ==============================
-    private Vector2 moveInput;
+    public Vector2 MoveInput { get; private set; } 
     private float currentSpeed;
     private bool isKnockedBack;
-
-    // ==============================
-    // Unity Lifecycle
-    // ==============================
+    private bool canMove = true; 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Tự động lấy AudioSource nếu quên kéo (miễn là đã Add Component)
         if (footstepSource == null) footstepSource = GetComponent<AudioSource>();
 
         controls = new GameControls();
@@ -70,9 +69,22 @@ public class PlayerMovement : MonoBehaviour
         TryTeleportToSpawn();
     }
 
-    // ==============================
-    // Scene / Spawn
-    // ==============================
+    private void Update()
+    {
+        if (isKnockedBack || !canMove) return;
+
+        ReadInput();
+        HandleStamina();
+        UpdateAnimation();
+        HandleFootstepAudioLoop();
+    }
+
+    private void FixedUpdate()
+    {
+        if (isKnockedBack || !canMove) return;
+        rb.velocity = MoveInput * currentSpeed;
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         TryTeleportToSpawn();
@@ -80,41 +92,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void TryTeleportToSpawn()
     {
-        StartCoroutine(TeleportRoutine());
-    }
-
-    private IEnumerator TeleportRoutine()
-    {
-        yield return null;
-        if (GameManager.Instance == null) yield break;
-        if (!GameManager.Instance.nextSpawnPosition.HasValue) yield break;
-
-        rb.simulated = false;
-        transform.position = GameManager.Instance.nextSpawnPosition.Value;
-        GameManager.Instance.nextSpawnPosition = null;
-        yield return null;
-        rb.simulated = true;
-    }
-
-    // ==============================
-    // Update Loop
-    // ==============================
-    private void Update()
-    {
-        if (isKnockedBack) return;
-
-        ReadInput();
-        HandleStamina();
-        UpdateAnimation();
-
-        // 👇 GỌI HÀM XỬ LÝ ÂM THANH MỚI
-        HandleFootstepAudioLoop();
-    }
-
-    private void FixedUpdate()
-    {
-        if (isKnockedBack) return;
-        rb.velocity = moveInput * currentSpeed;
+        if (GameManager.Instance != null && GameManager.Instance.nextSpawnPosition.HasValue)
+        {
+            Vector3 spawnPos = GameManager.Instance.nextSpawnPosition.Value;
+            transform.position = spawnPos; 
+            GameManager.Instance.nextSpawnPosition = null;
+        }
     }
 
     // ==============================
@@ -122,11 +105,11 @@ public class PlayerMovement : MonoBehaviour
     // ==============================
     private void ReadInput()
     {
-        moveInput = controls.Gameplay.Move.ReadValue<Vector2>();
+        MoveInput = controls.Gameplay.Move.ReadValue<Vector2>();
         currentSpeed = walkSpeed;
 
         bool isRunning = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
-        bool isMoving = moveInput.sqrMagnitude > 0;
+        bool isMoving = MoveInput.sqrMagnitude > 0;
 
         if (isMoving && isRunning)
         {
@@ -139,82 +122,76 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleStamina()
     {
-        if (moveInput.sqrMagnitude == 0 && PlayerStats.Instance != null)
+        if (MoveInput.sqrMagnitude == 0 && PlayerStats.Instance != null)
         {
-            PlayerStats.Instance.RegenerateStamina(
-                PlayerStats.Instance.staminaRegenRate * Time.deltaTime
-            );
+            PlayerStats.Instance.RegenerateStamina(staminaRegen * Time.deltaTime);
         }
     }
 
+    // ==============================
+    // ANIMATION
+    // ==============================
     private void UpdateAnimation()
     {
-        if (animator != null)
-            animator.SetFloat("Speed", moveInput.magnitude);
+        if (animator == null) return;
+        animator.SetFloat("Speed", MoveInput.sqrMagnitude);
+        if (MoveInput.sqrMagnitude > 0.01f)
+        {
+            animator.SetFloat("Horizontal", MoveInput.x);
+            animator.SetFloat("Vertical", MoveInput.y);
+            if (spriteRenderer != null)
+            {
+                // Nếu đi sang trái (x < 0) -> Lật hình (FlipX = true)
+                // Nếu đi sang phải (x > 0) -> Hủy lật (FlipX = false)
+                if (MoveInput.x < -0.01f) spriteRenderer.flipX = true;
+                else if (MoveInput.x > 0.01f) spriteRenderer.flipX = false;
+            }
+        }
     }
 
     // ==============================
-    // 👇 [QUAN TRỌNG] LOGIC ÂM THANH MỚI (CHO FILE LOOP)
+    // Audio Logic
     // ==============================
     private void HandleFootstepAudioLoop()
     {
         if (footstepSource == null) return;
 
-        // 1. Kiểm tra xem có đang di chuyển không
-        bool isMoving = moveInput.sqrMagnitude > 0;
+        bool isMoving = MoveInput.sqrMagnitude > 0;
 
         if (isMoving)
         {
-            // Nếu đang đi mà loa chưa bật -> BẬT LOA
             if (!footstepSource.isPlaying)
             {
                 footstepSource.Play();
             }
-
-            // 2. Điều chỉnh tốc độ âm thanh (Pitch)
-            // Nếu chạy -> Pitch cao (tiếng nhanh). Nếu đi bộ -> Pitch bình thường.
-            if (currentSpeed == runSpeed)
-            {
-                footstepSource.pitch = runPitchMultiplier; // Ví dụ: 1.5
-            }
-            else
-            {
-                footstepSource.pitch = 1f; // Bình thường
-            }
+            footstepSource.pitch = (currentSpeed == runSpeed) ? runPitchMultiplier : 1f;
         }
         else
         {
-            // Nếu dừng lại mà loa vẫn đang kêu -> TẮT LOA
             if (footstepSource.isPlaying)
             {
                 footstepSource.Stop();
-                // Hoặc dùng footstepSource.Pause() nếu muốn giữ vị trí file âm thanh
             }
         }
     }
-
-    // ==============================
-    // External Control
-    // ==============================
-    public void StopMoving()
+    public void SetCanMove(bool status)
     {
-        rb.velocity = Vector2.zero;
-        if (animator != null) animator.SetFloat("Speed", 0f);
-
-        // Dừng luôn âm thanh nếu bị ép dừng
-        if (footstepSource != null && footstepSource.isPlaying)
-            footstepSource.Stop();
+        canMove = status;
+        if (!status)
+        {
+            rb.velocity = Vector2.zero;
+            if (animator) animator.SetFloat("Speed", 0);
+            if (footstepSource && footstepSource.isPlaying) footstepSource.Stop();
+        }
     }
 
     public void ApplyKnockback(Vector2 direction, float force, float duration)
     {
+        if (isKnockedBack) return;
+
         isKnockedBack = true;
         rb.velocity = Vector2.zero;
-        rb.AddForce(direction * force, ForceMode2D.Impulse);
-
-        // Khi bị đẩy lùi thì không phát tiếng bước chân
-        if (footstepSource != null && footstepSource.isPlaying)
-            footstepSource.Stop();
+        rb.AddForce(direction * force, ForceMode2D.Impulse); 
 
         StartCoroutine(KnockbackRoutine(duration));
     }
@@ -222,7 +199,7 @@ public class PlayerMovement : MonoBehaviour
     private IEnumerator KnockbackRoutine(float duration)
     {
         yield return new WaitForSeconds(duration);
-        rb.velocity = Vector2.zero;
+        rb.velocity = Vector2.zero; 
         isKnockedBack = false;
     }
 }

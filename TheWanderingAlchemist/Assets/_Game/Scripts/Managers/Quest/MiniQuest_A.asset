@@ -17,6 +17,8 @@ MonoBehaviour:
     5 con Slime.\""
   type: 0
   prerequisiteQuest: {fileID: 11400000, guid: 8be0801b746176c4fa54c46c635e4053, type: 2}
+  nextQuest: {fileID: 11400000, guid: 2e044e069845dbd4cadabaf35206bc7f, type: 2}
+  autoAcceptNextQuest: 1
   targetName: Slime
   requiredAmount: 3
   requiredItem: {fileID: 0}
@@ -24,5 +26,9 @@ MonoBehaviour:
   itemReward: {fileID: 0}
   startDialogue:
   - "\"Gi\xFAp ta ti\xEAu di\u1EC7t m\u1EA5y con slime trong r\u1EEBng nh\xE9 !\""
-  progressDialogue: []
-  completeDialogue: []
+  progressDialogue:
+  - "\"C\xF4ng vi\u1EC7c ti\xEAn h\xE0nh thu\u1EADn l\u1EE3i ch\u1EE9 ?\""
+  completeDialogue:
+  - "\"C\u1EA3m \u01A1n r\u1EA5t nhi\u1EC1u\""
+  targetDialogue: []
+  endStoryText: 

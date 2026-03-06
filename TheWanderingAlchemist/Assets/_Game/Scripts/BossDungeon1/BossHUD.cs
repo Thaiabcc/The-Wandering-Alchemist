@@ -1,15 +1,13 @@
 ﻿using UnityEngine;
-using UnityEngine.UI; // Bắt buộc để dùng Slider
+using UnityEngine.UI;
 
 public class BossHUD : MonoBehaviour
 {
-    [Header("Thanh Máu (Màu Đỏ)")]
+    [Header("Thanh Máu")]
     public Slider hpSlider;
 
-    [Header("Thanh Poise - Sức Bền (Màu Vàng)")]
+    [Header("Thanh Poise")]
     public Slider poiseSlider;
-
-    // Hàm setup ban đầu (Gọi khi gặp Boss)
     public void SetMaxStats(float maxHP, float maxPoise)
     {
         if (hpSlider != null)
@@ -24,8 +22,7 @@ public class BossHUD : MonoBehaviour
             poiseSlider.value = maxPoise;
         }
 
-        // Hiện HUD lên (phòng trường hợp đang ẩn)
-        // gameObject.SetActive(true);
+        gameObject.SetActive(true);
     }
 
     public void UpdateHP(float currentHP)

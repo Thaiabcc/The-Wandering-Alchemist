@@ -11,11 +11,10 @@ public class PlayerHealthUI : MonoBehaviour
     [Header("Stamina")]
     [SerializeField] private Image staminaFill;
 
-    // 👇 [MỚI] Thêm phần cài đặt màu sắc
     [Header("Stamina Colors")]
-    [SerializeField] private Color normalColor = new Color(0.2f, 1f, 0.2f); // Xanh lá (Mặc định)
-    [SerializeField] private Color warningColor = Color.yellow;             // Vàng (Cảnh báo)
-    [SerializeField] private Color criticalColor = Color.red;               // Đỏ (Nguy hiểm)
+    [SerializeField] private Color normalColor = new Color(0.2f, 1f, 0.2f); 
+    [SerializeField] private Color warningColor = Color.yellow;             
+    [SerializeField] private Color criticalColor = Color.red;               
 
     private void Awake()
     {
@@ -44,20 +43,20 @@ public class PlayerHealthUI : MonoBehaviour
     {
         if (!staminaFill) return;
 
-        // 1. Tính tỷ lệ phần trăm (0.0 đến 1.0)
+        // 1. Caculate %
         float ratio = current / max;
         staminaFill.fillAmount = ratio;
 
-        // 2. [MỚI] Logic đổi màu theo yêu cầu của bạn
-        if (ratio < 0.15f) // Dưới 15% -> Đỏ chót
+        // 2. Color Changing
+        if (ratio < 0.15f) // < 15%
         {
             staminaFill.color = criticalColor;
         }
-        else if (ratio <= 0.5f) // Từ 15% đến 50% -> Vàng cảnh báo
+        else if (ratio <= 0.5f) // <15% < 50%
         {
             staminaFill.color = warningColor;
         }
-        else // Trên 50% -> Xanh lá
+        else // >50%
         {
             staminaFill.color = normalColor;
         }

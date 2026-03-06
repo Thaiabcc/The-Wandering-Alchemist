@@ -115,11 +115,9 @@ public class InventorySlot_UI : MonoBehaviour
             itemUsed = true;
         }
 
-        // End - XỬ LÝ SAU KHI DÙNG THÀNH CÔNG
         if (itemUsed)
         {
-            // 👇 THÊM ÂM THANH UỐNG THUỐC Ở ĐÂY 👇
-            // Chỉ kêu khi dùng thành công (itemUsed = true)
+            // Thêm âm thanh dùng thuốc
             if (AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySFX(AudioManager.Instance.potionUse);
@@ -129,7 +127,7 @@ public class InventorySlot_UI : MonoBehaviour
         }
         else
         {
-            Debug.Log("Full stats, cannot use item!"); // Sửa lại log cho dễ hiểu
+            Debug.Log("Full stats, cannot use item!"); 
         }
     }
 
