@@ -1,15 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(SpriteRenderer))]
 [RequireComponent(typeof(BoxCollider2D))]
 public class Collectable : MonoBehaviour, IInteractable
 {
+    [Header("World State")]
+    public bool isPermanent = true;
+    public string uniqueID;
+    public WorldState worldState;
+
     [Header("Items Data")]
     public ItemData itemData;
 
     private SpriteRenderer spriteRenderer;
+    private bool isPickedUp = false;
 
     private void OnValidate()
     {
@@ -21,11 +25,16 @@ public class Collectable : MonoBehaviour, IInteractable
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         UpdateVisual();
+
+        if (isPermanent && worldState != null && worldState.IsCollected(uniqueID))
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void UpdateVisual()
     {
-        if (itemData != null)
+        if (itemData != null && spriteRenderer != null)
         {
             spriteRenderer.sprite = itemData.icon;
             gameObject.name = "Item_" + itemData.itemName;
@@ -34,27 +43,43 @@ public class Collectable : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        if (InventoryManager.Instance != null)
-        {
-            bool added = InventoryManager.Instance.AddItem(itemData, 1);
+        if (isPickedUp || itemData == null || InventoryManager.Instance == null) return;
 
-            if (added)
-            {
-                if (AudioManager.Instance != null)
-                {
-                    AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 1f, true);
-                }
+        bool added = InventoryManager.Instance.AddItem(itemData, 1);
 
-                Destroy(gameObject);
-            }
-            else
-            {
-                Debug.Log("Túi đầy rồi, không nhặt được!");
-            }
-        }
-        else
+        if (added)
         {
-            Debug.LogError("LỖI: Không tìm thấy InventoryManager trong Scene!");
+            isPickedUp = true;
+
+            if (isPermanent && worldState != null)
+            {
+                worldState.RecordPickup(uniqueID);
+            }
+
+            if (HotbarManager.Instance != null)
+                HotbarManager.Instance.UpdateAllSlotsUI();
+
+            if (QuestManager.Instance != null)
+            {
+                QuestManager.Instance.UpdateGatherProgress();
+            }
+
+            DisableAndDestroy();
+
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 1f, true);
         }
+    }
+
+    private void DisableAndDestroy()
+    {
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+        foreach (var col in colliders)
+            col.enabled = false;
+
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = false;
+
+        Destroy(gameObject);
     }
 }

@@ -3,12 +3,12 @@ using System.Collections;
 
 public class FlyingRangeBoss : EnemyAI
 {
-    [Header("--- DI CHUYỂN ---")]
+    [Header("Mov")]
     public float stopDistance = 5f;
     public float flyHeight = 2f;
     public float bobSpeed = 2f;
 
-    [Header("--- TẤN CÔNG ---")]
+    [Header("Atta")]
     public Transform firePoint;
     public GameObject part1Prefab;
     public GameObject part2Prefab;
@@ -16,15 +16,14 @@ public class FlyingRangeBoss : EnemyAI
     public float segmentLength = 1.5f;
     public float spawnDelay = 0.1f;
 
-    [Header("--- KỸ NĂNG: TELEPORT ---")]
-    [Tooltip("Tỉ lệ dùng Teleport")]
+    [Header("Tele")]
     public int teleportChance = 30;
     public float teleportDuration = 0.5f;
     public float teleportOffset = 3.0f;
     [Tooltip("Time warning")]
     public float postTeleportIdleTime = 1.0f;
 
-    [Header("--- KỸ NĂNG: HÓA ĐIÊN ---")]
+    [Header("Rage")]
     public bool enableRage = true;
     public Color rageColor = Color.red;
     public GameObject rageVFX;
@@ -32,14 +31,14 @@ public class FlyingRangeBoss : EnemyAI
     public GameObject rockPrefab; 
     public float rockSpawnRate = 0.2f;
 
-    [Header("--- CƠ CHẾ POISE ---")]
+    [Header("Poise")]
     public float maxPoise = 100f;
     public float poiseRecoveryRate = 5f;
 
-    [Header("--- UI KẾT NỐI ---")]
+    [Header("Conenc")]
     public BossHUD bossHUD;
 
-    [Header("--- TUẦN TRA ---")]
+    [Header("Patrol")]
     public Transform[] patrolPoints;
 
     private int currentPatrolIndex = 0;
@@ -141,23 +140,14 @@ public class FlyingRangeBoss : EnemyAI
             Patroling();
         }
     }
-
-    // ===============================
-    // HÀM KÍCH HOẠT TRẬN ĐẤU
-    // ===============================
+    
     void StartBossFight()
     {
         isFightStarted = true;
         if (bossHUD != null)
             bossHUD.gameObject.SetActive(true);
-
-        Debug.Log("BOSS FIGHT STARTED!");
-        // Thêm nhạc 
     }
-
-    // ===============================
-    // LOGIC TUẦN TRA
-    // ===============================
+    
     protected override void Patroling()
     {
         if (patrolPoints == null || patrolPoints.Length == 0)
@@ -223,7 +213,7 @@ public class FlyingRangeBoss : EnemyAI
     IEnumerator StunState()
     {
         isStunned = true;
-        animator.SetTrigger("Hurt"); // Chưa có ani stun 
+        animator.SetTrigger("Hurt");
 
         Color old = mySprite.color;
         mySprite.color = Color.gray; 
@@ -250,22 +240,17 @@ public class FlyingRangeBoss : EnemyAI
             animator.SetTrigger("Attack");
         }
     }
-
-    // ===============================
-    // KỸ NĂNG: TELEPORT
-    // ===============================
+    
     IEnumerator TeleportSkill()
     {
         isTeleporting = true;
         animator.SetBool("isMoving", false);
 
-        // 1. Biến mất
         if (mySprite) mySprite.enabled = false;
         if (myCollider) myCollider.enabled = false;
 
         yield return new WaitForSeconds(teleportDuration);
 
-        // 2. Xuất hiện sau lưng
         float dir = -Mathf.Sign(playerTransform.localScale.x);
         Vector2 teleportPos = new Vector2(
             playerTransform.position.x + dir * teleportOffset,
@@ -273,14 +258,12 @@ public class FlyingRangeBoss : EnemyAI
         );
         transform.position = teleportPos;
 
-        // 3. Hiện hình
         if (mySprite) mySprite.enabled = true;
         if (myCollider) myCollider.enabled = true;
 
         float newFacing = (playerTransform.position.x > transform.position.x) ? 1 : -1;
         transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * newFacing, transform.localScale.y, 1);
 
-        // 4. Hăm dọa
         float timer = 0;
         float wait = isRaging ? postTeleportIdleTime * 0.5f : postTeleportIdleTime;
         Color baseColor = isRaging ? rageColor : Color.white;
@@ -298,17 +281,12 @@ public class FlyingRangeBoss : EnemyAI
         }
 
         if (mySprite) mySprite.color = baseColor;
-
-        // 5. Tấn công
         animator.SetTrigger("Attack");
         yield return new WaitForSeconds(0.5f);
 
         isTeleporting = false;
     }
-
-    // ===============================
-    // KỸ NĂNG: HÓA ĐIÊN 
-    // ===============================
+    
     public void ActivateRage()
     {
         if (isRaging) return;
@@ -325,9 +303,7 @@ public class FlyingRangeBoss : EnemyAI
         float elapsed = 0f;
         float nextRockTime = 0f;
         Vector3 startPos = transform.position;
-
-        Debug.Log("BOSS GỒNG CHAOS!");
-
+        
         while (elapsed < chargeDuration)
         {
             transform.position = startPos + (Vector3)Random.insideUnitCircle * 0.1f;
@@ -373,10 +349,7 @@ public class FlyingRangeBoss : EnemyAI
 
         Instantiate(rockPrefab, new Vector3(randomX, groundY, 0), Quaternion.identity);
     }
-
-    // ===============================
-    // HỆ THỐNG ĐẠN DƯỢC
-    // ===============================
+    
     public void ShootProjectile()
     {
         if (Random.Range(0, 100) < (isRaging ? 70 : 30))

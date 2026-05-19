@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Weed
   m_EditorClassIdentifier: 
   id: weed_green
-  itemName: "C\u1ECF d\u1EA1i"
-  description: "M\u1ED9t lo\u1EA1i c\u1ECF d\u1EA1i ph\u1ED5 bi\u1EBFn d\xF9ng \u0111\u1EC3
-    n\u1EA5u thu\u1ED1c"
+  itemName: Weed
+  description: A common weed used for brewing potions....
   icon: {fileID: 406577056, guid: db04057c197fa754cabdbc61da07ec97, type: 3}
+  buffIcon: {fileID: 0}
   itemType: 0
   maxStackSize: 99
   baseValue: 10
@@ -24,5 +24,13 @@ MonoBehaviour:
   isConsumable: 0
   healthRestore: 0
   staminaRestore: 0
-  damagebuffAmount: 0
-  buffduration: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

@@ -8,10 +8,7 @@ public class EnemyHealthBar : MonoBehaviour
     [SerializeField] private GameObject canvasObject; 
 
     [Header("Settings")]
-    [Tooltip("Ẩn thanh máu khi quái chết?")]
     [SerializeField] private bool hideOnDeath = true;
-
-    [Tooltip("Ẩn thanh máu khi quái đang đầy máu?")]
     [SerializeField] private bool hideWhenFull = false;
 
     private void Start()

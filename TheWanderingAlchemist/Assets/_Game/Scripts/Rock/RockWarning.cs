@@ -2,7 +2,7 @@
 
 public class RockWarning : MonoBehaviour
 {
-    [Header("--- CẤU HÌNH ---")]
+    [Header("--- Setting ---")]
     public GameObject[] rockPrefabs;
 
     public float warningDuration = 0.8f;
@@ -41,10 +41,6 @@ public class RockWarning : MonoBehaviour
                 Vector3 dropPos = transform.position + Vector3.up * spawnHeight;
                 Instantiate(rockToSpawn, dropPos, Quaternion.identity);
             }
-        }
-        else
-        {
-            Debug.LogWarning("Chưa kéo Prefab đá vào RockWarning");
         }
     }
 }

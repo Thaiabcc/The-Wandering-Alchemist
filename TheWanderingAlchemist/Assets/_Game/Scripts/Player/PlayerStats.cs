@@ -4,58 +4,51 @@ using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
-    // ==============================
-    // Singleton
-    // ==============================
     public static PlayerStats Instance { get; private set; }
 
-    // ==============================
-    // Health
-    // ==============================
-    [Header("Health")]
-    [SerializeField] private int maxHealth = 100;
-    public int currentHealth;
-    public int MaxHealth => maxHealth;
+    [Header("Health & Shield")] [SerializeField]
+    private int maxHealth = 100;
 
-    // Biến kiểm tra bất tử
+    public float currentHealth;
+    public int MaxHealth => maxHealth;
+    public float currentShield = 0f;
     public bool isInvincible = false;
+    [SerializeField] private GameObject hitShieldPrefab;
+    [SerializeField] private float shieldHitVisualDuration = 0.2f;
 
     private bool isDead;
+    private bool isCurrentlyRespawning = false;
 
-    // ==============================
-    // Stamina
-    // ==============================
-    [Header("Stamina")]
+    [Header("Dungeon Light")] [SerializeField]
+    private UnityEngine.Rendering.Universal.Light2D playerLight;
+
+[Header("Stamina")]
     public float maxStamina = 100f;
     public float currentStamina;
     public float staminaRegenRate = 10f;
     public float movingRegenRate = 5f;
 
-    // ==============================
-    // Combat
-    // ==============================
     [Header("Combat")]
     public float baseDamage = 10f;
     public float currentDamage;
 
-    // ==============================
-    // Hit Flash Effect
-    // ==============================
     [Header("Hit Flash")]
     [SerializeField] private Color flashColor = Color.red;
     [SerializeField] private float flashDuration = 0.1f;
-    [SerializeField] private int flashCount = 2;
+    [SerializeField] private float blinkInterval = 0.1f;
 
-    // ==============================
-    // Components
-    // ==============================
     private Animator animator;
     private PlayerMovement movement;
     private SpriteRenderer sprite;
+    private Rigidbody2D rb;
+    private bool isFlashing = false;
 
-    // ==============================
-    // Unity Lifecycle
-    // ==============================
+    private Coroutine damageBuffCoroutine;
+    private float lastDamageBuffAmount;
+    private Coroutine maxHealthBuffCoroutine;
+    private int lastMaxHealthBuffAmount;
+    private int originalMaxHealth;
+
     private void Awake()
     {
         SetupSingleton();
@@ -63,10 +56,7 @@ public class PlayerStats : MonoBehaviour
         InitStats();
     }
 
-    private void Start()
-    {
-        UpdateUI();
-    }
+    private void Start() => UpdateUI();
 
     private void Update()
     {
@@ -74,17 +64,19 @@ public class PlayerStats : MonoBehaviour
         HandleStaminaRegeneration();
     }
 
-    // ==============================
-    // Initialization
-    // ==============================
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += CheckLightBasedOnScene;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= CheckLightBasedOnScene;
+    }
+
     private void SetupSingleton()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
@@ -94,32 +86,235 @@ public class PlayerStats : MonoBehaviour
         animator = GetComponent<Animator>();
         movement = GetComponent<PlayerMovement>();
         sprite = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     private void InitStats()
     {
-        if (currentHealth <= 0) currentHealth = maxHealth;
-        if (currentStamina <= 0) currentStamina = maxStamina;
+        if (originalMaxHealth == 0) originalMaxHealth = maxHealth;
+        currentHealth = maxHealth;
+        currentStamina = maxStamina;
         currentDamage = baseDamage;
+        currentShield = 0f;
+        isDead = false;
     }
 
-    // ==============================
-    // Logic return
-    // ==============================
+    private void Die()
+    {
+        if (isDead || isCurrentlyRespawning) return;
+
+        isDead = true;
+        isCurrentlyRespawning = true;
+
+        if (movement != null) movement.enabled = false;
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.simulated = false;
+        }
+        if (animator != null) animator.SetTrigger("die");
+
+        if (DeathUI.Instance != null)
+        {
+            DeathUI.Instance.ResetUI();
+            StartCoroutine(DeathUI.Instance.FadeInBlack(1.6f));
+        }
+
+        StartCoroutine(RespawnSequence());
+    }
+
+    private IEnumerator RespawnSequence()
+    {
+        yield return new WaitForSeconds(2.0f);
+
+        Vector3 spawnPosition = Vector3.zero;
+        GameObject spawnObj = GameObject.Find("PlayerSpawnPoint");
+        spawnPosition = (spawnObj != null) ? spawnObj.transform.position : transform.position;
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (SceneTransition.Instance != null)
+            SceneTransition.Instance.SwitchScene(currentScene);
+        else
+            SceneManager.LoadScene(currentScene);
+
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == currentScene);
+
+        yield return new WaitForSeconds(0.8f);
+
+        transform.position = spawnPosition;
+        Physics2D.SyncTransforms();
+
+        HealFullAndReset();
+
+        PlayerPenalty penalty = GetComponent<PlayerPenalty>();
+        if (penalty != null) penalty.ApplyPenalty();
+
+        if (DeathUI.Instance != null)
+        {
+            yield return StartCoroutine(DeathUI.Instance.FadeOutBlack(1.5f));
+        }
+
+        isCurrentlyRespawning = false;
+    }
+
     public void HealFullAndReset()
     {
         isDead = false;
+        maxHealth = originalMaxHealth;
         currentHealth = maxHealth;
         currentStamina = maxStamina;
+        currentShield = 0f;
         isInvincible = false;
 
-        // Reset Components
+        if (rb != null)
+        {
+            rb.simulated = true;
+            rb.velocity = Vector2.zero;
+        }
+
+        if (BuffUIManager.Instance != null)
+        {
+            BuffUIManager.Instance.RemoveBuff("Shield");
+            BuffUIManager.Instance.RemoveBuff("DamageBuff");
+            BuffUIManager.Instance.RemoveBuff("MaxHealthBuff");
+        }
+
         EnablePlayer(true);
         ResetAnimator();
         ResetSpriteColor();
         UpdateUI();
-        
-        Debug.Log("Player stats reset success!");
+    }
+
+    public void AddShield(float amount, Sprite buffIcon = null) 
+    { 
+        currentShield += amount; 
+        if (BuffUIManager.Instance != null && buffIcon != null)
+        {
+            BuffUIManager.Instance.AddBuff("Shield", buffIcon, 0f);
+        }
+        UpdateUI(); 
+    }
+
+    public void TakeDamage(float damage)
+    {
+        if (isDead || isInvincible) return;
+
+        float remainingDamage = damage;
+        bool shieldBlockedSomething = false;
+
+        if (currentShield > 0)
+        {
+            shieldBlockedSomething = true;
+            if (currentShield >= remainingDamage)
+            {
+                currentShield -= remainingDamage;
+                remainingDamage = 0;
+            }
+            else
+            {
+                remainingDamage -= currentShield;
+                currentShield = 0;
+            }
+
+            if (currentShield <= 0 && BuffUIManager.Instance != null)
+            {
+                BuffUIManager.Instance.RemoveBuff("Shield");
+            }
+        }
+
+        if (shieldBlockedSomething && hitShieldPrefab != null)
+        {
+            GameObject activeShield = Instantiate(hitShieldPrefab, transform.position, Quaternion.identity, transform);
+            StartCoroutine(DestroyShieldVisual(activeShield, shieldHitVisualDuration));
+        }
+
+        if (remainingDamage > 0)
+        {
+            currentHealth -= remainingDamage;
+            if (!isFlashing) StartCoroutine(FlashEffect());
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerTakeDamage);
+        }
+
+        UpdateUI();
+        if (currentHealth <= 0) Die();
+    }
+
+    private IEnumerator DestroyShieldVisual(GameObject shieldObject, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (shieldObject != null)
+        {
+            Destroy(shieldObject);
+        }
+    }
+
+    public void ApplyBuffDamage(float amount, float duration, Sprite buffIcon = null)
+    {
+        if (damageBuffCoroutine != null) StopCoroutine(damageBuffCoroutine);
+        else { currentDamage += amount; lastDamageBuffAmount = amount; }
+
+        if (BuffUIManager.Instance != null && buffIcon != null)
+        {
+            BuffUIManager.Instance.AddBuff("DamageBuff", buffIcon, duration);
+        }
+
+        damageBuffCoroutine = StartCoroutine(DamageBuffRoutine(duration));
+    }
+
+    private IEnumerator DamageBuffRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        currentDamage -= lastDamageBuffAmount;
+        damageBuffCoroutine = null;
+    }
+
+    public void ApplyTemporaryMaxHealth(float amount, float duration, Sprite buffIcon = null)
+    {
+        if (maxHealthBuffCoroutine != null)
+        {
+            StopCoroutine(maxHealthBuffCoroutine);
+            maxHealth = originalMaxHealth;
+        }
+        float actualPercent = (amount > 1.0f) ? amount / 100f : amount;
+        lastMaxHealthBuffAmount = Mathf.RoundToInt(originalMaxHealth * actualPercent);
+        maxHealth += lastMaxHealthBuffAmount;
+        currentHealth += lastMaxHealthBuffAmount;
+
+        if (BuffUIManager.Instance != null && buffIcon != null)
+        {
+            BuffUIManager.Instance.AddBuff("MaxHealthBuff", buffIcon, duration);
+        }
+
+        UpdateUI();
+        maxHealthBuffCoroutine = StartCoroutine(MaxHealthBuffRoutine(duration));
+    }
+
+    private IEnumerator MaxHealthBuffRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        maxHealth = originalMaxHealth;
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
+        maxHealthBuffCoroutine = null;
+        UpdateUI();
+    }
+
+    public IEnumerator HealOverTime(float amountPerSecond, float duration)
+    {
+        float elapsed = 0;
+        while (elapsed < duration && !isDead)
+        {
+            Heal(Mathf.RoundToInt(amountPerSecond));
+            elapsed += 1f;
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    public void Heal(int amount)
+    {
+        if (isDead) return;
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        UpdateUI();
     }
 
     private void ResetAnimator()
@@ -127,34 +322,7 @@ public class PlayerStats : MonoBehaviour
         if (animator == null) return;
         animator.Rebind();
         animator.Update(0f);
-        animator.Play("Idle"); 
-    }
-
-    private void EnablePlayer(bool value)
-    {
-        if (movement != null)
-        {
-            movement.enabled = value;
-            if (value) movement.enabled = true; 
-        }
-
-        Collider2D col = GetComponent<Collider2D>();
-        if (col != null) col.enabled = value;
-    }
-
-    // ==============================
-    // Stamina Logic
-    // ==============================
-    private void HandleStaminaRegeneration()
-    {
-        if (currentStamina >= maxStamina) return;
-
-        bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
-        float actualRegenRate = isMoving ? movingRegenRate : staminaRegenRate;
-
-        currentStamina += actualRegenRate * Time.deltaTime;
-        if (currentStamina > maxStamina) currentStamina = maxStamina;
-        UpdateStaminaUI();
+        animator.Play("Idle");
     }
 
     public bool TryConsumeStamina(float amount)
@@ -165,52 +333,11 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
-    public void RegenerateStamina(float amount)
-    {
-        if (currentStamina >= maxStamina) return;
-        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
-        UpdateStaminaUI();
-    }
-
-    // ==============================
-    // Health Logic
-    // ==============================
-    public void TakeDamage(int damage)
-    {
-        if (isDead || isInvincible) return;
-
-        currentHealth -= damage;
-        // Audio
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerTakeDamage);
-        UpdateUI();
-        StartCoroutine(FlashEffect());
-
-        // CameraShake.Instance?.Shake(0.2f, 3f); // Uncomment nếu có
-        // HitStop.Instance?.Stop(0.1f);          // Uncomment nếu có
-        
-        if (currentHealth <= 0)
-            Die();
-    }
-
-    public void Heal(int amount)
-    {
-        if (isDead) return;
-        if (currentHealth >= maxHealth) return;
-
-        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-        UpdateUI();
-    }
-
-    // ==============================
-    // Invincibility Logic
-    // ==============================
     public void BecomeInvincible(float duration)
     {
         StopCoroutine("InvincibilityRoutine");
         StartCoroutine(InvincibilityRoutine(duration));
     }
-     
-    [SerializeField] private float blinkInterval = 0.1f;
 
     private IEnumerator InvincibilityRoutine(float duration)
     {
@@ -238,96 +365,10 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
-    // ==============================
-    // BuffDame Logic
-    // ==============================
-    public void ApplyBuffDamage(float amount, float duration)
-    {
-        StartCoroutine(DamageBuffRoutine(amount, duration));
-    }
-
-    private IEnumerator DamageBuffRoutine(float amount, float duration)
-    {
-        currentDamage += amount;
-        yield return new WaitForSeconds(duration);
-        currentDamage -= amount;
-    }
-
-    // ==============================
-    // Death
-    // ==============================
-    private void Die()
-    {
-        if (isDead) return; 
-        
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerDie);
-        isDead = true;
-        StopAllCoroutines();
-        ResetSpriteColor();
-
-        if (animator != null) animator.SetTrigger("die");
-
-        if (movement != null)
-        {
-            movement.enabled = false;
-        }
-
-        EnablePlayer(false);
-        StartCoroutine(RespawnSequence());
-    }
-
-    private IEnumerator RespawnSequence()
-    {
-        yield return new WaitForSeconds(1.5f);
-        if (DeathUI.Instance != null)
-        {
-            yield return StartCoroutine(DeathUI.Instance.FadeInBlack(1f));
-        }
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.RespawnPlayer();
-        }
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            yield break; 
-        }
-
-        yield return new WaitForSeconds(1f);
-
-        if (DeathUI.Instance != null)
-        {
-            yield return StartCoroutine(DeathUI.Instance.FadeOutBlack(1f));
-        }
-
-        EnablePlayer(true);
-    }
-
-    // ==============================
-    // Effects & UI
-    // ==============================
-    private IEnumerator FlashEffect()
-    {
-        if (sprite == null) yield break;
-        for (int i = 0; i < flashCount; i++)
-        {
-            sprite.color = flashColor;
-            yield return new WaitForSeconds(flashDuration);
-            ResetSpriteColor();
-            yield return new WaitForSeconds(flashDuration);
-        }
-    }
-
-    private void ResetSpriteColor()
-    {
-        if (sprite != null) sprite.color = Color.white;
-    }
-
     private void UpdateUI()
     {
         if (PlayerHealthUI.Instance == null) return;
-        PlayerHealthUI.Instance.UpdateHealth(currentHealth, maxHealth);
+        PlayerHealthUI.Instance.UpdateHealth((int)currentHealth, maxHealth);
         PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
     }
 
@@ -335,5 +376,62 @@ public class PlayerStats : MonoBehaviour
     {
         if (PlayerHealthUI.Instance != null)
             PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
+    }
+
+    private void HandleStaminaRegeneration()
+    {
+        if (currentStamina >= maxStamina) return;
+        bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
+        float actualRegenRate = isMoving ? movingRegenRate : staminaRegenRate;
+        currentStamina = Mathf.Min(currentStamina + actualRegenRate * Time.deltaTime, maxStamina);
+        UpdateStaminaUI();
+    }
+
+    public void RegenerateStamina(float amount)
+    {
+        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
+        UpdateStaminaUI();
+    }
+
+    private IEnumerator FlashEffect()
+    {
+        isFlashing = true;
+        sprite.color = flashColor;
+        yield return new WaitForSeconds(flashDuration);
+        ResetSpriteColor();
+        isFlashing = false;
+    }
+
+    private void ResetSpriteColor()
+    {
+        if (sprite == null) return;
+        PlayerPenalty penalty = GetComponent<PlayerPenalty>();
+        if (penalty != null && penalty.IsInPenalty)
+            sprite.color = penalty.debuffColor;
+        else
+        {
+            
+        }
+            sprite.color = Color.white;
+    }
+
+    private void EnablePlayer(bool v)
+    {
+        if (movement != null) movement.enabled = v;
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = v;
+    }
+
+    private void CheckLightBasedOnScene(Scene scene, LoadSceneMode mode)
+    {
+        if (playerLight == null) return;
+        if (scene.name == "Dungeon_01")
+        {
+            playerLight.enabled = true;
+        }
+        else
+        {
+            playerLight.enabled = false;
+        }
     }
 }

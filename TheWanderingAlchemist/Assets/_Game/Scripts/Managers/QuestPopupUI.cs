@@ -30,9 +30,9 @@ public class QuestPopupUI : MonoBehaviour
         titleText.text = quest.questName;
         descText.text = quest.description;
 
-        string reward = $"{quest.goldReward} Vàng";
+        string reward = $"{quest.goldReward} Gold";
         if (quest.itemReward != null) reward += $" + {quest.itemReward.itemName}";
-        rewardText.text = "Thưởng: " + reward;
+        rewardText.text = "Reward: " + reward;
 
         popupPanel.SetActive(true);
     }

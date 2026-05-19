@@ -238,7 +238,10 @@ public class EnemyAI : MonoBehaviour
     #region Movement & Action
     protected void MoveTo(Vector2 target)
     {
-        animator.SetBool("isMoving", true);
+        // Thêm dòng check này
+        if (animator.runtimeAnimatorController != null && HasParameter("isMoving", animator))
+            animator.SetBool("isMoving", true);
+
         Vector2 dir = (target - (Vector2)transform.position).normalized;
         rb.MovePosition(rb.position + (dir * moveSpeed * Time.fixedDeltaTime));
         FlipSprite(target);
@@ -247,7 +250,20 @@ public class EnemyAI : MonoBehaviour
     protected void StopMoving()
     {
         rb.velocity = Vector2.zero;
-        animator.SetBool("isMoving", false);
+
+        // Thêm dòng check này
+        if (animator.runtimeAnimatorController != null && HasParameter("isMoving", animator))
+            animator.SetBool("isMoving", false);
+    }
+
+// Chèn hàm này vào bất kỳ đâu trong class EnemyAI
+    private bool HasParameter(string paramName, Animator anim)
+    {
+        foreach (AnimatorControllerParameter param in anim.parameters)
+        {
+            if (param.name == paramName) return true;
+        }
+        return false;
     }
 
     protected void FlipSprite(Vector2 target)
@@ -255,7 +271,7 @@ public class EnemyAI : MonoBehaviour
         spriteRenderer.flipX = target.x < transform.position.x;
     }
 
-    public void TriggerDeath()
+    public virtual void TriggerDeath()
     {
         if (isDead) return;
         isDead = true;

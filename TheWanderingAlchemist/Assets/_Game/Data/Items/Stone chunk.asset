@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Stone chunk
   m_EditorClassIdentifier: 
   id: stone_chunk
-  itemName: "\u0110\xE1 v\u1EE5n"
-  description: "M\u1ED9t lo\u1EA1i \u0111\xE1 v\u1EE5n n\u1EB1m r\u1EA3i r\xE1c"
+  itemName: Stone Chunk
+  description: Scattered Rubble...
   icon: {fileID: -530083500, guid: fe1cfeece9ccb56488bf46ade8c6fa40, type: 3}
+  buffIcon: {fileID: 0}
   itemType: 0
   maxStackSize: 99
   baseValue: 10
@@ -23,5 +24,13 @@ MonoBehaviour:
   isConsumable: 0
   healthRestore: 0
   staminaRestore: 0
-  damagebuffAmount: 0
-  buffduration: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

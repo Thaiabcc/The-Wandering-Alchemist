@@ -6,7 +6,7 @@ public class ChestInteract : MonoBehaviour
     private bool isPlayerNearby = false;
     private bool isOpened = false;
 
-    [Header("Cài đặt Phần Thưởng")]
+    [Header("Reward")]
     public GameObject goldPrefab; 
     public int goldAmount = 1;    
     public float popForce = 3f;  
@@ -28,17 +28,10 @@ public class ChestInteract : MonoBehaviour
     {
         isOpened = true;
         anim.SetTrigger("Open");
-        Debug.Log("Rương đã mở!");
-
         if (goldPrefab != null)
         {
             SpawnLoot();
         }
-        else
-        {
-            Debug.LogWarning("Chưa gắn Prefab vàng");
-        }
-
         Destroy(gameObject, 0.5f);
     }
 
@@ -62,7 +55,6 @@ public class ChestInteract : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             isPlayerNearby = true;
-            Debug.Log("Nhấn E để mở rương");
         }
     }
 

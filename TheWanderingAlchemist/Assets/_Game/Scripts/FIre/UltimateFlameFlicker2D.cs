@@ -5,23 +5,23 @@ public class UltimateFlameFlicker2D : MonoBehaviour
 {
     public Light2D fireLight;
 
-    [Header("Màu sắc (Color)")]
+    [Header("Color")]
     public Color hotColor = new Color(1f, 0.9f, 0.5f);
     public Color coldColor = new Color(1f, 0.3f, 0f);
 
-    [Header("Cường độ (Intensity)")]
+    [Header("Intensity")]
     public float minIntensity = 1.0f;
     public float maxIntensity = 2.2f;
 
-    [Header("Độ đậm của bóng (Shadow)")] 
+    [Header("Shadow")] 
     [Range(0f, 1f)] public float minShadowAlpha = 0.5f; 
     [Range(0f, 1f)] public float maxShadowAlpha = 1.0f; 
 
-    [Header("Phạm vi tỏa sáng (Radius)")]
+    [Header("Radius")]
     public float minRadius = 3.5f;
     public float maxRadius = 5.0f;
 
-    [Header("Tốc độ & Độ rung")]
+    [Header("Speed & Shake Intensity")]
     public float speed = 8f;
     public float jitterAmount = 0.1f;
 

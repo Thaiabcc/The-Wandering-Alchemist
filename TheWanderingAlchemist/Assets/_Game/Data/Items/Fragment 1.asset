@@ -13,12 +13,24 @@ MonoBehaviour:
   m_Name: Fragment 1
   m_EditorClassIdentifier: 
   id: KeyItem
-  itemName: "M\u1EA3nh gi\u1EA5y"
-  description: "1 m\u1EA3nh gi\u1EA5y k\xEC l\u1EA1"
+  itemName: Strange Paper
+  description: Strange Piece of Paper
   icon: {fileID: 21300000, guid: 65739dbbb9483504aa18417a15ea98f7, type: 3}
-  typel: 3
+  buffIcon: {fileID: 0}
+  itemType: 0
   maxStackSize: 99
   baseValue: 150
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
   isConsumable: 0
   healthRestore: 0
+  staminaRestore: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

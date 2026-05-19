@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Herb
   m_EditorClassIdentifier: 
   id: herb_green
-  itemName: "Th\u1EA3o d\u01B0\u1EE3c"
-  description: "M\u1ED9t lo\u1EA1i th\u1EA3o d\u01B0\u1EE3c ph\u1ED5 bi\u1EBFn d\xF9ng
-    \u0111\u1EC3 n\u1EA5u thu\u1ED1c"
+  itemName: Herb
+  description: Common Herb Used for Brewing Potions
   icon: {fileID: -2095568174, guid: fe1cfeece9ccb56488bf46ade8c6fa40, type: 3}
+  buffIcon: {fileID: 0}
   itemType: 0
   maxStackSize: 99
   baseValue: 10
@@ -24,5 +24,13 @@ MonoBehaviour:
   isConsumable: 0
   healthRestore: 0
   staminaRestore: 0
-  damagebuffAmount: 0
-  buffduration: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

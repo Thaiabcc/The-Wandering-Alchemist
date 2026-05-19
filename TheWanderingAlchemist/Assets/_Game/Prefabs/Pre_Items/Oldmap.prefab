@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5237316976052556881}
   - component: {fileID: 2891174635911982506}
   m_Layer: 3
-  m_Name: "Item_Map c\u1ED5"
+  m_Name: Item_Old Map
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,4 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f490c12ca23504ca802d07d7d391d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPermanent: 1
+  uniqueID: Oldmap_01
+  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
   itemData: {fileID: 11400000, guid: 54546851df1972741aa03ba230f45444, type: 2}

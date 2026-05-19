@@ -14,11 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: KeyItem
   itemName: Note Dungeon
-  description: "1 m\u1EA3nh gi\u1EA5y ghi ch\xE9p v\u1EC1 h\u1EA7m ng\u1EE5c"
+  description: Dungeon Note....
   icon: {fileID: 21300000, guid: 1ae50360bd5eb1b469e680ce5d42a987, type: 3}
-  typel: 3
+  buffIcon: {fileID: 0}
+  itemType: 0
   maxStackSize: 99
   baseValue: 150
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
   isConsumable: 0
   healthRestore: 0
+  staminaRestore: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

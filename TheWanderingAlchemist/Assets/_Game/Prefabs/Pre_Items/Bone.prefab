@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2212062431880230566}
   - component: {fileID: 1795883729808620744}
   m_Layer: 3
-  m_Name: "Item_X\u01B0\u01A1ng skeleton"
+  m_Name: Item_Skeleton Bone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,4 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f490c12ca23504ca802d07d7d391d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPermanent: 0
+  uniqueID: Bone_01
+  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
   itemData: {fileID: 11400000, guid: 73ed57503738d4146b1dc82871ece231, type: 2}

@@ -10,9 +10,8 @@ public class WagonExit : MonoBehaviour, IInteractable
 
         if (string.IsNullOrEmpty(sceneToLoad))
         {
-            sceneToLoad = "Town_01"; 
+            sceneToLoad = "Town_01";
             posToSpawn = new Vector3(5, 5, 0);
-            Debug.Log("Không nhớ đường về, về tạm Town tại vị trí mặc định!");
         }
 
         GameManager.Instance.nextSpawnPosition = posToSpawn;

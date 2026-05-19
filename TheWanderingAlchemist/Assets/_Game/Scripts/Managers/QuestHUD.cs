@@ -12,17 +12,13 @@ public class QuestHUD : MonoBehaviour
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.OnQuestUpdated += UpdateUI;
-            UpdateUI();
         }
-        else
-        {
-            questPanel.SetActive(false);
-        }
+        UpdateUI();
     }
 
     private void OnDestroy()
     {
-        if (QuestManager.Instance != null)
+        if (QuestManager.Instance != null) 
         {
             QuestManager.Instance.OnQuestUpdated -= UpdateUI;
         }
@@ -31,15 +27,17 @@ public class QuestHUD : MonoBehaviour
     private void UpdateUI()
     {
         if (QuestManager.Instance == null) return;
-        Quest q = QuestManager.Instance.activeQuest;
+        
+        Quest q = QuestManager.Instance.trackedQuest; 
+        
         if (q != null && q.info != null && !q.isCompleted)
         {
             questPanel.SetActive(true);
-            questText.text = $"{q.info.questName}\nTiến độ: {q.currentAmount} / {q.info.requiredAmount}";
+            questText.text = $"<color=yellow>{q.info.questName}</color>\nProgress: {q.currentAmount} / {q.info.requiredAmount}";
         }
         else
         {
-            questPanel.SetActive(false);
+            questPanel.SetActive(false); 
         }
     }
 }

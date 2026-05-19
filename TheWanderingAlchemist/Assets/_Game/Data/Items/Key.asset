@@ -13,12 +13,24 @@ MonoBehaviour:
   m_Name: Key
   m_EditorClassIdentifier: 
   id: KeyItem
-  itemName: "Ch\xECa kh\xF3a"
-  description: "1 chi\u1EBFc ch\xECa kh\xF3a k\xEC l\u1EA1"
+  itemName: Key
+  description: Strange Key
   icon: {fileID: 21300000, guid: 45bc94e03d56ad043acdad49e8167a1b, type: 3}
-  typel: 3
+  buffIcon: {fileID: 0}
+  itemType: 0
   maxStackSize: 99
   baseValue: 150
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
   isConsumable: 0
   healthRestore: 0
+  staminaRestore: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

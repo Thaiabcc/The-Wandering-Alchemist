@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7226777934150087638}
   - component: {fileID: 6857735200817478620}
   m_Layer: 3
-  m_Name: "Item_N\u1EA5m \u0111\u1ECF"
+  m_Name: Item_Red Mushroom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,4 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f490c12ca23504ca802d07d7d391d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPermanent: 0
+  uniqueID: RedMushoom_01
+  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
   itemData: {fileID: 11400000, guid: 258cbb58f66db954480bb004c7bb0b51, type: 2}

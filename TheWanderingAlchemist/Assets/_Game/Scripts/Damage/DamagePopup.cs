@@ -8,7 +8,6 @@ public class DamagePopup : MonoBehaviour
     private Color textColor;
     private Vector3 moveVector;
 
-    // --- CẤU HÌNH---
     [SerializeField] private float moveSpeedY = 20f;   
     [SerializeField] private float moveSpeedX = 10f;   
     [SerializeField] private float disappearSpeed = 3f; 
@@ -17,12 +16,21 @@ public class DamagePopup : MonoBehaviour
     {
         textMesh = GetComponent<TextMeshPro>();
     }
-    public void Setup(int damageAmount, bool isCriticalHit)
+
+    public void Setup(int damageAmount, bool isCriticalHit, bool isPoison = false)
     {
         textMesh.text = damageAmount.ToString();
         disappearTimer = 1f;
 
-        if (!isCriticalHit)
+        if (isPoison)
+        {
+            textMesh.fontSize = 4.5f;          
+            textMesh.color = new Color(0.6f, 0.2f, 0.8f); 
+            textColor = textMesh.color;
+            moveVector = new Vector3(Random.Range(-moveSpeedX, moveSpeedX) * 0.6f, moveSpeedY * 0.7f);
+            transform.localScale = Vector3.one * 0.9f;
+        }
+        else if (!isCriticalHit)
         {
             textMesh.fontSize = 5;          
             textMesh.color = Color.yellow;   
@@ -32,7 +40,6 @@ public class DamagePopup : MonoBehaviour
         }
         else
         {
-            // --- BẠO KÍCH---
             textMesh.fontSize = 6;         
             textMesh.color = Color.red;     
             textColor = Color.red;
@@ -45,15 +52,6 @@ public class DamagePopup : MonoBehaviour
     {
         transform.position += moveVector * Time.deltaTime;
         moveVector -= moveVector * 8f * Time.deltaTime;
-
-        if (disappearTimer > 1f * 0.5f)
-        {
-            // Nửa đầu thời gian: Giữ nguyên size
-        }
-        else
-        {
-            // Nửa sau thời gian: Có thể cho rơi nhẹ nếu muốn
-        }
 
         disappearTimer -= Time.deltaTime;
         if (disappearTimer < 0)

@@ -2,14 +2,11 @@
 
 public class BossDoor : MonoBehaviour, IInteractable
 {
-    [Header("Yêu Cầu Vật Phẩm")]
-    [Tooltip("Kéo cái File Item (ScriptableObject) của chìa khóa vào đây")]
+    [Header("Item Needed")]
     [SerializeField] private ItemData requiredKey;
-
-    [Tooltip("Dùng xong có mất chìa khóa không?")]
     [SerializeField] private bool consumeKey = true;
 
-    [Header("Cài Đặt Cửa")]
+    [Header("Setting Gate")]
     [SerializeField] private Animator animator;          
     [SerializeField] private Collider2D physicsCollider; 
     [SerializeField] private Collider2D triggerCollider; 
@@ -27,12 +24,7 @@ public class BossDoor : MonoBehaviour, IInteractable
                 if (consumeKey)
                 {
                     InventoryManager.Instance.RemoveItem(requiredKey, 1);
-                    Debug.Log("Đã dùng chìa khóa!");
                 }
-            }
-            else
-            {
-                Debug.Log("Không có chìa khóa! Cần tìm: " + requiredKey.itemName);
             }
         }
     }
@@ -40,8 +32,6 @@ public class BossDoor : MonoBehaviour, IInteractable
     private void OpenDoor()
     {
         isOpen = true;
-        Debug.Log("Cửa đã mở!");
-
         if (animator != null)
         {
             animator.SetTrigger("Open");

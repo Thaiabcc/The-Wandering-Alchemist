@@ -8,7 +8,6 @@ public class AlchemyStation : MonoBehaviour, IInteractable
 
         if (alchemyUI == null)
         {
-            Debug.LogError("Không tìm thấy Alchemist !...");
             return;
         }
 

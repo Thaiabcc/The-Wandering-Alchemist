@@ -15,7 +15,6 @@ public class ResourceNode : MonoBehaviour, IInteractable
         {
             if (!InventoryManager.Instance.HasItem(toolRequired, 1))
             {
-                Debug.Log($"<color=red>Cần có {toolRequired.itemName} để khai thác!</color>");
                 return;
             }
         }
@@ -25,10 +24,6 @@ public class ResourceNode : MonoBehaviour, IInteractable
     private void HitNode()
     {
         currentDamage++;
-        Debug.Log("Cốp! (Đang chặt...)");
-
-        // Cần thêm effect rung cây & audio
-
         if (currentDamage >= health)
         {
             HarvestResource();
@@ -37,19 +32,15 @@ public class ResourceNode : MonoBehaviour, IInteractable
 
     private void HarvestResource()
     {
-        Debug.Log($"<color=green>Đã thu hoạch: {itemToDrop.itemName}</color>");
-
-        // 4. Thêm nguyên liệu vào túi
         if (itemToDrop != null)
         {
             bool added = InventoryManager.Instance.AddItem(itemToDrop, dropCount);
 
             if (!added)
             {
-                Debug.Log("Túi đầy rồi, không nhặt được gỗ!");
                 return;
             }
         }
-        Destroy(gameObject);
+        Destroy(gameObject); 
     }
 }

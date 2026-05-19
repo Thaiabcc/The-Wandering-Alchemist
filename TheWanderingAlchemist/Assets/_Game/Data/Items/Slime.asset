@@ -13,12 +13,24 @@ MonoBehaviour:
   m_Name: Slime
   m_EditorClassIdentifier: 
   id: SlimeItem
-  itemName: "D\u1ECBch Slime"
-  description: "1 th\u1EE9 ch\u1EA5t nh\u1EA7y nh\u1EA7y...."
+  itemName: Slime
+  description: A glob of slime...
   icon: {fileID: 21300000, guid: 3cc2c4ef61ef45c46a7c3cd78742a644, type: 3}
-  typel: 0
+  buffIcon: {fileID: 0}
+  itemType: 0
   maxStackSize: 99
   baseValue: 150
-  worldPrefeb: {fileID: 0}
+  worldPrefab: {fileID: 0}
   isConsumable: 0
   healthRestore: 0
+  staminaRestore: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

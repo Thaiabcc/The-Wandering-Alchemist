@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Pickaxe
   m_EditorClassIdentifier: 
   id: Tool_Pickaxe
-  itemName: "Cu\u1ED1c"
-  description: "1 chi\u1EBFc cu\u1ED1c d\xF9ng \u0111\u1EC3 \u0111\xE0o g\xEC \u0111\xF3"
+  itemName: Pickaxe
+  description: Pickaxe Used for Mining...
   icon: {fileID: 1388376693, guid: a19a605a6c1096b40be53efeb4619854, type: 3}
+  buffIcon: {fileID: 0}
   itemType: 0
   maxStackSize: 1
   baseValue: 150
@@ -23,5 +24,13 @@ MonoBehaviour:
   isConsumable: 0
   healthRestore: 0
   staminaRestore: 0
-  damagebuffAmount: 0
-  buffduration: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

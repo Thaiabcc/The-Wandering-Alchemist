@@ -9,8 +9,8 @@ public class PlayerMovement : MonoBehaviour
     // Movement Settings
     // ==============================
     [Header("Movement")]
-    [SerializeField] public float walkSpeed = 5f;
-    [SerializeField] public float runSpeed = 8f;
+    [SerializeField] public float walkSpeed = 15f;
+    [SerializeField] public float runSpeed = 20f;
 
     // ==============================
     // Stamina
@@ -141,8 +141,6 @@ public class PlayerMovement : MonoBehaviour
             animator.SetFloat("Vertical", MoveInput.y);
             if (spriteRenderer != null)
             {
-                // Nếu đi sang trái (x < 0) -> Lật hình (FlipX = true)
-                // Nếu đi sang phải (x > 0) -> Hủy lật (FlipX = false)
                 if (MoveInput.x < -0.01f) spriteRenderer.flipX = true;
                 else if (MoveInput.x > 0.01f) spriteRenderer.flipX = false;
             }

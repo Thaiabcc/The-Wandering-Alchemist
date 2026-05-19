@@ -195,6 +195,8 @@ GameObject:
   - component: {fileID: 2212047729604321192}
   - component: {fileID: 1103294224960074546}
   - component: {fileID: 6725596368337273217}
+  - component: {fileID: 3047654490691238014}
+  - component: {fileID: 3205641581421243046}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -211,8 +213,8 @@ Transform:
   m_GameObject: {fileID: 5850448356051248001}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10.76, y: 56.6, z: 0}
-  m_LocalScale: {x: 0.85, y: 0.85, z: 0.85}
+  m_LocalPosition: {x: -13.63, y: -14, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1795986126008091139}
@@ -312,9 +314,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bab2b65d478a9a64aa8a36593b688442, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 10
-  runSpeed: 20
+  walkSpeed: 9
+  runSpeed: 15
   staminaDrain: 20
+  staminaRegen: 12
   footstepSource: {fileID: 0}
   runPitchMultiplier: 1.5
 --- !u!95 &9014516498403646517
@@ -404,16 +407,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   currentHealth: 0
+  currentShield: 0
   isInvincible: 0
+  hitShieldPrefab: {fileID: 6202021771214815675, guid: a2ed58eb201ca664a8288049bb2005c6, type: 3}
+  shieldHitVisualDuration: 0.2
+  playerLight: {fileID: 5031813227613968890}
   maxStamina: 100
   currentStamina: 0
   staminaRegenRate: 15
   movingRegenRate: 5
-  baseDamage: 100
+  baseDamage: 20
   currentDamage: 0
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
-  flashCount: 2
   blinkInterval: 0.1
 --- !u!114 &8222662028975532577
 MonoBehaviour:
@@ -509,7 +515,7 @@ MonoBehaviour:
   - {x: 0.71875, y: 0, z: 0}
   m_ShapePathHash: 0
   m_Mesh: {fileID: 0}
-  m_InstanceId: -163204
+  m_InstanceId: -9524
   m_LocalBounds:
     m_Center: {x: 0, y: 0.90625, z: 0}
     m_Extent: {x: 0.71875, y: 0.90625, z: 0}
@@ -531,6 +537,43 @@ MonoBehaviour:
   cooldown: 1
   offsetDistance: 1
   staminaCost: 20
+--- !u!114 &3047654490691238014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5850448356051248001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05fd201beccc26047874dbf47e79bd24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 6
+  speedMultiplier: 0.5
+  debuffColor: {r: 0.7195621, g: 0.5145959, b: 0.9245283, a: 1}
+--- !u!114 &3205641581421243046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5850448356051248001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 853e3b4b7e8acda47b76c74f8862b6f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cheatKey: 282
+  allItemsInGame:
+  - {fileID: 11400000, guid: 9dc08f884d240834798b7e0d8b4268c1, type: 2}
+  - {fileID: 11400000, guid: 269d079bccffdbb4a8e3867ca642e957, type: 2}
+  - {fileID: 11400000, guid: f06582fcfc45cef45ba4c9a10742e3cf, type: 2}
+  - {fileID: 11400000, guid: 801c815f5533dd14da070f7b6e5062b9, type: 2}
+  - {fileID: 11400000, guid: 0f1beb5d853915b4fa32b8d8efdb8c25, type: 2}
+  - {fileID: 11400000, guid: 693a73bdfb4862d4fb918042ba0ee759, type: 2}
+  - {fileID: 11400000, guid: f6011e3441336824da56ace65291ab64, type: 2}
+  amountToAdd: 10
 --- !u!1 &8363076162538556418
 GameObject:
   m_ObjectHideFlags: 0
@@ -541,6 +584,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5674181106018973399}
   - component: {fileID: 1662572049368919876}
+  - component: {fileID: 7004749126037867308}
   m_Layer: 10
   m_Name: MinimapIcon
   m_TagString: Untagged
@@ -615,6 +659,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &7004749126037867308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8363076162538556418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4aa51dde1581ad84fb63392340067dcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationSpeed: 20
 --- !u!1 &8387018972461828036
 GameObject:
   m_ObjectHideFlags: 0

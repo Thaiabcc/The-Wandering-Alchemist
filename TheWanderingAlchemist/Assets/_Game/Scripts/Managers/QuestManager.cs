@@ -7,8 +7,12 @@ public class QuestManager : MonoBehaviour
     public static QuestManager Instance { get; private set; }
 
     [Header("Trạng thái")]
-    public Quest activeQuest;
+    public List<Quest> activeQuests = new List<Quest>(); 
     public List<string> completedQuestNames = new List<string>();
+    public Quest trackedQuest; 
+
+    [Header("Nhiệm vụ mặc định (Main Quest)")]
+    public QuestData startingMainQuest; 
 
     public event Action OnQuestUpdated;
 
@@ -19,118 +23,135 @@ public class QuestManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void Start()
+    {
+        if (startingMainQuest != null)
+        {
+            AcceptQuest(startingMainQuest);
+            TrackQuest(activeQuests[0]); 
+        }
+    }
+
     public bool IsQuestCompleted(string questName) => completedQuestNames.Contains(questName);
 
     public void AcceptQuest(QuestData data)
     {
         if (data == null) return;
-        activeQuest = new Quest(data);
-        if (activeQuest.info.type == QuestType.GatherItem) CheckCompletionCondition();
+        if (IsQuestCompleted(data.questName) || activeQuests.Exists(q => q.info.questName == data.questName)) return;
 
-        Debug.Log($"Đã nhận: {activeQuest.info.questName}");
-        OnQuestUpdated?.Invoke();
-    }
+        Quest newQuest = new Quest(data);
+        activeQuests.Add(newQuest);
+        
+        if (trackedQuest == null) trackedQuest = newQuest;
+        if (newQuest.info.type == QuestType.GatherItem) CheckCompletionCondition(newQuest);
 
-    public void UpdateQuestProgress(int amount)
-    {
-        if (activeQuest == null || activeQuest.info == null) return;
-
-        activeQuest.currentAmount += amount;
-
-        if (activeQuest.currentAmount > activeQuest.info.requiredAmount)
-            activeQuest.currentAmount = activeQuest.info.requiredAmount;
-
-        Debug.Log($"Tiến độ: {activeQuest.currentAmount}/{activeQuest.info.requiredAmount}");
         OnQuestUpdated?.Invoke();
     }
 
     public void AddKill(string enemyName)
     {
-        if (activeQuest != null && activeQuest.info.type == QuestType.KillEnemy && activeQuest.info.targetName == enemyName)
+        bool hasUpdate = false;
+        foreach (Quest q in activeQuests)
         {
-            UpdateQuestProgress(1);
-            CheckAutoComplete();
+            if (q.info.type == QuestType.KillEnemy && q.info.targetName == enemyName)
+            {
+                q.currentAmount++;
+                CheckCompletionCondition(q);
+                hasUpdate = true;
+            }
         }
+        if (hasUpdate) OnQuestUpdated?.Invoke();
     }
 
     public void TalkToNPC(string npcName)
     {
-        if (activeQuest != null && activeQuest.info.type == QuestType.TalkToNPC && activeQuest.info.targetName == npcName)
+        bool hasUpdate = false;
+        foreach (Quest q in activeQuests)
         {
-            UpdateQuestProgress(1);
-            CheckAutoComplete();
+            if (q.info.type == QuestType.TalkToNPC && q.info.targetName == npcName)
+            {
+                q.currentAmount++;
+                CheckCompletionCondition(q);
+                hasUpdate = true;
+            }
         }
+        if (hasUpdate) OnQuestUpdated?.Invoke();
     }
 
     public void UpdateGatherProgress()
     {
-        if (activeQuest != null && activeQuest.info.type == QuestType.GatherItem)
+        bool hasUpdate = false;
+        foreach (Quest q in activeQuests)
         {
-            CheckCompletionCondition();
-            OnQuestUpdated?.Invoke();
+            if (q.info.type == QuestType.GatherItem)
+            {
+                CheckCompletionCondition(q);
+                hasUpdate = true;
+            }
         }
+        if (hasUpdate) OnQuestUpdated?.Invoke();
     }
-    public bool CheckCompletionCondition()
-    {
-        if (activeQuest == null) return false;
 
-        switch (activeQuest.info.type)
+    public bool CheckCompletionCondition(Quest q)
+    {
+        if (q == null) return false;
+        switch (q.info.type)
         {
             case QuestType.KillEnemy:
             case QuestType.TalkToNPC:
-                return activeQuest.currentAmount >= activeQuest.info.requiredAmount;
-
+                if (q.currentAmount >= q.info.requiredAmount) { q.isCompleted = true; return true; }
+                break;
             case QuestType.GatherItem:
-                if (InventoryManager.Instance != null && activeQuest.info.requiredItem != null)
+                if (InventoryManager.Instance != null && q.info.requiredItem != null)
                 {
-                    int count = InventoryManager.Instance.GetItemAmount(activeQuest.info.requiredItem);
-                    activeQuest.currentAmount = count;
-                    return InventoryManager.Instance.HasItem(activeQuest.info.requiredItem, activeQuest.info.requiredAmount);
+                    int count = InventoryManager.Instance.GetItemAmount(q.info.requiredItem);
+                    q.currentAmount = count;
+                    if (count >= q.info.requiredAmount) { q.isCompleted = true; return true; }
                 }
                 break;
         }
         return false;
     }
 
-    private void CheckAutoComplete()
+    public void CompleteQuest(string questName)
     {
-        // Check auto complete quest
-        // if (CheckCompletionCondition()) OnQuestUpdated?.Invoke(); 
-    }
+        Quest targetQuest = activeQuests.Find(q => q.info.questName == questName);
+        if (targetQuest == null || !targetQuest.isCompleted) return;
 
-    public void CompleteQuest()
-    {
-        if (activeQuest == null || !CheckCompletionCondition()) return;
-        if (activeQuest.info.type == QuestType.GatherItem && InventoryManager.Instance != null)
-        {
-            InventoryManager.Instance.RemoveItem(activeQuest.info.requiredItem, activeQuest.info.requiredAmount);
-        }
+        if (targetQuest.info.type == QuestType.GatherItem && InventoryManager.Instance != null)
+            InventoryManager.Instance.RemoveItem(targetQuest.info.requiredItem, targetQuest.info.requiredAmount);
+
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.UpdateGold(activeQuest.info.goldReward);
-            if (activeQuest.info.itemReward != null)
-                InventoryManager.Instance.AddItem(activeQuest.info.itemReward);
+            InventoryManager.Instance.UpdateGold(targetQuest.info.goldReward);
+            if (targetQuest.info.itemReward != null) InventoryManager.Instance.AddItem(targetQuest.info.itemReward);
         }
-        if (!completedQuestNames.Contains(activeQuest.info.questName))
-            completedQuestNames.Add(activeQuest.info.questName);
 
-        Debug.Log($"HOÀN THÀNH: {activeQuest.info.questName}");
+        if (!completedQuestNames.Contains(targetQuest.info.questName))
+            completedQuestNames.Add(targetQuest.info.questName);
 
-        activeQuest = null; 
-        OnQuestUpdated?.Invoke();
-        QuestData finishedQuestData = activeQuest.info;
-        if (finishedQuestData.nextQuest != null)
+        activeQuests.Remove(targetQuest);
+
+        if (trackedQuest == targetQuest) 
         {
-            if (finishedQuestData.autoAcceptNextQuest)
-            {
-                AcceptQuest(finishedQuestData.nextQuest);
-
-                Debug.Log(">>> Tự động nhận quest tiếp theo: " + finishedQuestData.nextQuest.questName);
-            }
-            else
-            {
-                Debug.Log(">>> Quest tiếp theo đã mở khóa, hãy đi tìm NPC!");
-            }
+            trackedQuest = activeQuests.Count > 0 ? activeQuests[0] : null; 
         }
+
+        OnQuestUpdated?.Invoke();
+
+        if (targetQuest.info.nextQuest != null && targetQuest.info.autoAcceptNextQuest)
+            AcceptQuest(targetQuest.info.nextQuest);
+    }
+
+    public void TrackQuest(Quest q)
+    {
+        trackedQuest = q;
+        OnQuestUpdated?.Invoke(); 
+    }
+
+    public void UntrackQuest()
+    {
+        trackedQuest = null;
+        OnQuestUpdated?.Invoke();
     }
 }

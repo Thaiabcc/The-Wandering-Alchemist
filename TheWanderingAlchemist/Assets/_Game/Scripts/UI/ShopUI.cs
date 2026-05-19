@@ -19,7 +19,6 @@ public class ShopUI : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton Pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);

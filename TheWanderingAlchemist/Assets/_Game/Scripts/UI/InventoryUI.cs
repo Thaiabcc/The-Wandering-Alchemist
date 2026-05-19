@@ -38,10 +38,6 @@ public class InventoryUI : MonoBehaviour
     {
         HandleInput();
     }
-
-    // ==============================
-    // Setup
-    // ==============================
     private void SetupSingleton()
     {
         if (Instance != null && Instance != this)
@@ -125,17 +121,12 @@ public class InventoryUI : MonoBehaviour
         if (goldTextInventory != null)
             goldTextInventory.text = goldValue;
     }
-
-    // ==============================
-    // Public API (Shop / Alchemy)
-    // ==============================
     public void ToggleInventory()
     {
         bool isOpening = !inventoryPanel.activeSelf;
 
         if (isOpening)
         {
-            // Chỉ tắt Alchemy
             if (AlchemyUI.Instance != null)
                 AlchemyUI.Instance.HidePanel();
         }

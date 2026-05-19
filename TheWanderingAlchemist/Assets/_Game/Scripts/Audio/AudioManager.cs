@@ -10,15 +10,15 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource musicSource;
     [SerializeField] private AudioSource sfxSource;
 
-    [Header("--- NHẠC NỀN ---")]
+    [Header("Background")]
     public AudioClip backgroundMusic;
 
-    [Header("--- NGƯỜI CHƠI (HÀNH ĐỘNG) ---")]
+    [Header("Player")]
     public AudioClip footstep;      
     public AudioClip pickupItems;     
     public AudioClip potionUse;     
 
-    [Header("--- NGƯỜI CHƠI (CHIẾN ĐẤU) ---")]
+    [Header("Player Attack")]
     public AudioClip swordSwing;      
     public AudioClip stoneThrow;     
     public AudioClip stoneBreak;     
@@ -26,9 +26,10 @@ public class AudioManager : MonoBehaviour
     public AudioClip playerTakeDamage;
     public AudioClip playerDie;       
 
-    [Header("--- KẺ ĐỊCH ---")]
+    [Header("Enemy")]
     public AudioClip enemyHit;        
-    public AudioClip enemyDie;       
+    public AudioClip enemyDie;
+    public AudioClip explosionSFX;
 
     private void Awake()
     {
@@ -48,7 +49,6 @@ public class AudioManager : MonoBehaviour
         PlayMusic(backgroundMusic, 0.028f);
     }
 
-    // Hàm phát nhạc nền
     public void PlayMusic(AudioClip clip, float volume = 1f)
     {
         if (clip == null || musicSource == null) return;
@@ -59,7 +59,6 @@ public class AudioManager : MonoBehaviour
         musicSource.Play();
     }
 
-    // Hàm SFX
     public void PlaySFX(AudioClip clip, float volume = 1f, bool randomPitch = false)
     {
         if (clip == null || sfxSource == null) return;

@@ -3,17 +3,14 @@ using UnityEngine.SceneManagement;
 
 public class Portal : MonoBehaviour, IInteractable
 {
-    [Header("Cài đặt Cổng Dungeon")]
+    [Header("Dungeon Gate")]
     [SerializeField] private string sceneToLoad;      
     [SerializeField] private Vector3 targetPosition; 
 
-    [Header("Cài đặt Hồi Hương")]
-    [Tooltip("Empty Object (ReturnPoint)")]
+    [Header("Return Set")]
     [SerializeField] private Transform returnPoint;
     public void Interact()
     {
-        Debug.Log("Đang mở cổng...");
-
         GameManager.Instance.lastWorldScene = SceneManager.GetActiveScene().name;
         Vector3 myReturnPos = transform.position;
         if (returnPoint != null)

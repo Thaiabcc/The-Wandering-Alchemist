@@ -6,11 +6,11 @@ public class SceneTransition : MonoBehaviour
 {
     public static SceneTransition Instance;
 
-    [Header("Kéo cái Panel đen")]
-    public CanvasGroup fadeCanvasGroup;
+    [Header("Black Fade Panel")]
+    [SerializeField] private CanvasGroup fadeCanvasGroup;
 
-    [Header("Tốc độ chuyển cảnh")]
-    public float fadeDuration = 1f;
+    [Header("Transition Speed")]
+    [SerializeField] private float fadeDuration = 1f;
 
     private void Awake()
     {
@@ -18,7 +18,10 @@ public class SceneTransition : MonoBehaviour
         {
             Instance = this;
         }
-        else Destroy(gameObject);
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void SwitchScene(string sceneName)
@@ -26,9 +29,10 @@ public class SceneTransition : MonoBehaviour
         StartCoroutine(TransitionRoutine(sceneName));
     }
 
-    IEnumerator TransitionRoutine(string sceneName)
+    private IEnumerator TransitionRoutine(string sceneName)
     {
         yield return Fade(1);
+
         System.GC.Collect();
 
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
@@ -38,31 +42,46 @@ public class SceneTransition : MonoBehaviour
         {
             yield return null;
         }
+
         operation.allowSceneActivation = true;
+
         while (!operation.isDone)
         {
             yield return null;
         }
+
         yield return new WaitForSeconds(0.8f);
         yield return Fade(0);
     }
 
-    IEnumerator Fade(float targetAlpha)
+    private IEnumerator Fade(float targetAlpha)
     {
         fadeCanvasGroup.blocksRaycasts = true;
 
         float startAlpha = fadeCanvasGroup.alpha;
-        float time = 0;
+        float time = 0f;
 
         while (time < fadeDuration)
         {
             time += Time.deltaTime;
-            fadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / fadeDuration);
+
+            fadeCanvasGroup.alpha = Mathf.Lerp(
+                startAlpha,
+                targetAlpha,
+                time / fadeDuration
+            );
+
             yield return null;
         }
+
         fadeCanvasGroup.alpha = targetAlpha;
+
         yield return new WaitForEndOfFrame();
         yield return null;
-        if (targetAlpha == 0) fadeCanvasGroup.blocksRaycasts = false;
+
+        if (targetAlpha == 0)
+        {
+            fadeCanvasGroup.blocksRaycasts = false;
+        }
     }
 }

@@ -340,7 +340,7 @@ MonoBehaviour:
     m_Bits: 128
   combatCenterOffset: 0.5
   touchDamage: 10
-  knockbackForce: 5
+  knockbackForce: 4
   knockbackDuration: 0.2
   damageRate: 1
 --- !u!114 &-5188163565689428259

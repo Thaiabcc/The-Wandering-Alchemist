@@ -5,15 +5,15 @@ public class BigFlameFlicker2D : MonoBehaviour
 {
     public Light2D fireLight;
 
-    [Header("Cường độ (Intensity)")]
+    [Header("Intensity")]
     public float minIntensity = 1.2f;
     public float maxIntensity = 2.5f;
 
-    [Header("Phạm vi tỏa sáng (Radius)")]
+    [Header("Radius")]
     public float minRadius = 4f;
     public float maxRadius = 5.5f;
 
-    [Header("Độ rung động (Jitter)")]
+    [Header("Jitter")]
     public float jitterAmount = 0.15f;
     public float speed = 8f;
 

@@ -52,28 +52,25 @@ public class PlayerInteraction : MonoBehaviour
     private IEnumerator InteractRoutine(IInteractable interactable, GameObject targetObj)
     {
         isInteracting = true;
+        Debug.Log($"[Interaction] Bắt đầu Routine với đối tượng: {targetObj.name}");
+
         if (movement != null) movement.enabled = false;
         if (animator != null) animator.SetTrigger("Gather");
+
         yield return new WaitForSeconds(interactDelay);
-        if (targetObj == null || interactable == null || (interactable as Object) == null)
+
+        if (targetObj == null)
         {
-            Debug.LogWarning("⚠️ Mục tiêu đã biến mất trong lúc chờ!");
+            Debug.LogWarning("[Interaction] Đối tượng mục tiêu đã bị Destroy trước khi kịp Interact!");
             UnlockMovement();
             yield break; 
         }
 
-        try
-        {
-            interactable.Interact();
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"❌ LỖI CODE TRONG NPC: {e.Message}\nStack Trace: {e.StackTrace}");
-        }
-        finally
-        {
-            UnlockMovement();
-        }
+        Debug.Log("[Interaction] Đang gọi hàm Interact() trên đối tượng...");
+        interactable.Interact();
+        
+        Debug.Log("[Interaction] Kết thúc InteractRoutine.");
+        UnlockMovement();
     }
 
     private void UnlockMovement()
@@ -85,5 +82,10 @@ public class PlayerInteraction : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, checkRadius);
+    }
+    public void ResetInteractionState()
+    {
+        isInteracting = false;
+        if (movement != null) movement.enabled = true;
     }
 }

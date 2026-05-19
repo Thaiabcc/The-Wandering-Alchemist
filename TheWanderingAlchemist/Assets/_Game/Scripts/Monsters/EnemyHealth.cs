@@ -10,7 +10,6 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private float destroyDelay = 1f;
 
     [Header("Quest Info")]
-    [Tooltip("Điền tên quái giống hệt trong Quest của NPC (VD: Slime)")]
     [SerializeField] private string enemyNameForQuest = "Slime";
 
     [Header("Visual Effects")]
@@ -42,7 +41,7 @@ public class EnemyHealth : MonoBehaviour
     #endregion
 
     #region Main Logic
-    public void TakeDamage(float damageAmount)
+    public void TakeDamage(float damageAmount, bool isCritical = false, bool isPoison = false)
     {
         if (isDead || currentHealth <= 0) return;
 
@@ -51,6 +50,11 @@ public class EnemyHealth : MonoBehaviour
         UpdateUI();
         PlayHitEffect();
 
+        if (DamagePopupGenerator.Instance != null)
+        {
+            DamagePopupGenerator.Instance.Create(transform.position, (int)damageAmount, isCritical, isPoison);
+        }
+
         if (currentHealth <= 0)
         {
             Die();
@@ -58,7 +62,7 @@ public class EnemyHealth : MonoBehaviour
     }
     #endregion
 
-    #region Helper Methods (Standard)
+    #region Helper Methods
     private void InitializeStats()
     {
         currentHealth = maxHealth;
@@ -144,45 +148,27 @@ public class EnemyHealth : MonoBehaviour
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.enemyDie, 0.8f, true);
             HandleLootDrop();
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Lỗi rơi đồ: " + e.Message);
-        }
+        catch (System.Exception) {}
 
         try
         {
             HandleQuestProgress();
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Lỗi tính Quest: " + e.Message);
-        }
+        catch (System.Exception) {}
 
         Destroy(gameObject, destroyDelay);
     }
 
     private void HandleQuestProgress()
     {
-        if (QuestManager.Instance != null)
+        if (QuestManager.Instance != null && bossScript == null)
         {
-            if (bossScript == null)
-            {
-                QuestManager.Instance.AddKill(enemyNameForQuest);
-            }
+            QuestManager.Instance.AddKill(enemyNameForQuest);
         }
     }
 
     private void HandleLootDrop()
     {
-        // 1. Ưu tiên dùng LootManager 
-        /*
-        if (LootManager.Instance != null) {
-             LootManager.Instance.SpawnLoot(transform.position);
-             return;
-        }
-        */
-
-        // 2. Nếu không dùng Manager thì dùng Prefab có sẵn trong script này
         if (lootPrefab != null && Random.Range(0f, 100f) <= dropChance)
         {
             Instantiate(lootPrefab, transform.position, Quaternion.identity);

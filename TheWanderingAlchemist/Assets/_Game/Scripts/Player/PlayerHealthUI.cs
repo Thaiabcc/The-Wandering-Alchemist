@@ -8,13 +8,16 @@ public class PlayerHealthUI : MonoBehaviour
     [Header("Health")]
     [SerializeField] private Image healthFill;
 
+    [SerializeField] private RectTransform healthBarRect;
+    [SerializeField] private float pixelsPerHealth = 2.5f;
+
     [Header("Stamina")]
     [SerializeField] private Image staminaFill;
 
     [Header("Stamina Colors")]
-    [SerializeField] private Color normalColor = new Color(0.2f, 1f, 0.2f); 
-    [SerializeField] private Color warningColor = Color.yellow;             
-    [SerializeField] private Color criticalColor = Color.red;               
+    [SerializeField] private Color normalColor = new Color(0.2f, 1f, 0.2f);
+    [SerializeField] private Color warningColor = Color.yellow;
+    [SerializeField] private Color criticalColor = Color.red;
 
     private void Awake()
     {
@@ -28,35 +31,32 @@ public class PlayerHealthUI : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // ------------------ HEALTH ------------------
-
     public void UpdateHealth(int current, int max)
     {
-        if (!healthFill) return;
+        if (!healthFill || !healthBarRect) return;
+
+        float newWidth = max * pixelsPerHealth;
+        healthBarRect.sizeDelta = new Vector2(newWidth, healthBarRect.sizeDelta.y);
 
         healthFill.fillAmount = (float)current / max;
     }
-
-    // ------------------ STAMINA ------------------
 
     public void UpdateStamina(float current, float max)
     {
         if (!staminaFill) return;
 
-        // 1. Caculate %
         float ratio = current / max;
         staminaFill.fillAmount = ratio;
 
-        // 2. Color Changing
-        if (ratio < 0.15f) // < 15%
+        if (ratio < 0.15f)
         {
             staminaFill.color = criticalColor;
         }
-        else if (ratio <= 0.5f) // <15% < 50%
+        else if (ratio <= 0.5f)
         {
             staminaFill.color = warningColor;
         }
-        else // >50%
+        else
         {
             staminaFill.color = normalColor;
         }

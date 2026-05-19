@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Axe
   m_EditorClassIdentifier: 
   id: Tool_Axe
-  itemName: "R\xECu"
-  description: "1 chi\u1EBFc r\xECu d\xF9ng \u0111\u1EC3 ch\u1EB7t c\xE2y\n"
+  itemName: Axe
+  description: An axe used for chopping trees.
   icon: {fileID: -308013767, guid: a19a605a6c1096b40be53efeb4619854, type: 3}
+  buffIcon: {fileID: 0}
   itemType: 0
   maxStackSize: 1
   baseValue: 100
@@ -23,5 +24,13 @@ MonoBehaviour:
   isConsumable: 0
   healthRestore: 0
   staminaRestore: 0
-  damagebuffAmount: 0
-  buffduration: 0
+  shieldAmount: 0
+  damageBuffAmount: 0
+  hoTAmount: 0
+  hoTDuration: 0
+  maxHealthPercentBonus: 0
+  buffDuration: 0
+  isThrowable: 0
+  throwablePrefab: {fileID: 0}
+  poisonPuddlePrefab: {fileID: 0}
+  throwDamageMultiplier: 0

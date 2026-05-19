@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8843294767446025990}
   - component: {fileID: 3998887589515542348}
   m_Layer: 3
-  m_Name: "Item_C\u1ECF d\u1EA1i"
+  m_Name: Item_Weed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,4 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f490c12ca23504ca802d07d7d391d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPermanent: 0
+  uniqueID: Weed_01
+  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
   itemData: {fileID: 11400000, guid: 669c7f14591982346b9cdfd2b830a10f, type: 2}

@@ -8,6 +8,8 @@ public class PlayerPenalty : MonoBehaviour
     public float speedMultiplier = 0.5f;
     public Color debuffColor = new Color(0.6f, 0.2f, 1f, 1f);
 
+    public bool IsInPenalty { get; private set; }
+
     private PlayerMovement movement;
     private SpriteRenderer sprite;
 
@@ -37,7 +39,7 @@ public class PlayerPenalty : MonoBehaviour
 
     private IEnumerator PenaltyRoutine()
     {
-        Debug.Log("💀 Bị tác dụng phụ: Giảm cả đi bộ và chạy!");
+        IsInPenalty = true;
 
         if (movement != null)
         {
@@ -46,7 +48,9 @@ public class PlayerPenalty : MonoBehaviour
         }
 
         if (sprite != null) sprite.color = debuffColor;
+
         yield return new WaitForSeconds(duration);
+
         if (movement != null)
         {
             movement.walkSpeed = defaultWalkSpeed;
@@ -55,6 +59,6 @@ public class PlayerPenalty : MonoBehaviour
 
         if (sprite != null) sprite.color = defaultColor;
 
-        Debug.Log("✨ Đã hết tác dụng phụ!");
+        IsInPenalty = false;
     }
 }
