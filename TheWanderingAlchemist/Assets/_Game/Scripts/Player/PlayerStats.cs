@@ -6,8 +6,8 @@ public class PlayerStats : MonoBehaviour
 {
     public static PlayerStats Instance { get; private set; }
 
-    [Header("Health & Shield")] [SerializeField]
-    private int maxHealth = 100;
+    [Header("Health & Shield")] 
+    [SerializeField] private int maxHealth = 100;
 
     public float currentHealth;
     public int MaxHealth => maxHealth;
@@ -19,10 +19,10 @@ public class PlayerStats : MonoBehaviour
     private bool isDead;
     private bool isCurrentlyRespawning = false;
 
-    [Header("Dungeon Light")] [SerializeField]
-    private UnityEngine.Rendering.Universal.Light2D playerLight;
+    [Header("Dungeon Light")] 
+    [SerializeField] private UnityEngine.Rendering.Universal.Light2D playerLight;
 
-[Header("Stamina")]
+    [Header("Stamina")]
     public float maxStamina = 100f;
     public float currentStamina;
     public float staminaRegenRate = 10f;
@@ -36,6 +36,13 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private Color flashColor = Color.red;
     [SerializeField] private float flashDuration = 0.1f;
     [SerializeField] private float blinkInterval = 0.1f;
+
+    [Header("Poison Debuff")]
+    public bool isPoisoned = false;
+    public bool isPoisonImmune = false;
+    [SerializeField] private Color poisonColor = Color.green; 
+    [SerializeField] private Sprite poisonIcon; // [ĐÃ SỬA] Đã thêm khai báo để kéo ảnh ngoài Editor
+    private Coroutine poisonCoroutine;
 
     private Animator animator;
     private PlayerMovement movement;
@@ -105,6 +112,8 @@ public class PlayerStats : MonoBehaviour
 
         isDead = true;
         isCurrentlyRespawning = true;
+        
+        CurePoison();
 
         if (movement != null) movement.enabled = false;
         if (rb != null)
@@ -166,6 +175,8 @@ public class PlayerStats : MonoBehaviour
         currentStamina = maxStamina;
         currentShield = 0f;
         isInvincible = false;
+        
+        CurePoison();
 
         if (rb != null)
         {
@@ -178,6 +189,7 @@ public class PlayerStats : MonoBehaviour
             BuffUIManager.Instance.RemoveBuff("Shield");
             BuffUIManager.Instance.RemoveBuff("DamageBuff");
             BuffUIManager.Instance.RemoveBuff("MaxHealthBuff");
+            BuffUIManager.Instance.RemoveBuff("Poison");
         }
 
         EnablePlayer(true);
@@ -238,6 +250,62 @@ public class PlayerStats : MonoBehaviour
 
         UpdateUI();
         if (currentHealth <= 0) Die();
+    }
+    
+    public void ApplyPoison(float damage, float interval)
+    {
+        if (isPoisoned || isPoisonImmune || isDead) return;
+
+        isPoisoned = true;
+        poisonCoroutine = StartCoroutine(PoisonRoutine(damage, interval));
+        
+        // [ĐÃ SỬA] Thêm check null cho chắc chắn để không bị văng lỗi
+        if (BuffUIManager.Instance != null && poisonIcon != null) 
+        {
+            BuffUIManager.Instance.AddBuff("Poison", poisonIcon, 0f);
+        }
+    }
+
+    public void CurePoison()
+    {
+        isPoisoned = false;
+        if (poisonCoroutine != null)
+        {
+            StopCoroutine(poisonCoroutine);
+            poisonCoroutine = null;
+        }
+
+        // [ĐÃ SỬA] Đã gọi lệnh xóa Icon Độc khi được giải độc
+        if (BuffUIManager.Instance != null)
+        {
+            BuffUIManager.Instance.RemoveBuff("Poison");
+        }
+
+        ResetSpriteColor();
+    }
+
+    private IEnumerator PoisonRoutine(float damage, float interval)
+    {
+        while (isPoisoned && !isDead)
+        {
+            yield return new WaitForSeconds(interval);
+            
+            if (!isFlashing && sprite != null)
+            {
+                StartCoroutine(PoisonFlashEffect());
+            }
+            
+            TakeDamage(damage); 
+        }
+    }
+
+    private IEnumerator PoisonFlashEffect()
+    {
+        isFlashing = true;
+        sprite.color = poisonColor;
+        yield return new WaitForSeconds(flashDuration);
+        ResetSpriteColor();
+        isFlashing = false;
     }
 
     private IEnumerator DestroyShieldVisual(GameObject shieldObject, float delay)
@@ -409,9 +477,6 @@ public class PlayerStats : MonoBehaviour
         if (penalty != null && penalty.IsInPenalty)
             sprite.color = penalty.debuffColor;
         else
-        {
-            
-        }
             sprite.color = Color.white;
     }
 
