@@ -4,11 +4,11 @@ using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
+    #region TÀI NGUYÊN & BIẾN (VARIABLES)
     public static PlayerStats Instance { get; private set; }
 
     [Header("Health & Shield")] 
     [SerializeField] private int maxHealth = 100;
-
     public float currentHealth;
     public int MaxHealth => maxHealth;
     public float currentShield = 0f;
@@ -41,8 +41,9 @@ public class PlayerStats : MonoBehaviour
     public bool isPoisoned = false;
     public bool isPoisonImmune = false;
     [SerializeField] private Color poisonColor = Color.green; 
-    [SerializeField] private Sprite poisonIcon; // [ĐÃ SỬA] Đã thêm khai báo để kéo ảnh ngoài Editor
+    [SerializeField] private Sprite poisonIcon; 
     private Coroutine poisonCoroutine;
+    private Coroutine immunityCoroutine;
 
     private Animator animator;
     private PlayerMovement movement;
@@ -55,7 +56,9 @@ public class PlayerStats : MonoBehaviour
     private Coroutine maxHealthBuffCoroutine;
     private int lastMaxHealthBuffAmount;
     private int originalMaxHealth;
+    #endregion
 
+    #region UNITY LIFECYCLE
     private void Awake()
     {
         SetupSingleton();
@@ -104,6 +107,70 @@ public class PlayerStats : MonoBehaviour
         currentDamage = baseDamage;
         currentShield = 0f;
         isDead = false;
+    }
+    #endregion
+
+    #region HEALTH & DEATH
+    public void TakeDamage(float damage)
+    {
+        if (isDead || isInvincible) return;
+
+        float remainingDamage = damage;
+        bool shieldBlockedSomething = false;
+
+        if (currentShield > 0)
+        {
+            shieldBlockedSomething = true;
+            if (currentShield >= remainingDamage)
+            {
+                currentShield -= remainingDamage;
+                remainingDamage = 0;
+            }
+            else
+            {
+                remainingDamage -= currentShield;
+                currentShield = 0;
+            }
+
+            if (currentShield <= 0 && BuffUIManager.Instance != null)
+            {
+                BuffUIManager.Instance.RemoveBuff("Shield");
+            }
+        }
+
+        if (shieldBlockedSomething && hitShieldPrefab != null)
+        {
+            GameObject activeShield = Instantiate(hitShieldPrefab, transform.position, Quaternion.identity, transform);
+            StartCoroutine(DestroyShieldVisual(activeShield, shieldHitVisualDuration));
+        }
+
+        if (remainingDamage > 0)
+        {
+            currentHealth -= remainingDamage;
+            if (!isFlashing) StartCoroutine(FlashEffect());
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerTakeDamage);
+        }
+
+        UpdateUI();
+        if (currentHealth <= 0) Die();
+    }
+
+    public void Heal(int amount)
+    {
+        if (isDead) return;
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        UpdateUI();
+    }
+
+    public IEnumerator HealOverTime(float amountPerSecond, float duration)
+    {
+        float elapsed = 0;
+        while (elapsed < duration && !isDead)
+        {
+            Heal(Mathf.RoundToInt(amountPerSecond));
+            elapsed += 1f;
+            yield return new WaitForSeconds(1f);
+        }
     }
 
     private void Die()
@@ -197,7 +264,9 @@ public class PlayerStats : MonoBehaviour
         ResetSpriteColor();
         UpdateUI();
     }
+    #endregion
 
+    #region BUFFS & COMBAT
     public void AddShield(float amount, Sprite buffIcon = null) 
     { 
         currentShield += amount; 
@@ -206,106 +275,6 @@ public class PlayerStats : MonoBehaviour
             BuffUIManager.Instance.AddBuff("Shield", buffIcon, 0f);
         }
         UpdateUI(); 
-    }
-
-    public void TakeDamage(float damage)
-    {
-        if (isDead || isInvincible) return;
-
-        float remainingDamage = damage;
-        bool shieldBlockedSomething = false;
-
-        if (currentShield > 0)
-        {
-            shieldBlockedSomething = true;
-            if (currentShield >= remainingDamage)
-            {
-                currentShield -= remainingDamage;
-                remainingDamage = 0;
-            }
-            else
-            {
-                remainingDamage -= currentShield;
-                currentShield = 0;
-            }
-
-            if (currentShield <= 0 && BuffUIManager.Instance != null)
-            {
-                BuffUIManager.Instance.RemoveBuff("Shield");
-            }
-        }
-
-        if (shieldBlockedSomething && hitShieldPrefab != null)
-        {
-            GameObject activeShield = Instantiate(hitShieldPrefab, transform.position, Quaternion.identity, transform);
-            StartCoroutine(DestroyShieldVisual(activeShield, shieldHitVisualDuration));
-        }
-
-        if (remainingDamage > 0)
-        {
-            currentHealth -= remainingDamage;
-            if (!isFlashing) StartCoroutine(FlashEffect());
-            AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerTakeDamage);
-        }
-
-        UpdateUI();
-        if (currentHealth <= 0) Die();
-    }
-    
-    public void ApplyPoison(float damage, float interval)
-    {
-        if (isPoisoned || isPoisonImmune || isDead) return;
-
-        isPoisoned = true;
-        poisonCoroutine = StartCoroutine(PoisonRoutine(damage, interval));
-        
-        // [ĐÃ SỬA] Thêm check null cho chắc chắn để không bị văng lỗi
-        if (BuffUIManager.Instance != null && poisonIcon != null) 
-        {
-            BuffUIManager.Instance.AddBuff("Poison", poisonIcon, 0f);
-        }
-    }
-
-    public void CurePoison()
-    {
-        isPoisoned = false;
-        if (poisonCoroutine != null)
-        {
-            StopCoroutine(poisonCoroutine);
-            poisonCoroutine = null;
-        }
-
-        // [ĐÃ SỬA] Đã gọi lệnh xóa Icon Độc khi được giải độc
-        if (BuffUIManager.Instance != null)
-        {
-            BuffUIManager.Instance.RemoveBuff("Poison");
-        }
-
-        ResetSpriteColor();
-    }
-
-    private IEnumerator PoisonRoutine(float damage, float interval)
-    {
-        while (isPoisoned && !isDead)
-        {
-            yield return new WaitForSeconds(interval);
-            
-            if (!isFlashing && sprite != null)
-            {
-                StartCoroutine(PoisonFlashEffect());
-            }
-            
-            TakeDamage(damage); 
-        }
-    }
-
-    private IEnumerator PoisonFlashEffect()
-    {
-        isFlashing = true;
-        sprite.color = poisonColor;
-        yield return new WaitForSeconds(flashDuration);
-        ResetSpriteColor();
-        isFlashing = false;
     }
 
     private IEnumerator DestroyShieldVisual(GameObject shieldObject, float delay)
@@ -366,33 +335,109 @@ public class PlayerStats : MonoBehaviour
         maxHealthBuffCoroutine = null;
         UpdateUI();
     }
+    #endregion
 
-    public IEnumerator HealOverTime(float amountPerSecond, float duration)
+    #region POISON SYSTEM
+    public void ApplyPoison(float damage, float interval)
     {
-        float elapsed = 0;
-        while (elapsed < duration && !isDead)
+        if (isDead) return;
+
+        if (isPoisonImmune)
         {
-            Heal(Mathf.RoundToInt(amountPerSecond));
-            elapsed += 1f;
-            yield return new WaitForSeconds(1f);
+            if (BuffUIManager.Instance != null) 
+            {
+                BuffUIManager.Instance.RemoveBuff("Poison");
+            }
+            isPoisoned = true;
+            return; 
+        }
+
+        if (isPoisoned || poisonCoroutine != null) return;
+
+        isPoisoned = true;
+        poisonCoroutine = StartCoroutine(PoisonRoutine(damage, interval));
+        
+        if (BuffUIManager.Instance != null && poisonIcon != null) 
+        {
+            BuffUIManager.Instance.AddBuff("Poison", poisonIcon, 0f);
         }
     }
 
-    public void Heal(int amount)
+    public void CurePoison()
     {
-        if (isDead) return;
-        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-        UpdateUI();
+        isPoisoned = false;
+        if (poisonCoroutine != null)
+        {
+            StopCoroutine(poisonCoroutine);
+            poisonCoroutine = null;
+        }
+
+        if (BuffUIManager.Instance != null)
+        {
+            BuffUIManager.Instance.RemoveBuff("Poison");
+        }
+
+        ResetSpriteColor();
     }
 
-    private void ResetAnimator()
+    public void ApplyPoisonImmunity(float duration, Sprite immunityIcon)
     {
-        if (animator == null) return;
-        animator.Rebind();
-        animator.Update(0f);
-        animator.Play("Idle");
+        if (BuffUIManager.Instance != null)
+        {
+            BuffUIManager.Instance.RemoveBuff("Poison");
+        }
+        
+        if (immunityCoroutine != null) StopCoroutine(immunityCoroutine);
+        immunityCoroutine = StartCoroutine(PoisonImmunityRoutine(duration, immunityIcon));
     }
 
+    private IEnumerator PoisonImmunityRoutine(float duration, Sprite icon)
+    {
+        isPoisonImmune = true;
+        if (BuffUIManager.Instance != null && icon != null)
+        {
+            BuffUIManager.Instance.AddBuff("PoisonImmunity", icon, duration);
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        isPoisonImmune = false;
+        immunityCoroutine = null;
+
+        if (isPoisoned && poisonIcon != null && BuffUIManager.Instance != null)
+        {
+            BuffUIManager.Instance.AddBuff("Poison", poisonIcon, 0f);
+        }
+    }
+
+    private IEnumerator PoisonRoutine(float damage, float interval)
+    {
+        while (isPoisoned && !isDead)
+        {
+            yield return new WaitForSeconds(interval);
+            
+            if (isPoisonImmune) continue;
+            
+            if (!isFlashing && sprite != null)
+            {
+                StartCoroutine(PoisonFlashEffect());
+            }
+            
+            TakeDamage(damage); 
+        }
+    }
+
+    private IEnumerator PoisonFlashEffect()
+    {
+        isFlashing = true;
+        sprite.color = poisonColor;
+        yield return new WaitForSeconds(flashDuration);
+        ResetSpriteColor();
+        isFlashing = false;
+    }
+    #endregion
+
+    #region STAMINA SYSTEM
     public bool TryConsumeStamina(float amount)
     {
         if (currentStamina < amount) return false;
@@ -401,6 +446,23 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
+    private void HandleStaminaRegeneration()
+    {
+        if (currentStamina >= maxStamina) return;
+        bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
+        float actualRegenRate = isMoving ? movingRegenRate : staminaRegenRate;
+        currentStamina = Mathf.Min(currentStamina + actualRegenRate * Time.deltaTime, maxStamina);
+        UpdateStaminaUI();
+    }
+
+    public void RegenerateStamina(float amount)
+    {
+        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
+        UpdateStaminaUI();
+    }
+    #endregion
+
+    #region VISUALS & UTILITIES
     public void BecomeInvincible(float duration)
     {
         StopCoroutine("InvincibilityRoutine");
@@ -433,34 +495,6 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
-    private void UpdateUI()
-    {
-        if (PlayerHealthUI.Instance == null) return;
-        PlayerHealthUI.Instance.UpdateHealth((int)currentHealth, maxHealth);
-        PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
-    }
-
-    private void UpdateStaminaUI()
-    {
-        if (PlayerHealthUI.Instance != null)
-            PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
-    }
-
-    private void HandleStaminaRegeneration()
-    {
-        if (currentStamina >= maxStamina) return;
-        bool isMoving = Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
-        float actualRegenRate = isMoving ? movingRegenRate : staminaRegenRate;
-        currentStamina = Mathf.Min(currentStamina + actualRegenRate * Time.deltaTime, maxStamina);
-        UpdateStaminaUI();
-    }
-
-    public void RegenerateStamina(float amount)
-    {
-        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
-        UpdateStaminaUI();
-    }
-
     private IEnumerator FlashEffect()
     {
         isFlashing = true;
@@ -478,6 +512,14 @@ public class PlayerStats : MonoBehaviour
             sprite.color = penalty.debuffColor;
         else
             sprite.color = Color.white;
+    }
+
+    private void ResetAnimator()
+    {
+        if (animator == null) return;
+        animator.Rebind();
+        animator.Update(0f);
+        animator.Play("Idle");
     }
 
     private void EnablePlayer(bool v)
@@ -499,4 +541,20 @@ public class PlayerStats : MonoBehaviour
             playerLight.enabled = false;
         }
     }
+    #endregion
+
+    #region UI UPDATES
+    private void UpdateUI()
+    {
+        if (PlayerHealthUI.Instance == null) return;
+        PlayerHealthUI.Instance.UpdateHealth((int)currentHealth, maxHealth);
+        PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
+    }
+
+    private void UpdateStaminaUI()
+    {
+        if (PlayerHealthUI.Instance != null)
+            PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
+    }
+    #endregion
 }

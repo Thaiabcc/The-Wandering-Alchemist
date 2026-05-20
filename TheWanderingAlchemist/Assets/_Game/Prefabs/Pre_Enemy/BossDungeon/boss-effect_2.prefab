@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 424016521897082595}
   - component: {fileID: 2581387298287719068}
   - component: {fileID: -5631590538594913029}
+  - component: {fileID: 8605044116083793726}
   m_Layer: 0
   m_Name: boss-effect_2
   m_TagString: Untagged
@@ -147,8 +148,39 @@ MonoBehaviour:
   m_GameObject: {fileID: 1813715556254985693}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d4b95f1a02ce6748bdb4f756186be6d, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f67c2fc1d584a95a6e33fe2af80de31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
-  lifeTime: 0.2
+  damage: 25
+  applyPoison: 1
+  poisonDamage: 2
+  poisonInterval: 1
+  lifeTime: 0.5
+  hitEffectPrefab: {fileID: 0}
+--- !u!50 &8605044116083793726
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1813715556254985693}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

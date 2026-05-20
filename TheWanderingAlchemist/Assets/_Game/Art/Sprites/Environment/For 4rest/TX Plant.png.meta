@@ -100,12 +100,12 @@ TextureImporter:
       name: TX Plant_0
       rect:
         serializedVersion: 2
-        x: 24
-        y: 359
+        x: 23
+        y: 360
         width: 113
         height: 139
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.5055881, y: 0.22324531}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -121,12 +121,12 @@ TextureImporter:
       name: TX Plant_1
       rect:
         serializedVersion: 2
-        x: 161
+        x: 159
         y: 344
         width: 97
         height: 151
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.52603745, y: 0.27420247}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -142,12 +142,12 @@ TextureImporter:
       name: TX Plant_2
       rect:
         serializedVersion: 2
-        x: 295
+        x: 294
         y: 361
         width: 79
         height: 120
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.5399626, y: 0.24744135}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

@@ -421,6 +421,10 @@ MonoBehaviour:
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashDuration: 0.1
   blinkInterval: 0.1
+  isPoisoned: 0
+  isPoisonImmune: 0
+  poisonColor: {r: 0, g: 1, b: 0, a: 1}
+  poisonIcon: {fileID: -1240554501, guid: 31fe3a964258f9b4e900c33be1e98e35, type: 3}
 --- !u!114 &8222662028975532577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -515,7 +519,7 @@ MonoBehaviour:
   - {x: 0.71875, y: 0, z: 0}
   m_ShapePathHash: 0
   m_Mesh: {fileID: 0}
-  m_InstanceId: -9524
+  m_InstanceId: -40944
   m_LocalBounds:
     m_Center: {x: 0, y: 0.90625, z: 0}
     m_Extent: {x: 0.71875, y: 0.90625, z: 0}
@@ -573,6 +577,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0f1beb5d853915b4fa32b8d8efdb8c25, type: 2}
   - {fileID: 11400000, guid: 693a73bdfb4862d4fb918042ba0ee759, type: 2}
   - {fileID: 11400000, guid: f6011e3441336824da56ace65291ab64, type: 2}
+  - {fileID: 11400000, guid: 6590da77ce872ad41bd0bc065e0c406a, type: 2}
+  - {fileID: 11400000, guid: 118185ab5d1f4564d892cabc57f516ff, type: 2}
+  - {fileID: 11400000, guid: 258cbb58f66db954480bb004c7bb0b51, type: 2}
+  - {fileID: 11400000, guid: eb8c2c06f05b3df4086d2f21adf83c14, type: 2}
+  - {fileID: 11400000, guid: 669c7f14591982346b9cdfd2b830a10f, type: 2}
   amountToAdd: 10
 --- !u!1 &8363076162538556418
 GameObject:

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal; 
+
 public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
@@ -11,13 +12,14 @@ public class TimeManager : MonoBehaviour
     [Header("Light References")]
     [SerializeField] private Light2D globalLight;   
     [SerializeField] private Gradient dayNightGradient; 
+    [SerializeField] private AnimationCurve intensityCurve;
 
-    // Biến lưu trữ thời gian thực tế trong game
     public int CurrentDay { get; private set; } = 1;
     public float CurrentHour { get; private set; }
     public float CurrentMinute { get; private set; }
 
-    private float totalSecondsInDay;
+    private double accumSeconds;
+    private int totalSecondsInDay;
 
     private void Awake()
     {
@@ -28,16 +30,21 @@ public class TimeManager : MonoBehaviour
     private void Start()
     {
         CurrentHour = startHour;
-        totalSecondsInDay = (CurrentHour * 3600f) + (CurrentMinute * 60f);
+        totalSecondsInDay = startHour * 3600;
+        accumSeconds = totalSecondsInDay;
     }
 
     private void Update()
     {
-        totalSecondsInDay += Time.deltaTime * timeScale;
-        CurrentHour = Mathf.FloorToInt(totalSecondsInDay / 3600f);
-        CurrentMinute = Mathf.FloorToInt((totalSecondsInDay % 3600f) / 60f);
+        accumSeconds += Time.deltaTime * timeScale;
+        totalSecondsInDay = (int)accumSeconds;
+
+        CurrentHour = totalSecondsInDay / 3600;
+        CurrentMinute = (totalSecondsInDay % 3600) / 60;
+
         UpdateDayNightLight();
-        if (totalSecondsInDay >= 86400f)
+
+        if (totalSecondsInDay >= 86400)
         {
             StartNewDay();
         }
@@ -46,18 +53,36 @@ public class TimeManager : MonoBehaviour
     private void UpdateDayNightLight()
     {
         if (globalLight == null || dayNightGradient == null) return;
-        float percentageOfDay = totalSecondsInDay / 86400f;
+        
+        float percentageOfDay = (float)totalSecondsInDay / 86400f;
         globalLight.color = dayNightGradient.Evaluate(percentageOfDay);
+
+        if (intensityCurve != null)
+        {
+            globalLight.intensity = intensityCurve.Evaluate(percentageOfDay);
+        }
     }
 
     private void StartNewDay()
     {
-        totalSecondsInDay = 0f;
+        accumSeconds = 0;
+        totalSecondsInDay = 0;
         CurrentHour = 0;
         CurrentMinute = 0;
         CurrentDay++;
 
         Debug.Log("Đã bước sang ngày thứ: " + CurrentDay);
+
+        if (WeatherManager.Instance != null)
+        {
+            float chance = Random.value;
+            if (chance < 0.6f)
+                WeatherManager.Instance.ChangeWeather(WeatherState.Sunny);
+            else if (chance < 0.85f)
+                WeatherManager.Instance.ChangeWeather(WeatherState.Rainy);
+            else
+                WeatherManager.Instance.ChangeWeather(WeatherState.Stormy);
+        }
     }
 
     public string GetTimeString()

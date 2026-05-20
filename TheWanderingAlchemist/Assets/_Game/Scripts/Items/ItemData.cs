@@ -13,7 +13,7 @@ public class ItemData : ScriptableObject
     public Sprite buffIcon;
 
     [Header("Settings")]
-    public ItemType itemType; 
+    public ItemType itemType;
     public int maxStackSize = 99;
     public int baseValue = 10;
     public GameObject worldPrefab;
@@ -26,16 +26,21 @@ public class ItemData : ScriptableObject
     public float damageBuffAmount;
 
     [Header("Temporary & Over Time")]
-    public float hoTAmount;    
-    public float hoTDuration;  
-    public float maxHealthPercentBonus; 
-    public float buffDuration; 
+    public float hoTAmount;
+    public float hoTDuration;
+    public float maxHealthPercentBonus;
+    public float buffDuration;
+
+    [Header("Poison & Immunity Effects")]
+    public bool isPoisonImmunityPotion;
+    public float immunityDuration;
+    public bool isCurePoisonOnly;
 
     [Header("Throwable & Trap")]
     public bool isThrowable;
     public GameObject throwablePrefab;
-    public GameObject poisonPuddlePrefab; 
-    public float throwDamageMultiplier;  
+    public GameObject poisonPuddlePrefab;
+    public float throwDamageMultiplier;
 
     public bool UseItem(PlayerStats player)
     {
@@ -45,15 +50,26 @@ public class ItemData : ScriptableObject
 
         if (itemType == ItemType.KeyItem) return true;
 
+        if (isPoisonImmunityPotion && immunityDuration > 0)
+        {
+            player.ApplyPoisonImmunity(immunityDuration, buffIcon);
+            itemUsed = true;
+        }
+        else if (isCurePoisonOnly)
+        {
+            player.CurePoison();
+            itemUsed = true;
+        }
+
         if (shieldAmount > 0)
         {
-            player.AddShield(shieldAmount,buffIcon);
+            player.AddShield(shieldAmount, buffIcon);
             itemUsed = true;
         }
 
         if (damageBuffAmount > 0)
         {
-            player.ApplyBuffDamage(damageBuffAmount, buffDuration,buffIcon);
+            player.ApplyBuffDamage(damageBuffAmount, buffDuration, buffIcon);
             itemUsed = true;
         }
 
@@ -65,7 +81,7 @@ public class ItemData : ScriptableObject
 
         if (maxHealthPercentBonus > 0)
         {
-            player.ApplyTemporaryMaxHealth(maxHealthPercentBonus, buffDuration,buffIcon);
+            player.ApplyTemporaryMaxHealth(maxHealthPercentBonus, buffDuration, buffIcon);
             itemUsed = true;
         }
 
@@ -96,11 +112,17 @@ public class ItemData : ScriptableObject
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 0;
+
         Vector2 throwDirection = (mousePos - player.transform.position).normalized;
 
-        GameObject potion = Instantiate(throwablePrefab, player.transform.position, Quaternion.identity);
-        
+        GameObject potion = Instantiate(
+            throwablePrefab,
+            player.transform.position,
+            Quaternion.identity
+        );
+
         ExplosivePotion explosive = potion.GetComponent<ExplosivePotion>();
+
         if (explosive != null)
         {
             explosive.Setup(throwDirection);
@@ -108,9 +130,11 @@ public class ItemData : ScriptableObject
         }
 
         PoisonPotion poison = potion.GetComponent<PoisonPotion>();
+
         if (poison != null)
         {
-            float calculatedDamage = player.currentDamage * throwDamageMultiplier; 
+            float calculatedDamage = player.currentDamage * throwDamageMultiplier;
+
             poison.Setup(throwDirection, calculatedDamage);
             return;
         }
