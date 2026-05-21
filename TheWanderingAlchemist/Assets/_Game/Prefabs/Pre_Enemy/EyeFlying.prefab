@@ -270,7 +270,7 @@ MonoBehaviour:
   flashDuration: 0.1
   enemyAI: {fileID: 0}
   spriteRenderer: {fileID: 0}
-  lootPrefab: {fileID: 0}
+  lootPrefab: {fileID: 2477963370002911841, guid: 6c601400797a1e84c87adb75f3546267, type: 3}
   healthBar: {fileID: 7976620759923956279}
 --- !u!58 &3953324955522117463
 CircleCollider2D:
@@ -304,9 +304,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.03125, y: 0.46875}
+  m_Offset: {x: 0.011093438, y: 0.23474693}
   serializedVersion: 2
-  m_Radius: 0.28125
+  m_Radius: 0.30799484
 --- !u!1 &4921780312130408123
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,7 +456,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7482667652216324306, guid: 287653d59dc60b944abf7871c76256a5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 287653d59dc60b944abf7871c76256a5, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1

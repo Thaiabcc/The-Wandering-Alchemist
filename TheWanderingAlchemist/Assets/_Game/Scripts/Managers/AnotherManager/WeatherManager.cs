@@ -45,7 +45,7 @@ public class WeatherManager : MonoBehaviour
         if (globalLight != null)
             originalLightColor = globalLight.color;
 
-        ChangeWeather(WeatherState.Sunny);
+        ChangeWeather(WeatherState.Rainy);
     }
 
     public void ChangeWeather(WeatherState newState)

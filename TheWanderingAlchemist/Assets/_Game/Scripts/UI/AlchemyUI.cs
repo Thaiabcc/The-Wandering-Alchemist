@@ -59,6 +59,17 @@ public class AlchemyUI : MonoBehaviour
         if (failTextObj != null) failTextObj.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
         ResetOutput();
+
+        if (allRecipes != null)
+        {
+            foreach (var rc in allRecipes)
+            {
+                if (rc != null && rc.resultItem != null)
+                {
+                    rc.isUnlocked = PlayerPrefs.GetInt("Recipe" + rc.resultItem.itemName, 0) == 1;
+                }
+            }
+        }
     }
 
     public void OpenPanel()
@@ -94,8 +105,35 @@ public class AlchemyUI : MonoBehaviour
             if (isWaitingForInput) CheckTiming();
             return;
         }
+        RecipeData matchedRecipe = null;
+        foreach (var recipe in allRecipes)
+        {
+            if (TryMatchRecipe(recipe, out int times))
+            {
+                matchedRecipe = recipe;
+                break;
+            }
+        }
+
+        if (matchedRecipe != null && !matchedRecipe.isUnlocked)
+        {
+            Debug.LogError("Bạn chưa học công thức chế tạo món này!");
+            if (failTextObj != null) 
+            {
+                TextMeshProUGUI t = failTextObj.GetComponent<TextMeshProUGUI>();
+                if (t != null) t.text = "CHƯA CÓ CÔNG THỨC!";
+                StartCoroutine(ShowFailNotificationTemporarily());
+            }
+            return; 
+        }
 
         if (outputIcon.enabled) StartCoroutine(CookingRoutineWithMiniGame());
+    }
+    private IEnumerator ShowFailNotificationTemporarily()
+    {
+        failTextObj.SetActive(true);
+        yield return new WaitForSeconds(feedbackDuration);
+        failTextObj.SetActive(false);
     }
 
     private void CheckTiming()
@@ -311,6 +349,7 @@ public class AlchemyUI : MonoBehaviour
         {
             if (TryMatchRecipe(recipe, out int times))
             {
+                if (!recipe.isUnlocked) continue;
                 craftTimes = times;
                 outputIcon.sprite = recipe.resultItem.icon;
                 outputIcon.enabled = true;

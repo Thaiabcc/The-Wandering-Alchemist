@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 9144258611116081576}
   - component: {fileID: 2212062431880230566}
   - component: {fileID: 1795883729808620744}
+  - component: {fileID: -1704516254019514712}
   m_Layer: 3
   m_Name: Item_Skeleton Bone
   m_TagString: Untagged
@@ -147,3 +148,15 @@ MonoBehaviour:
   uniqueID: Bone_01
   worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
   itemData: {fileID: 11400000, guid: 73ed57503738d4146b1dc82871ece231, type: 2}
+--- !u!114 &-1704516254019514712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8261378303904186502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab5bc09b71cd40b4b95993371e64a533, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

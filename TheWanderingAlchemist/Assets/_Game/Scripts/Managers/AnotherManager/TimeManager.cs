@@ -70,9 +70,7 @@ public class TimeManager : MonoBehaviour
         CurrentHour = 0;
         CurrentMinute = 0;
         CurrentDay++;
-
-        Debug.Log("Đã bước sang ngày thứ: " + CurrentDay);
-
+        
         if (WeatherManager.Instance != null)
         {
             float chance = Random.value;

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5907587416278892592}
   - component: {fileID: 8843294767446025990}
   - component: {fileID: 3998887589515542348}
+  - component: {fileID: 7542251898649891134}
   m_Layer: 3
   m_Name: Item_Slime
   m_TagString: Untagged
@@ -147,3 +148,15 @@ MonoBehaviour:
   uniqueID: Slime_01
   worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
   itemData: {fileID: 11400000, guid: 118185ab5d1f4564d892cabc57f516ff, type: 2}
+--- !u!114 &7542251898649891134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2477963370002911841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab5bc09b71cd40b4b95993371e64a533, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

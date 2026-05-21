@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3202616282266324326}
   - component: {fileID: 8018095508724697875}
   - component: {fileID: 1096276475898629080}
+  - component: {fileID: -5800872448074638929}
   m_Layer: 6
   m_Name: Knight-Idle_0
   m_TagString: Monster
@@ -188,7 +189,7 @@ MonoBehaviour:
   flashDuration: 0.1
   enemyAI: {fileID: 0}
   spriteRenderer: {fileID: 0}
-  lootPrefab: {fileID: 0}
+  lootPrefab: {fileID: 2477963370002911841, guid: b247d9ff0a432ad49a37e9355f4e1e99, type: 3}
   healthBar: {fileID: 5386854455226890796}
 --- !u!58 &1096276475898629080
 CircleCollider2D:
@@ -225,6 +226,19 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0.725}
   serializedVersion: 2
   m_Radius: 0.725
+--- !u!114 &-5800872448074638929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1008556999343223431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a66c487561b242daa12da03905d82008, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  offset: 0
 --- !u!1 &4751379404187433242
 GameObject:
   m_ObjectHideFlags: 0
