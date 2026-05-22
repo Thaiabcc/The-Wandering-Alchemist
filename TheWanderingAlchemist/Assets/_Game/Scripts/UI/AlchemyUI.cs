@@ -26,6 +26,7 @@ public class AlchemyUI : MonoBehaviour
     [Header("Audio & Feedback")]
     [SerializeField] private GameObject successTextObj;
     [SerializeField] private GameObject failTextObj; 
+    [SerializeField] private GameObject norecipe;
     [SerializeField] private float feedbackDuration = 1.5f;
     [SerializeField] private AudioClip cookingSound;
     [SerializeField] private AudioClip successSound;
@@ -57,6 +58,7 @@ public class AlchemyUI : MonoBehaviour
         if (timingSlider != null) timingSlider.gameObject.SetActive(false);
         if (successTextObj != null) successTextObj.SetActive(false);
         if (failTextObj != null) failTextObj.SetActive(false);
+        if (norecipe != null) norecipe.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
         ResetOutput();
 
@@ -98,6 +100,8 @@ public class AlchemyUI : MonoBehaviour
         StopAllCoroutines();
     }
 
+    private Coroutine noRecipeCoroutine; 
+
     public void OnCookButtonPress()
     {
         if (isCooking)
@@ -118,22 +122,28 @@ public class AlchemyUI : MonoBehaviour
         if (matchedRecipe != null && !matchedRecipe.isUnlocked)
         {
             Debug.LogError("Bạn chưa học công thức chế tạo món này!");
-            if (failTextObj != null) 
+            
+            // Nếu có cái Text chuyên dụng này thì mới chạy
+            if (norecipe != null) 
             {
-                TextMeshProUGUI t = failTextObj.GetComponent<TextMeshProUGUI>();
-                if (t != null) t.text = "CHƯA CÓ CÔNG THỨC!";
-                StartCoroutine(ShowFailNotificationTemporarily());
+                TextMeshProUGUI t = norecipe.GetComponent<TextMeshProUGUI>();
+                if (t != null) t.text = "You're not owned recipe !";
+                if (noRecipeCoroutine != null) StopCoroutine(noRecipeCoroutine);
+                
+                noRecipeCoroutine = StartCoroutine(ShowFailNotificationTemporarily());
             }
             return; 
         }
 
         if (outputIcon.enabled) StartCoroutine(CookingRoutineWithMiniGame());
     }
+
     private IEnumerator ShowFailNotificationTemporarily()
     {
-        failTextObj.SetActive(true);
+        norecipe.SetActive(true);
         yield return new WaitForSeconds(feedbackDuration);
-        failTextObj.SetActive(false);
+        norecipe.SetActive(false);
+        noRecipeCoroutine = null;
     }
 
     private void CheckTiming()

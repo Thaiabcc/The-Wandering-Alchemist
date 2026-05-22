@@ -4,7 +4,7 @@ using System.Collections;
 
 public class PlayerStats : MonoBehaviour
 {
-    #region TÀI NGUYÊN & BIẾN (VARIABLES)
+    #region VARIABLES
     public static PlayerStats Instance { get; private set; }
 
     [Header("Health & Shield")] 
@@ -196,47 +196,16 @@ public class PlayerStats : MonoBehaviour
             StartCoroutine(DeathUI.Instance.FadeInBlack(1.6f));
         }
 
-        StartCoroutine(RespawnSequence());
-    }
-
-    private IEnumerator RespawnSequence()
-    {
-        yield return new WaitForSeconds(2.0f);
-
-        Vector3 spawnPosition = Vector3.zero;
-        GameObject spawnObj = GameObject.Find("PlayerSpawnPoint");
-        spawnPosition = (spawnObj != null) ? spawnObj.transform.position : transform.position;
-
-        string currentScene = SceneManager.GetActiveScene().name;
-
-        if (SceneTransition.Instance != null)
-            SceneTransition.Instance.SwitchScene(currentScene);
-        else
-            SceneManager.LoadScene(currentScene);
-
-        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == currentScene);
-
-        yield return new WaitForSeconds(0.8f);
-
-        transform.position = spawnPosition;
-        Physics2D.SyncTransforms();
-
-        HealFullAndReset();
-
-        PlayerPenalty penalty = GetComponent<PlayerPenalty>();
-        if (penalty != null) penalty.ApplyPenalty();
-
-        if (DeathUI.Instance != null)
+        if (PlayerRespawnManager.Instance != null)
         {
-            yield return StartCoroutine(DeathUI.Instance.FadeOutBlack(1.5f));
+            PlayerRespawnManager.Instance.RespawnPlayer();
         }
-
-        isCurrentlyRespawning = false;
     }
 
     public void HealFullAndReset()
     {
         isDead = false;
+        isCurrentlyRespawning = false;
         maxHealth = originalMaxHealth;
         currentHealth = maxHealth;
         currentStamina = maxStamina;

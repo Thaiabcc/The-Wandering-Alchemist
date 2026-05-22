@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_Poison
   m_EditorClassIdentifier: 
+  isUnlocked: 0
+  recipeItem: {fileID: 11400000, guid: 1c8ad14ec02d07445920c641097ac1c1, type: 2}
   resultItem: {fileID: 11400000, guid: 269d079bccffdbb4a8e3867ca642e957, type: 2}
   resultCount: 1
   ingredients:

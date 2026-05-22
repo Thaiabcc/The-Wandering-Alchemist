@@ -1,9 +1,15 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal; 
+using System;
+using Random = UnityEngine.Random; // THÊM DÒNG NÀY ĐỂ DÙNG ACTION
 
 public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
+
+    // --- SỰ KIỆN PHÁT ĐI CHO HỆ THỐNG ĐÈN NGHE (MỚI) ---
+    // Trả về true nếu là trời tối, false nếu là trời sáng
+    public event Action<bool> OnNightStateChanged; 
 
     [Header("Time Settings")]
     [SerializeField] private float timeScale = 60f; 
@@ -14,9 +20,18 @@ public class TimeManager : MonoBehaviour
     [SerializeField] private Gradient dayNightGradient; 
     [SerializeField] private AnimationCurve intensityCurve;
 
+    // --- CẤU HÌNH GIỜ BẬT/TẮT ĐÈN (MỚI) ---
+    [Header("Light Automation Settings (MỚI)")]
+    [SerializeField] private int turnOnLightsHour = 18;  // 18h tối tự động bật đèn
+    [SerializeField] private int turnOffLightsHour = 6;  // 6h sáng tự động tắt đèn
+
     public int CurrentDay { get; private set; } = 1;
     public float CurrentHour { get; private set; }
     public float CurrentMinute { get; private set; }
+
+    // Biến lưu trạng thái trời tối hiện tại để check sự thay đổi
+    private bool isNight = false; 
+    public bool IsNight => isNight; // Cho phép các script khác kiểm tra trạng thái nhanh
 
     private double accumSeconds;
     private int totalSecondsInDay;
@@ -32,6 +47,9 @@ public class TimeManager : MonoBehaviour
         CurrentHour = startHour;
         totalSecondsInDay = startHour * 3600;
         accumSeconds = totalSecondsInDay;
+
+        // Cập nhật trạng thái sáng tối ban đầu dựa trên startHour
+        isNight = CheckIfNight(CurrentHour);
     }
 
     private void Update()
@@ -43,11 +61,33 @@ public class TimeManager : MonoBehaviour
         CurrentMinute = (totalSecondsInDay % 3600) / 60;
 
         UpdateDayNightLight();
+        CheckLightAutomation(); // --- GỌI HÀM KIỂM TRA BẬT TẮT ĐÈN Ở ĐÂY (MỚI) ---
 
         if (totalSecondsInDay >= 86400)
         {
             StartNewDay();
         }
+    }
+
+    // --- HÀM TỰ ĐỘNG KIỂM TRA VÀ GÕ CHUÔNG BÁO BẬT/TẮT ĐÈN (MỚI) ---
+    private void CheckLightAutomation()
+    {
+        bool currentNightState = CheckIfNight(CurrentHour);
+
+        // Nếu trạng thái Ngày/Đêm vừa mới thay đổi so với khung hình trước
+        if (currentNightState != isNight)
+        {
+            isNight = currentNightState;
+            // Gõ chuông thông báo cho toàn bộ đèn trên Map biết để bật hoặc tắt
+            OnNightStateChanged?.Invoke(isNight);
+        }
+    }
+
+    // Hàm bổ trợ để tính toán xem một mốc giờ có phải là ban đêm không
+    private bool CheckIfNight(float hour)
+    {
+        // Nếu giờ >= 18h tối HOẶC nhỏ hơn 6h sáng thì tính là Đêm (True)
+        return (hour >= turnOnLightsHour || hour < turnOffLightsHour);
     }
 
     private void UpdateDayNightLight()

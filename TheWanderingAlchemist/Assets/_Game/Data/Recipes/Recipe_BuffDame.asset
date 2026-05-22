@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_BuffDame
   m_EditorClassIdentifier: 
+  isUnlocked: 0
+  recipeItem: {fileID: 11400000, guid: b1932f9f094b51948ade2d3dbe3055d4, type: 2}
   resultItem: {fileID: 11400000, guid: f6011e3441336824da56ace65291ab64, type: 2}
   resultCount: 1
   ingredients:

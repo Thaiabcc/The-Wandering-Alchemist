@@ -6,8 +6,6 @@ public class PlayerRespawnManager : MonoBehaviour
 {
     public static PlayerRespawnManager Instance { get; private set; }
 
-    [Header("Điểm Hồi Sinh Mặc Định")]
-    [Tooltip("Kéo Empty Object làm điểm spawn vào đây")]
     [SerializeField] private Transform defaultSpawnPoint;
 
     private void Awake()
@@ -17,7 +15,6 @@ public class PlayerRespawnManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
@@ -29,10 +26,10 @@ public class PlayerRespawnManager : MonoBehaviour
 
     private IEnumerator RespawnSequence()
     {
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.6f);
 
-        Vector3 spawnPosition;
-
+        // Teleport & Reset player
+        Vector3 spawnPosition = Vector3.zero;
         if (defaultSpawnPoint != null)
         {
             spawnPosition = defaultSpawnPoint.position;
@@ -40,41 +37,42 @@ public class PlayerRespawnManager : MonoBehaviour
         else
         {
             GameObject spawnObj = GameObject.Find("PlayerSpawnPoint");
-            spawnPosition = spawnObj != null ? spawnObj.transform.position : Vector3.zero;
+            if (spawnObj != null) spawnPosition = spawnObj.transform.position;
         }
 
-        string currentScene = SceneManager.GetActiveScene().name;
-
-        if (SceneTransition.Instance != null)
-            SceneTransition.Instance.SwitchScene(currentScene);
-        else
-            SceneManager.LoadScene(currentScene);
-
-        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == currentScene);
-
-        yield return new WaitForSeconds(0.5f);
-
-        // Reset Player
         if (PlayerStats.Instance != null)
         {
             PlayerStats.Instance.transform.position = spawnPosition;
+            Physics2D.SyncTransforms();
             PlayerStats.Instance.HealFullAndReset();
         }
 
         PlayerPenalty penalty = FindObjectOfType<PlayerPenalty>();
-        if (penalty != null) 
-            penalty.ApplyPenalty();
+        if (penalty != null) penalty.ApplyPenalty();
 
-        // Refresh Hotbar sau khi respawn
         if (HotbarManager.Instance != null)
-        {
             HotbarManager.Instance.UpdateAllSlotsUI();
+
+        // Ẩn chữ "BẠN ĐÃ CHẾT"
+        if (DeathUI.Instance != null && DeathUI.Instance.deadText != null)
+            DeathUI.Instance.deadText.gameObject.SetActive(false);
+
+        yield return new WaitForSeconds(0.4f);
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (SceneTransition.Instance != null)
+        {
+            SceneTransition.Instance.SwitchSceneFromDeath(currentScene);
+        }
+        else
+        {
+            SceneManager.LoadScene(currentScene);
         }
 
-        // Fade UI
+        yield return new WaitForSeconds(0.5f);
+
         if (DeathUI.Instance != null)
-        {
-            yield return StartCoroutine(DeathUI.Instance.FadeOutBlack(1.5f));
-        }
+            DeathUI.Instance.ResetUI();
     }
 }

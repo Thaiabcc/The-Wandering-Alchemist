@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Oldmap
   itemName: Old Map
   description: Old Map Used for....
-  icon: {fileID: 21300000, guid: bfde2ded67e7f6348861d92713ffb07c, type: 3}
+  icon: {fileID: 21300000, guid: 0e6acb8cf8750c74fba914d1ade8d400, type: 3}
   buffIcon: {fileID: 0}
   itemType: 3
   maxStackSize: 99
@@ -30,6 +30,9 @@ MonoBehaviour:
   hoTDuration: 0
   maxHealthPercentBonus: 0
   buffDuration: 0
+  isPoisonImmunityPotion: 0
+  immunityDuration: 0
+  isCurePoisonOnly: 0
   isThrowable: 0
   throwablePrefab: {fileID: 0}
   poisonPuddlePrefab: {fileID: 0}

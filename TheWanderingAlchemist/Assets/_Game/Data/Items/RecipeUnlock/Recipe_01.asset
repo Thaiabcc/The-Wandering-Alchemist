@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Basic Recipe Health
   itemName: Basic Recipe Health
   description: '"...."'
-  icon: {fileID: 190322197, guid: 95e823af4a4f1e74a8df6ef922357e14, type: 3}
+  icon: {fileID: -1648809707, guid: 95e823af4a4f1e74a8df6ef922357e14, type: 3}
   buffIcon: {fileID: 0}
   itemType: 0
   maxStackSize: 99

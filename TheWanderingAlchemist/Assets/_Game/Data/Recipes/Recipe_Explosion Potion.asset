@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_Explosion Potion
   m_EditorClassIdentifier: 
+  isUnlocked: 0
+  recipeItem: {fileID: 11400000, guid: 3a6cd40569f421648847a3136350826e, type: 2}
   resultItem: {fileID: 11400000, guid: 9dc08f884d240834798b7e0d8b4268c1, type: 2}
   resultCount: 1
   ingredients:

@@ -33,7 +33,7 @@ public class DeathUI : MonoBehaviour
 
     public IEnumerator FadeInBlack(float duration)
     {
-        ResetUI(); // đảm bảo sạch
+        ResetUI();
 
         if (deathPanel) deathPanel.SetActive(true);
         if (deadText) deadText.gameObject.SetActive(true);
@@ -53,8 +53,6 @@ public class DeathUI : MonoBehaviour
 
     public IEnumerator FadeOutBlack(float duration)
     {
-        Debug.Log("FadeOutBlack started");
-    
         if (deadText) deadText.gameObject.SetActive(false);
 
         if (canvasGroup)
@@ -71,7 +69,5 @@ public class DeathUI : MonoBehaviour
         }
 
         if (deathPanel) deathPanel.SetActive(false);
-    
-        Debug.Log("FadeOutBlack finished");
     }
 }

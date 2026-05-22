@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_Stamina Potion
   m_EditorClassIdentifier: 
+  isUnlocked: 0
+  recipeItem: {fileID: 11400000, guid: 96b02b4542c3a2d41b041ecf2707816a, type: 2}
   resultItem: {fileID: 11400000, guid: e9604d6fcd0b4c442b6190f7b42a4d18, type: 2}
   resultCount: 1
   ingredients:

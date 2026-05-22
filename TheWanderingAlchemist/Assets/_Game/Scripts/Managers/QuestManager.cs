@@ -6,12 +6,12 @@ public class QuestManager : MonoBehaviour
 {
     public static QuestManager Instance { get; private set; }
 
-    [Header("Trạng thái")]
+    [Header("Status")]
     public List<Quest> activeQuests = new List<Quest>(); 
     public List<string> completedQuestNames = new List<string>();
     public Quest trackedQuest; 
 
-    [Header("Nhiệm vụ mặc định (Main Quest)")]
+    [Header("Default Quest")]
     public QuestData startingMainQuest; 
 
     public event Action OnQuestUpdated;

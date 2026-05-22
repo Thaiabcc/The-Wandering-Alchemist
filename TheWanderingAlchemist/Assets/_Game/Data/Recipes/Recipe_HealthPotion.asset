@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_HealthPotion
   m_EditorClassIdentifier: 
-  isUnlocked: 0
+  isUnlocked: 1
   recipeItem: {fileID: 11400000, guid: 5dcc7a6f69aa4e7429a83e704b5aab5a, type: 2}
   resultItem: {fileID: 11400000, guid: f06582fcfc45cef45ba4c9a10742e3cf, type: 2}
   resultCount: 1

@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_Increase Max Health
   m_EditorClassIdentifier: 
+  isUnlocked: 0
+  recipeItem: {fileID: 11400000, guid: 544ada958a811954b886a4e5714dbcfc, type: 2}
   resultItem: {fileID: 11400000, guid: 0f1beb5d853915b4fa32b8d8efdb8c25, type: 2}
   resultCount: 1
   ingredients:

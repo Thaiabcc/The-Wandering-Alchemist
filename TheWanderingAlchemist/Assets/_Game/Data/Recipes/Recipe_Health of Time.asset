@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ecaf0ec64a41a246ac78c0992d1be78, type: 3}
   m_Name: Recipe_Health of Time
   m_EditorClassIdentifier: 
+  isUnlocked: 0
+  recipeItem: {fileID: 11400000, guid: 275ae4c8ab4e3b04c82901c7d131e13f, type: 2}
   resultItem: {fileID: 11400000, guid: 801c815f5533dd14da070f7b6e5062b9, type: 2}
   resultCount: 1
   ingredients:

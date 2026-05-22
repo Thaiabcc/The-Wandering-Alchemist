@@ -21,8 +21,8 @@ MonoBehaviour:
   targetName: WeirdSlime
   requiredAmount: 3
   requiredItem: {fileID: 0}
-  goldReward: 0
-  itemReward: {fileID: 0}
+  goldReward: 150
+  itemReward: {fileID: 11400000, guid: 5e21b7ce6106f304bb12a730c5b83133, type: 2}
   startDialogue: []
   progressDialogue: []
   completeDialogue: []
