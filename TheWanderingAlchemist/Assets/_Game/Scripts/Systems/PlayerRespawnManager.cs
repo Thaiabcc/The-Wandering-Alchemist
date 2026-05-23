@@ -27,8 +27,6 @@ public class PlayerRespawnManager : MonoBehaviour
     private IEnumerator RespawnSequence()
     {
         yield return new WaitForSeconds(1.6f);
-
-        // Teleport & Reset player
         Vector3 spawnPosition = Vector3.zero;
         if (defaultSpawnPoint != null)
         {
@@ -53,7 +51,6 @@ public class PlayerRespawnManager : MonoBehaviour
         if (HotbarManager.Instance != null)
             HotbarManager.Instance.UpdateAllSlotsUI();
 
-        // Ẩn chữ "BẠN ĐÃ CHẾT"
         if (DeathUI.Instance != null && DeathUI.Instance.deadText != null)
             DeathUI.Instance.deadText.gameObject.SetActive(false);
 
