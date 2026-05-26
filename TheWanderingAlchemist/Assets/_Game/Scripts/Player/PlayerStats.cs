@@ -204,6 +204,7 @@ public class PlayerStats : MonoBehaviour
 
     public void HealFullAndReset()
     {
+        StopCoroutine("InvincibilityRoutine");
         isDead = false;
         isCurrentlyRespawning = false;
         maxHealth = originalMaxHealth;
@@ -228,6 +229,11 @@ public class PlayerStats : MonoBehaviour
             BuffUIManager.Instance.RemoveBuff("Poison");
         }
 
+        if (PlayerHealthUI.Instance != null)
+        {
+            PlayerHealthUI.Instance.ResetHealthBar();
+        }
+        SetSpriteAlpha(1f);
         EnablePlayer(true);
         ResetAnimator();
         ResetSpriteColor();
@@ -236,15 +242,22 @@ public class PlayerStats : MonoBehaviour
     #endregion
 
     #region BUFFS & COMBAT
+    #region BUFFS & COMBAT
+
     public void AddShield(float amount, Sprite buffIcon = null) 
     { 
-        currentShield += amount; 
+        currentShield = amount; 
+
         if (BuffUIManager.Instance != null && buffIcon != null)
         {
+            BuffUIManager.Instance.RemoveBuff("Shield");
             BuffUIManager.Instance.AddBuff("Shield", buffIcon, 0f);
         }
+
         UpdateUI(); 
     }
+
+    #endregion
 
     private IEnumerator DestroyShieldVisual(GameObject shieldObject, float delay)
     {
@@ -524,6 +537,32 @@ public class PlayerStats : MonoBehaviour
     {
         if (PlayerHealthUI.Instance != null)
             PlayerHealthUI.Instance.UpdateStamina(currentStamina, maxStamina);
+    }
+    #endregion
+    
+    #region Data
+    public void LoadDataFromSave(GameData data)
+    {
+        HealFullAndReset(); 
+
+        currentHealth = data.playerHealth;
+        currentStamina = data.playerStamina;
+        currentShield = data.playerShield;
+        baseDamage = data.playerBaseDamage;
+        currentDamage = baseDamage;
+
+        if (data.playerPosition != null && data.playerPosition.Length == 3)
+        {
+            transform.position = new Vector3(data.playerPosition[0], data.playerPosition[1], data.playerPosition[2]);
+            Physics2D.SyncTransforms(); 
+        }
+
+        if (data.isPoisoned)
+        {
+            ApplyPoison(2f, 1f); 
+        }
+
+        UpdateUI();
     }
     #endregion
 }

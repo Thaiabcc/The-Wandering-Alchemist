@@ -46,7 +46,7 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        PlayMusic(backgroundMusic, 0.028f);
+        PlayMusic(backgroundMusic, 1f);
     }
 
     public void PlayMusic(AudioClip clip, float volume = 1f)

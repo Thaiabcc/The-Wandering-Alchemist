@@ -3,15 +3,15 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class JuicyTree : MonoBehaviour
 {
-    #region SETTINGS - ĐUNG ĐƯA (SWAYING)
-    [Header("Đung Đưa - Swaying")]
+    #region SETTING SWAYING
+    [Header("Swaying")]
     [SerializeField] private float swaySpeed = 1.2f; 
     [SerializeField] private float swayAmount = 2.5f; 
     [SerializeField] private float windTurbulence = 0.5f; 
     #endregion
 
-    #region SETTINGS - LÁ RỤNG (LEAF FALL)
-    [Header("Lá Rụng - Leaf Fall")]
+    #region SETTINGS LEAF FALL
+    [Header("Leaf Fall")]
     [SerializeField] private ParticleSystem leafParticles;
     [SerializeField] private float baseLeafEmission = 5f;
     [SerializeField] private float stormLeafEmission = 50f;

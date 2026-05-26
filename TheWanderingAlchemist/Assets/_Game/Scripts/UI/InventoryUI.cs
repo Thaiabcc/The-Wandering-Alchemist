@@ -116,7 +116,7 @@ public class InventoryUI : MonoBehaviour
         if (goldText != null)
             goldText.text = goldValue;
         else
-            Debug.LogWarning("Chưa gán Gold Text trong Inspector!");
+            Debug.LogWarning("Gold not text");
 
         if (goldTextInventory != null)
             goldTextInventory.text = goldValue;

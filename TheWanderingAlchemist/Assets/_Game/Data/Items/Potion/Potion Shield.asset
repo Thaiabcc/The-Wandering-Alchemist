@@ -19,17 +19,20 @@ MonoBehaviour:
   buffIcon: {fileID: -735358498, guid: 19f6cfe692adb174282ea990d9f1b334, type: 3}
   itemType: 1
   maxStackSize: 99
-  baseValue: 10
+  baseValue: 50
   worldPrefab: {fileID: 0}
   isConsumable: 1
   healthRestore: 0
   staminaRestore: 0
-  shieldAmount: 50
+  shieldAmount: 10
   damageBuffAmount: 0
   hoTAmount: 0
   hoTDuration: 0
   maxHealthPercentBonus: 0
-  buffDuration: 30
+  buffDuration: 0
+  isPoisonImmunityPotion: 0
+  immunityDuration: 0
+  isCurePoisonOnly: 0
   isThrowable: 0
   throwablePrefab: {fileID: 0}
   poisonPuddlePrefab: {fileID: 0}

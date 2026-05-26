@@ -147,4 +147,11 @@ public class WeatherManager : MonoBehaviour
             }
         }
     }
+    public void LoadWeatherData(string savedWeatherState)
+    {
+        if (System.Enum.TryParse(savedWeatherState, out WeatherState loadedState))
+        {
+            ChangeWeather(loadedState);
+        }
+    }
 }

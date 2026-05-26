@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using Random = UnityEngine.Random;
 
 public class SceneTransition : MonoBehaviour
 {
@@ -15,8 +17,10 @@ public class SceneTransition : MonoBehaviour
     [SerializeField] private Slider loadingSlider;
     [SerializeField] private TextMeshProUGUI progressText;
     [SerializeField] private TextMeshProUGUI tipText;
-
     [SerializeField] private List<string> gameTips = new List<string>();
+
+    [Header("Loading Settings")]
+    [SerializeField] private float loadingSpeed = 1.5f;       
 
     private void Awake()
     {
@@ -38,9 +42,9 @@ public class SceneTransition : MonoBehaviour
         if (tipText != null) tipText.gameObject.SetActive(false);
     }
 
-    public void SwitchScene(string sceneName)
+    public void SwitchScene(string sceneName, Action onLoaded = null)
     {
-        StartCoroutine(TransitionRoutine(sceneName));
+        StartCoroutine(TransitionRoutine(sceneName, onLoaded));
     }
 
     public void SwitchSceneFromDeath(string sceneName)
@@ -48,58 +52,27 @@ public class SceneTransition : MonoBehaviour
         StartCoroutine(TransitionFromDeathRoutine(sceneName));
     }
 
-    private IEnumerator TransitionRoutine(string sceneName)
+    private IEnumerator TransitionRoutine(string sceneName, Action onLoaded = null)
     {
         ChangeRandomTip();
         yield return Fade(1);
 
-        if (loadingSlider != null)
-        {
-            loadingSlider.gameObject.SetActive(true);
-            loadingSlider.value = 0;
-        }
-        if (progressText != null)
-        {
-            progressText.gameObject.SetActive(true);
-            progressText.text = "Loading... 0%";
-        }
-        if (tipText != null) tipText.gameObject.SetActive(true);
-
+        ActivateLoadingUI();
+        
         System.GC.Collect();
-
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
         operation.allowSceneActivation = false;
 
-        float targetProgress = 0f;
-        while (operation.progress < 0.9f)
-        {
-            targetProgress = Mathf.Clamp01(operation.progress / 0.9f);
-            if (loadingSlider != null)
-            {
-                loadingSlider.value = Mathf.MoveTowards(loadingSlider.value, targetProgress, Time.deltaTime * 3f);
-                UpdateProgressText(loadingSlider.value);
-            }
-            yield return null;
-        }
+        yield return RunLoadingBar(operation);
 
-        while (loadingSlider.value < 1f)
-        {
-            loadingSlider.value = Mathf.MoveTowards(loadingSlider.value, 1f, Time.deltaTime * 3f);
-            UpdateProgressText(loadingSlider.value);
-            yield return null;
-        }
-
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.3f);
         operation.allowSceneActivation = true;
-
         while (!operation.isDone) yield return null;
 
         yield return new WaitForSeconds(0.2f);
 
-        if (loadingSlider != null) loadingSlider.gameObject.SetActive(false);
-        if (progressText != null) progressText.gameObject.SetActive(false);
-        if (tipText != null) tipText.gameObject.SetActive(false);
-
+        onLoaded?.Invoke();
+        DeactivateLoadingUI();
         yield return Fade(0);
     }
 
@@ -108,58 +81,63 @@ public class SceneTransition : MonoBehaviour
         fadeCanvasGroup.alpha = 1f;
         fadeCanvasGroup.blocksRaycasts = true;
 
+        ActivateLoadingUI();
+        ChangeRandomTip();
+        
+        System.GC.Collect();
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+        operation.allowSceneActivation = false;
+
+        yield return RunLoadingBar(operation);
+
+        yield return new WaitForSeconds(0.3f);
+        operation.allowSceneActivation = true;
+        while (!operation.isDone) yield return null;
+
+        yield return new WaitForSeconds(0.2f);
+
+        DeactivateLoadingUI();
+        yield return Fade(0);
+    }
+
+    private void ActivateLoadingUI()
+    {
         if (loadingSlider != null)
         {
             loadingSlider.gameObject.SetActive(true);
-            loadingSlider.value = 0;
+            loadingSlider.value = 0f;
         }
         if (progressText != null)
         {
             progressText.gameObject.SetActive(true);
             progressText.text = "Loading... 0%";
         }
-        if (tipText != null)
-        {
-            tipText.gameObject.SetActive(true);
-            ChangeRandomTip();
-        }
+        if (tipText != null) tipText.gameObject.SetActive(true);
+    }
 
-        System.GC.Collect();
-
-        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
-        operation.allowSceneActivation = false;
-
-        float targetProgress = 0f;
-        while (operation.progress < 0.9f)
-        {
-            targetProgress = Mathf.Clamp01(operation.progress / 0.9f);
-            if (loadingSlider != null)
-            {
-                loadingSlider.value = Mathf.MoveTowards(loadingSlider.value, targetProgress, Time.deltaTime * 3f);
-                UpdateProgressText(loadingSlider.value);
-            }
-            yield return null;
-        }
-
-        while (loadingSlider.value < 1f)
-        {
-            loadingSlider.value = Mathf.MoveTowards(loadingSlider.value, 1f, Time.deltaTime * 3f);
-            UpdateProgressText(loadingSlider.value);
-            yield return null;
-        }
-
-        yield return new WaitForSeconds(0.4f);
-        operation.allowSceneActivation = true;
-
-        while (!operation.isDone) yield return null;
-
-        yield return new WaitForSeconds(0.2f);
-
+    private void DeactivateLoadingUI()
+    {
         if (loadingSlider != null) loadingSlider.gameObject.SetActive(false);
         if (progressText != null) progressText.gameObject.SetActive(false);
         if (tipText != null) tipText.gameObject.SetActive(false);
+    }
 
-        yield return Fade(0);
+    private IEnumerator RunLoadingBar(AsyncOperation operation)
+    {
+        float progress = 0f;
+
+        while (progress < 1f)
+        {
+            float target = operation.progress < 0.9f ? operation.progress / 0.9f : 1f;
+            progress = Mathf.MoveTowards(progress, target, Time.deltaTime * loadingSpeed);
+
+            if (loadingSlider != null)
+                loadingSlider.value = progress;
+
+            UpdateProgressText(progress);
+
+            yield return null;
+        }
     }
 
     private void UpdateProgressText(float value)
@@ -193,7 +171,6 @@ public class SceneTransition : MonoBehaviour
         }
 
         fadeCanvasGroup.alpha = targetAlpha;
-
         if (targetAlpha == 0)
             fadeCanvasGroup.blocksRaycasts = false;
     }

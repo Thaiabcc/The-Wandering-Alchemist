@@ -7,9 +7,8 @@ public class PlayerHealthUI : MonoBehaviour
 
     [Header("Health")]
     [SerializeField] private Image healthFill;
-
     [SerializeField] private RectTransform healthBarRect;
-    [SerializeField] private float pixelsPerHealth = 2.5f;
+    [SerializeField] private float basePixelsPerHealth = 2.5f;  
 
     [Header("Stamina")]
     [SerializeField] private Image staminaFill;
@@ -19,9 +18,11 @@ public class PlayerHealthUI : MonoBehaviour
     [SerializeField] private Color warningColor = Color.yellow;
     [SerializeField] private Color criticalColor = Color.red;
 
+    private float originalBarWidth;   
+
     private void Awake()
     {
-        if (Instance != null)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -29,15 +30,17 @@ public class PlayerHealthUI : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        if (healthBarRect != null)
+            originalBarWidth = healthBarRect.sizeDelta.x;
     }
 
     public void UpdateHealth(int current, int max)
     {
         if (!healthFill || !healthBarRect) return;
 
-        float newWidth = max * pixelsPerHealth;
-        healthBarRect.sizeDelta = new Vector2(newWidth, healthBarRect.sizeDelta.y);
+        float newWidth = originalBarWidth * (max / 100f); 
 
+        healthBarRect.sizeDelta = new Vector2(newWidth, healthBarRect.sizeDelta.y);
         healthFill.fillAmount = (float)current / max;
     }
 
@@ -49,16 +52,16 @@ public class PlayerHealthUI : MonoBehaviour
         staminaFill.fillAmount = ratio;
 
         if (ratio < 0.15f)
-        {
             staminaFill.color = criticalColor;
-        }
         else if (ratio <= 0.5f)
-        {
             staminaFill.color = warningColor;
-        }
         else
-        {
             staminaFill.color = normalColor;
-        }
+    }
+
+    public void ResetHealthBar()
+    {
+        if (healthBarRect != null)
+            healthBarRect.sizeDelta = new Vector2(originalBarWidth, healthBarRect.sizeDelta.y);
     }
 }

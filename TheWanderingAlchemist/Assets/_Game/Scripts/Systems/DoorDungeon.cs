@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class DoorDungeon : MonoBehaviour
 {
-    [Header("Yêu Cầu Vật Phẩm")]
+    [Header("Item Required")]
     [SerializeField] private ItemData requiredKey;
 
-    [Tooltip("Dùng xong có mất chìa khóa không?")]
+    [Tooltip("Key Comsume")]
     [SerializeField] private bool consumeKey = true;
 
-    [Header("Cài Đặt Cửa")]
+    [Header("Door Settings")]
     [SerializeField] private Animator animator;
     [SerializeField] private Collider2D physicsCollider;
     [SerializeField] private Collider2D triggerCollider;
@@ -28,12 +28,7 @@ public class DoorDungeon : MonoBehaviour
                 if (consumeKey)
                 {
                     InventoryManager.Instance.RemoveItem(requiredKey, 1);
-                    Debug.Log("Đã dùng chìa khóa!");
                 }
-            }
-            else
-            {
-                Debug.Log("Không có chìa khóa! Cần tìm: " + requiredKey.itemName);
             }
         }
     }
@@ -41,7 +36,6 @@ public class DoorDungeon : MonoBehaviour
     private void OpenDoor()
     {
         isOpen = true;
-        Debug.Log("Cửa đã mở!");
 
         if (animator != null)
         {

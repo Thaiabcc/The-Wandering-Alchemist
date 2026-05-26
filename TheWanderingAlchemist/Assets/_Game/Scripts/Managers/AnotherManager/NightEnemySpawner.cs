@@ -4,21 +4,40 @@ using System.Collections.Generic;
 
 public class NightEnemySpawner : MonoBehaviour
 {
-    #region SETTINGS
-    [Header("Spawn Settings")]
+    #region NORMAL SPAWN SETTINGS
+    [Header("Normal Enemies (18h - 6h)")]
     [SerializeField] private GameObject[] nightEnemyPrefabs;
-    [SerializeField] private float spawnInterval = 5f;
-    [SerializeField] private float spawnRadius = 4f;
-
-    [Header("Time Constraints")]
+    [SerializeField] private float normalSpawnInterval = 5f;
+    [SerializeField] private float normalSpawnRadius = 4f;
     [SerializeField] private int nightStartHour = 18;
     [SerializeField] private int dayStartHour = 6;
     #endregion
 
+    #region VIP SPAWN SETTINGS
+    [Header("Special VIP Enemies (Blood Moon)")]
+    [SerializeField] private GameObject[] vipEnemyPrefabs;
+    [SerializeField] private int specialNightInterval = 4; // Cứ 4 ngày 1 lần
+    
+    [Tooltip("Giờ thả VIP (Thường là 0h nửa đêm)")]
+    [SerializeField] private int vipSpawnHour = 0; 
+    
+    [Tooltip("Số lượng VIP thả ra (Ít thôi cho nó nguy hiểm)")]
+    [SerializeField] private int vipMaxAmount = 3; 
+    
+    [Tooltip("Bán kính thả VIP (To hơn quái thường)")]
+    [SerializeField] private float vipSpawnRadius = 10f; 
+    
+    [Tooltip("Khoảng cách thời gian thả từng con VIP (Giây)")]
+    [SerializeField] private float vipSpawnDelay = 1f;
+    #endregion
+
     #region PRIVATE VARIABLES
-    private Coroutine spawnCoroutine;
-    private bool isSpawningActive = false;
+    private Coroutine normalSpawnCoroutine;
+    private bool isNightActive = false;
     private List<GameObject> spawnedEnemies = new List<GameObject>();
+    
+    private bool isSpecialNightNow = false; 
+    private bool hasSpawnedVIPsTonight = false; // Chốt an toàn: Đảm bảo chỉ thả 1 đợt VIP mỗi đêm
     #endregion
 
     #region UNITY LIFECYCLE
@@ -26,13 +45,28 @@ public class NightEnemySpawner : MonoBehaviour
     {
         bool isNight = CheckIfNight();
 
-        if (isNight && !isSpawningActive)
+        // 1. Quản lý chu kỳ Đêm/Ngày chung
+        if (isNight)
         {
-            StartSpawning();
+            if (!isNightActive)
+            {
+                StartNight();
+            }
+
+            // 2. Canh me đúng nửa đêm để thả VIP
+            if (isSpecialNightNow && !hasSpawnedVIPsTonight)
+            {
+                // Ép kiểu giờ hiện tại về số nguyên (vd: 0.5h -> 0h) để kích hoạt
+                if (Mathf.FloorToInt(TimeManager.Instance.CurrentHour) == vipSpawnHour)
+                {
+                    StartCoroutine(SpawnVIPRoutine());
+                    hasSpawnedVIPsTonight = true; // Đóng chốt! Đêm nay đã thả VIP rồi, cấm thả nữa
+                }
+            }
         }
-        else if (!isNight && isSpawningActive)
+        else if (!isNight && isNightActive)
         {
-            StopSpawning();
+            EndNight();
         }
     }
     #endregion
@@ -45,58 +79,85 @@ public class NightEnemySpawner : MonoBehaviour
         float currentHour = TimeManager.Instance.CurrentHour;
 
         if (nightStartHour > dayStartHour)
-        {
             return currentHour >= nightStartHour || currentHour < dayStartHour;
-        }
         else
-        {
             return currentHour >= nightStartHour && currentHour < dayStartHour;
-        }
+    }
+
+    private bool CheckIfSpecialNight()
+    {
+        if (TimeManager.Instance == null) return false;
+
+        int currentDay = TimeManager.Instance.CurrentDay;
+        if (currentDay == 0) return false; // Bỏ qua ngày 0
+
+        return currentDay % specialNightInterval == 0;
     }
     #endregion
 
     #region SPAWN LOGIC
-    private void StartSpawning()
+    private void StartNight()
     {
-        isSpawningActive = true;
-        if (spawnCoroutine == null)
+        isNightActive = true;
+        isSpecialNightNow = CheckIfSpecialNight();
+        hasSpawnedVIPsTonight = false; // Reset chốt an toàn cho đêm mới
+
+        // Bắt đầu rặn quái thường
+        if (normalSpawnCoroutine == null)
         {
-            spawnCoroutine = StartCoroutine(SpawnRoutine());
+            normalSpawnCoroutine = StartCoroutine(NormalSpawnRoutine());
         }
     }
 
-    private void StopSpawning()
+    private void EndNight()
     {
-        isSpawningActive = false;
-        if (spawnCoroutine != null)
+        isNightActive = false;
+        
+        if (normalSpawnCoroutine != null)
         {
-            StopCoroutine(spawnCoroutine);
-            spawnCoroutine = null;
+            StopCoroutine(normalSpawnCoroutine);
+            normalSpawnCoroutine = null;
         }
-        ClearNightEnemies();
+        ClearAllEnemies();
     }
 
-    private IEnumerator SpawnRoutine()
+    // ================== LUỒNG 1: QUÁI THƯỜNG ==================
+    private IEnumerator NormalSpawnRoutine()
     {
-        while (isSpawningActive)
+        while (isNightActive)
         {
-            SpawnEnemy();
-            yield return new WaitForSeconds(spawnInterval);
+            SpawnSingleEnemy(nightEnemyPrefabs, normalSpawnRadius);
+            yield return new WaitForSeconds(normalSpawnInterval);
         }
     }
 
-    private void SpawnEnemy()
+    // ================== LUỒNG 2: QUÁI VIP ==================
+    private IEnumerator SpawnVIPRoutine()
     {
-        if (nightEnemyPrefabs == null || nightEnemyPrefabs.Length == 0) return;
+        Debug.Log("Nửa đêm cmnr! Bắt đầu thả " + vipMaxAmount + " con VIP!");
+        
+        for (int i = 0; i < vipMaxAmount; i++)
+        {
+            SpawnSingleEnemy(vipEnemyPrefabs, vipSpawnRadius);
+            yield return new WaitForSeconds(vipSpawnDelay); // Rặn từng con một cho mượt, không bị lag giật cục
+        }
+    }
 
-        GameObject randomEnemy = nightEnemyPrefabs[Random.Range(0, nightEnemyPrefabs.Length)];
-        Vector2 randomPos = (Vector2)transform.position + Random.insideUnitCircle * spawnRadius;
+    // HÀM DÙNG CHUNG ĐỂ ĐẺ QUÁI
+    private void SpawnSingleEnemy(GameObject[] enemyPool, float radius)
+    {
+        if (enemyPool == null || enemyPool.Length == 0) return;
+
+        GameObject randomEnemy = enemyPool[Random.Range(0, enemyPool.Length)];
+        
+        // Tính toán tọa độ thả (xung quanh Spawner)
+        Vector2 randomPos = (Vector2)transform.position + Random.insideUnitCircle * radius;
 
         GameObject enemyInstance = Instantiate(randomEnemy, randomPos, Quaternion.identity);
         spawnedEnemies.Add(enemyInstance);
     }
 
-    private void ClearNightEnemies()
+    private void ClearAllEnemies()
     {
         for (int i = spawnedEnemies.Count - 1; i >= 0; i--)
         {

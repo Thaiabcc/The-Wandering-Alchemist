@@ -127,4 +127,17 @@ public class TimeManager : MonoBehaviour
     {
         return string.Format("{0:00}:{1:00}", CurrentHour, CurrentMinute);
     }
+    
+    public void LoadTimeData(int savedDay, double savedAccumSeconds)
+    {
+        CurrentDay = savedDay;
+        accumSeconds = savedAccumSeconds;
+        totalSecondsInDay = (int)accumSeconds;
+
+        CurrentHour = totalSecondsInDay / 3600;
+        CurrentMinute = (totalSecondsInDay % 3600) / 60;
+
+        UpdateDayNightLight();
+        isNight = CheckIfNight(CurrentHour);
+    }
 }

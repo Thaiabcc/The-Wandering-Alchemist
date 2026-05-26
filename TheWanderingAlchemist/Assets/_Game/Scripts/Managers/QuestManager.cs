@@ -154,4 +154,26 @@ public class QuestManager : MonoBehaviour
         trackedQuest = null;
         OnQuestUpdated?.Invoke();
     }
+    public void LoadQuestData(List<string> savedCompleted, List<QuestSaveData> savedActive, List<QuestData> database)
+    {
+        completedQuestNames = new List<string>(savedCompleted);
+        activeQuests.Clear();
+        trackedQuest = null;
+
+        foreach (QuestSaveData sData in savedActive)
+        {
+            QuestData originalData = database.Find(q => q.questName == sData.questName);
+            if (originalData != null)
+            {
+                Quest loadedQuest = new Quest(originalData);
+                loadedQuest.currentAmount = sData.currentAmount;
+                loadedQuest.isCompleted = sData.isCompleted;
+
+                activeQuests.Add(loadedQuest);
+
+                if (sData.isTracked) trackedQuest = loadedQuest;
+            }
+        }
+        OnQuestUpdated?.Invoke();
+    }
 }

@@ -5,7 +5,7 @@ using UnityEngine.Events;
 public class KnightPuzzleManager : MonoBehaviour
 {
     [Header("Puzzle Configuration")]
-    [Tooltip("Thứ tự đúng cần kích hoạt")]
+    [Tooltip("Correct Sequence")]
     public List<KnightColor> correctSequence;
 
     [Header("Audio Settings")]
@@ -14,7 +14,7 @@ public class KnightPuzzleManager : MonoBehaviour
     public AudioClip failClip;     // Buzz
     public AudioClip successClip;  // Win
 
-    [Tooltip("Độ cao âm thanh tăng dần mỗi lần đúng")]
+    [Tooltip("Pitch")]
     public float pitchStep = 0.15f;
 
     [Header("Events")]
@@ -29,7 +29,6 @@ public class KnightPuzzleManager : MonoBehaviour
         if (isSolved) return;
         if (knight.myColor == correctSequence[currentIndex])
         {
-            Debug.Log($"Bước {currentIndex + 1} Chính xác: {knight.myColor}");
             PlayNote(currentIndex);
             currentIndex++; 
             if (currentIndex >= correctSequence.Count)
@@ -39,7 +38,6 @@ public class KnightPuzzleManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Sai thứ tự! Reset.");
             FailPuzzle();
         }
     }
@@ -68,7 +66,6 @@ public class KnightPuzzleManager : MonoBehaviour
     private void SolvePuzzle()
     {
         isSolved = true;
-        Debug.Log("🎉 PUZZLE SOLVED!");
         if (audioSource && successClip)
         {
             audioSource.pitch = 1.0f;

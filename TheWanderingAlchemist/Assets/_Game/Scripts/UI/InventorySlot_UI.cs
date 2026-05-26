@@ -143,6 +143,7 @@ public class InventorySlot_UI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
                 AlchemyUI.Instance.ReceiveItemFromInventory(item);
                 return;
             }
+
             bool isRecipeItem = false;
             if (AlchemyUI.Instance != null && AlchemyUI.Instance.allRecipes != null)
             {
@@ -150,24 +151,23 @@ public class InventorySlot_UI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
                 {
                     if (recipe != null && recipe.recipeItem == this.item)
                     {
-                        isRecipeItem = true; 
+                        isRecipeItem = true;
 
                         if (recipe.isUnlocked)
                         {
-                            Debug.Log("Công thức này ông đã học từ trước rồi bro!");
-                            return; // Thoát hàm, không làm gì cả
+                            return;
                         }
 
                         recipe.isUnlocked = true;
                         PlayerPrefs.SetInt("Recipe_" + recipe.resultItem.itemName, 1);
                         PlayerPrefs.Save();
 
-                        Debug.LogWarning($"🎉 Tuyệt vời! Đã mở khóa công thức nấu: {recipe.resultItem.itemName}");
                         InventoryManager.Instance.RemoveItem(this.item, 1);
-                        return; 
+                        return;
                     }
                 }
             }
+
             bool isSuccess = item.UseItem(PlayerStats.Instance);
             if (isSuccess)
             {
@@ -209,6 +209,7 @@ public class InventorySlot_UI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     private void CreateGhostUI()
     {
         if (ghostObj != null) Destroy(ghostObj);
+
         ghostObj = new GameObject("SplitGhost");
         ghostObj.transform.SetParent(GetComponentInParent<Canvas>().transform);
         ghostObj.transform.SetAsLastSibling();

@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class DebugInventoryCheat : MonoBehaviour
 {
-    [Header("Cấu hình phím bấm")]
+    [Header("Button")]
     public KeyCode cheatKey = KeyCode.F1;
 
-    [Header("Danh sách tất cả Item trong Game")]
+    [Header("List")]
     public ItemData[] allItemsInGame;
 
-    [Header("Số lượng muốn thêm mỗi item")]
+    [Header("Quantity of per items")]
     public int amountToAdd = 10;
 
     private void Update()
