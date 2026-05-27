@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class FloatingPotion : MonoBehaviour
 {
-    [Header("Căn chỉnh Nhấp nhô")]
+    [Header("Floating Potion")]
     public float floatSpeed = 2f;    
     public float floatHeight = 15f; 
 

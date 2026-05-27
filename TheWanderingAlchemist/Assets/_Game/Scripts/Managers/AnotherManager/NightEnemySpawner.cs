@@ -16,7 +16,7 @@ public class NightEnemySpawner : MonoBehaviour
     #region VIP SPAWN SETTINGS
     [Header("Special VIP Enemies (Blood Moon)")]
     [SerializeField] private GameObject[] vipEnemyPrefabs;
-    [SerializeField] private int specialNightInterval = 4; // Cứ 4 ngày 1 lần
+    [SerializeField] private int specialNightInterval = 4; 
     
     [Tooltip("Giờ thả VIP (Thường là 0h nửa đêm)")]
     [SerializeField] private int vipSpawnHour = 0; 
@@ -37,7 +37,7 @@ public class NightEnemySpawner : MonoBehaviour
     private List<GameObject> spawnedEnemies = new List<GameObject>();
     
     private bool isSpecialNightNow = false; 
-    private bool hasSpawnedVIPsTonight = false; // Chốt an toàn: Đảm bảo chỉ thả 1 đợt VIP mỗi đêm
+    private bool hasSpawnedVIPsTonight = false; 
     #endregion
 
     #region UNITY LIFECYCLE
@@ -45,7 +45,6 @@ public class NightEnemySpawner : MonoBehaviour
     {
         bool isNight = CheckIfNight();
 
-        // 1. Quản lý chu kỳ Đêm/Ngày chung
         if (isNight)
         {
             if (!isNightActive)
@@ -53,14 +52,12 @@ public class NightEnemySpawner : MonoBehaviour
                 StartNight();
             }
 
-            // 2. Canh me đúng nửa đêm để thả VIP
             if (isSpecialNightNow && !hasSpawnedVIPsTonight)
             {
-                // Ép kiểu giờ hiện tại về số nguyên (vd: 0.5h -> 0h) để kích hoạt
                 if (Mathf.FloorToInt(TimeManager.Instance.CurrentHour) == vipSpawnHour)
                 {
                     StartCoroutine(SpawnVIPRoutine());
-                    hasSpawnedVIPsTonight = true; // Đóng chốt! Đêm nay đã thả VIP rồi, cấm thả nữa
+                    hasSpawnedVIPsTonight = true; 
                 }
             }
         }
@@ -89,7 +86,7 @@ public class NightEnemySpawner : MonoBehaviour
         if (TimeManager.Instance == null) return false;
 
         int currentDay = TimeManager.Instance.CurrentDay;
-        if (currentDay == 0) return false; // Bỏ qua ngày 0
+        if (currentDay == 0) return false; 
 
         return currentDay % specialNightInterval == 0;
     }
@@ -100,9 +97,8 @@ public class NightEnemySpawner : MonoBehaviour
     {
         isNightActive = true;
         isSpecialNightNow = CheckIfSpecialNight();
-        hasSpawnedVIPsTonight = false; // Reset chốt an toàn cho đêm mới
+        hasSpawnedVIPsTonight = false; 
 
-        // Bắt đầu rặn quái thường
         if (normalSpawnCoroutine == null)
         {
             normalSpawnCoroutine = StartCoroutine(NormalSpawnRoutine());
@@ -121,7 +117,6 @@ public class NightEnemySpawner : MonoBehaviour
         ClearAllEnemies();
     }
 
-    // ================== LUỒNG 1: QUÁI THƯỜNG ==================
     private IEnumerator NormalSpawnRoutine()
     {
         while (isNightActive)
@@ -131,7 +126,6 @@ public class NightEnemySpawner : MonoBehaviour
         }
     }
 
-    // ================== LUỒNG 2: QUÁI VIP ==================
     private IEnumerator SpawnVIPRoutine()
     {
         Debug.Log("Nửa đêm cmnr! Bắt đầu thả " + vipMaxAmount + " con VIP!");
@@ -139,18 +133,16 @@ public class NightEnemySpawner : MonoBehaviour
         for (int i = 0; i < vipMaxAmount; i++)
         {
             SpawnSingleEnemy(vipEnemyPrefabs, vipSpawnRadius);
-            yield return new WaitForSeconds(vipSpawnDelay); // Rặn từng con một cho mượt, không bị lag giật cục
+            yield return new WaitForSeconds(vipSpawnDelay); 
         }
     }
 
-    // HÀM DÙNG CHUNG ĐỂ ĐẺ QUÁI
     private void SpawnSingleEnemy(GameObject[] enemyPool, float radius)
     {
         if (enemyPool == null || enemyPool.Length == 0) return;
 
         GameObject randomEnemy = enemyPool[Random.Range(0, enemyPool.Length)];
         
-        // Tính toán tọa độ thả (xung quanh Spawner)
         Vector2 randomPos = (Vector2)transform.position + Random.insideUnitCircle * radius;
 
         GameObject enemyInstance = Instantiate(randomEnemy, randomPos, Quaternion.identity);

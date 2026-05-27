@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; 
+using TMPro;
 
 public class CreditsManager : MonoBehaviour
 {
@@ -7,12 +7,14 @@ public class CreditsManager : MonoBehaviour
 
     void Start()
     {
-        creditsTextComponent.text = @"<size=120%>THE WANDERING ALCHEMIST</size>
+        if (creditsTextComponent != null)
+        {
+            creditsTextComponent.text = @"<size=120%>THE WANDERING ALCHEMIST</size>
 
 <size=60%>A Game By</size>
 Dam Duc Thai
 
-- - - - - - -
+- - - - - - - - - - - - - - - - - - - -
 
 <size=70%>Game Design & Development</size>
 Dam Duc Thai
@@ -29,35 +31,33 @@ Dam Duc Thai
 <size=70%>UI / UX Design</size>
 Dam Duc Thai
 
-- - - - - - -
+- - - - - - - - - - - - - - - - - - - -
 
 <size=70%>Gameplay Review & Suggestions</size>
 Ha Duc Tuan
 
 <size=70%>Bug Testing & Quality Check</size>
-Do Duy Khanh
+Bui Duy Khanh
 
 <size=70%>Playtesting & Feedback</size>
-Ha Duc Tuan
-Do Duy Khanh
+Ha Duc Tuan, Bui Duy Khanh
 
 <size=70%>Quest Flow & Progression Review</size>
 Ha Duc Tuan
 
 <size=70%>Combat Balance Testing</size>
-Do Duy Khanh
+Bui Duy Khanh
 
 <size=70%>World Exploration Feedback</size>
 Ha Duc Tuan
 
 <size=70%>UI Testing & Accessibility Check</size>
-Do Duy Khanh
+Bui Duy Khanh
 
 <size=70%>Additional Creative Support</size>
-Ha Duc Tuan
-Do Duy Khanh
+Ha Duc Tuan, Bui Duy Khanh
 
-- - - - - - -
+- - - - - - - - - - - - - - - - - - - -
 
 <size=70%>Visuals & Pixel Art Assets</size>
 Admurin — UI: 02 Wood Theme
@@ -77,36 +77,27 @@ Bonsaiheldin — World Assets
 Craftpix.net — Additional Graphics
 
 <size=70%>Music & Sound Effects</size>
-[Composer / Music Source]
 Freesound.org
 
 <size=70%>Tools & Software</size>
 Unity Engine
 Aseprite
 Visual Studio
+JetBrains Rider
 
-- - - - - - -
+- - - - - - - - - - - - - - - - - - - -
 
 <size=70%>Special Thanks</size>
-To those who found magic in the simplest herbs and stones
+To those who found magic in the simplest herbs and stones.
+Unity Forums & Stack Overflow.
+And to the long nights of debugging, testing, and trying again.
 
-Unity Forums & Stack Overflow
+- - - - - - - - - - - - - - - - - - - -
 
-And to the long nights of debugging,
-testing, and trying again
-
-- - - - - - -
-
-
-
-“The cart must keep moving,
-and every road hides another mystery...”
-
+<size=80%>“The cart must keep moving, and every road hides another mystery...”</size>
 
 <size=110%>THANK YOU FOR PLAYING</size>
-
-
-
 <size=40%>(Click anywhere to return)</size>";
+        }
     }
 }

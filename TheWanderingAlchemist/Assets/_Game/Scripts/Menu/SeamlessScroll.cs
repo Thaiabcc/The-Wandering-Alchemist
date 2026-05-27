@@ -3,6 +3,7 @@ using UnityEngine;
 public class SeamlessScroll : MonoBehaviour
 {
     public float speed = 2f;
+    private float currentSpeed; // Thêm biến này để quản lý tốc độ thực tế
 
     [Header("Overlap Amount")]
     public float overlap = 0f;
@@ -13,6 +14,8 @@ public class SeamlessScroll : MonoBehaviour
 
     void Start()
     {
+        currentSpeed = speed; // Gán tốc độ mặc định ban đầu
+
         backgrounds = new Transform[transform.childCount];
         for (int i = 0; i < transform.childCount; i++)
         {
@@ -38,14 +41,26 @@ public class SeamlessScroll : MonoBehaviour
 
     void Update()
     {
+        // Nếu tốc độ bằng 0 thì đứng im luôn, tiết kiệm hiệu năng
+        if (currentSpeed == 0f) return; 
+
         foreach (Transform bg in backgrounds)
         {
-            bg.localPosition += Vector3.left * speed * Time.deltaTime;
+            // Thay speed bằng currentSpeed
+            bg.localPosition += Vector3.left * currentSpeed * Time.deltaTime; 
 
             if (bg.localPosition.x <= leftEdge)
             {
                 bg.localPosition += new Vector3(effectiveWidth * backgrounds.Length, 0, 0);
             }
         }
+    }
+
+    // ==========================================
+    // CÔNG TẮC CHO THẰNG ĐẠO DIỄN BẤM VÀO
+    // ==========================================
+    public void SetSpeed(float newSpeed)
+    {
+        currentSpeed = newSpeed;
     }
 }

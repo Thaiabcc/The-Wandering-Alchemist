@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
+using TMPro;
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -14,7 +16,7 @@ public class MainMenuManager : MonoBehaviour
     [Header("Audio")]
     public AudioMixer mainMixer;
 
-    [Header("UI")]
+    [Header("UI & Settings")]
     public GameObject settingsPanel;
     public CanvasGroup settingsCanvasGroup;
     
@@ -22,13 +24,25 @@ public class MainMenuManager : MonoBehaviour
     public GameObject creditsPanel;
     public CanvasGroup creditsCanvasGroup;
     public RectTransform creditsTextRect;
-    public float creditsScrollSpeed = 100f; 
+    public float creditsScrollSpeed = 100f;
+
+    [Header("Cinematic Intro (New Game)")]
+    public CanvasGroup mainMenuCanvasGroup;
+    public CanvasGroup loreCanvasGroup;
+    public TMP_Text loreText;
+
+    public float timeToDrive = 3f;
+    public float typingSpeed = 0.05f;
+    public float timeToReadLore = 5f;
+    
+    public UnityEvent onWagonStartDriving;
 
     [Header("Effect Speed")]
     public float fadeSpeed = 5f;
-    
+
     private Vector2 originalCreditsPos;
     private Coroutine creditsRoutine;
+    private bool isStartingGame = false;
 
     public void Start()
     {
@@ -42,15 +56,84 @@ public class MainMenuManager : MonoBehaviour
         {
             originalCreditsPos = creditsTextRect.anchoredPosition;
         }
+
+        if (loreCanvasGroup != null)
+        {
+            loreCanvasGroup.alpha = 0f;
+            loreCanvasGroup.blocksRaycasts = false;
+            loreCanvasGroup.gameObject.SetActive(false);
+        }
     }
 
     public void StartGame()
     {
+        if (isStartingGame) return;
+        isStartingGame = true;
+
+        if (mainMenuCanvasGroup != null)
+        {
+            mainMenuCanvasGroup.interactable = false;
+            mainMenuCanvasGroup.blocksRaycasts = false;
+        }
+
+        StartCoroutine(NewGameCinematicSequence());
+    }
+
+    IEnumerator NewGameCinematicSequence()
+    {
+        if (mainMenuCanvasGroup != null)
+        {
+            float t = 0;
+            while (t < 1f)
+            {
+                t += Time.deltaTime * (fadeSpeed / 2f);
+                mainMenuCanvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+                yield return null;
+            }
+        }
+
+        onWagonStartDriving?.Invoke();
+        yield return new WaitForSeconds(timeToDrive);
+
+        if (loreCanvasGroup != null)
+        {
+            loreCanvasGroup.gameObject.SetActive(true);
+            loreCanvasGroup.alpha = 0f;
+
+            if (loreText != null)
+            {
+                loreText.maxVisibleCharacters = 0;
+            }
+
+            float t = 0;
+            while (t < 1f)
+            {
+                t += Time.deltaTime * (fadeSpeed / 2f);
+                loreCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
+                yield return null;
+            }
+
+            if (loreText != null)
+            {
+                loreText.ForceMeshUpdate();
+                int totalCharacters = loreText.textInfo.characterCount;
+                int visibleCount = 0;
+                while (visibleCount <= totalCharacters)
+                {
+                    loreText.maxVisibleCharacters = visibleCount;
+                    visibleCount++;
+                    yield return new WaitForSeconds(typingSpeed);
+                }
+            }
+
+            yield return new WaitForSeconds(timeToReadLore);
+        }
+
         if (SceneTransition.Instance != null)
         {
             SceneTransition.Instance.SwitchScene(firstSceneName, () => 
             {
-                Time.timeScale = 1f; 
+                Time.timeScale = 1f;
             });
         }
         else
@@ -61,10 +144,10 @@ public class MainMenuManager : MonoBehaviour
 
     public void ContinueGame()
     {
+        if (isStartingGame) return;
         if (SaveManager.Instance != null && SaveManager.Instance.HasSaveFile())
         {
             string sceneToLoad = SaveManager.Instance.GetSavedSceneName();
-            
             if (SceneTransition.Instance != null)
             {
                 SceneTransition.Instance.SwitchScene(sceneToLoad, () => 
@@ -113,7 +196,7 @@ public class MainMenuManager : MonoBehaviour
 
     IEnumerator ScrollCreditsSequence()
     {
-        creditsTextRect.anchoredPosition = new Vector2(originalCreditsPos.x, -4400f); 
+        creditsTextRect.anchoredPosition = new Vector2(originalCreditsPos.x, -(creditsTextRect.rect.height + 1080f)); 
         
         float time = 0;
         while (time < 1f)
@@ -143,7 +226,6 @@ public class MainMenuManager : MonoBehaviour
         }
         creditsPanel.SetActive(false);
     }
-    
 
     IEnumerator FadePanel(float startAlpha, float endAlpha, float startScale, float endScale, bool disableAfter = false)
     {

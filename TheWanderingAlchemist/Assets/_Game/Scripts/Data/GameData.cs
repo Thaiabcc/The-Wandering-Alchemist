@@ -19,7 +19,7 @@ public class QuestSaveData
     public bool isTracked;     
 }
 
-// Buff
+// Buff 
 [System.Serializable]
 public class BuffSaveData
 {
