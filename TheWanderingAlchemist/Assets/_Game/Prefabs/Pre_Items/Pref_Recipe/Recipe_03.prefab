@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3998887589515542348}
   - component: {fileID: 4686371587933452801}
   m_Layer: 3
-  m_Name: Item_Recipe Poson Throw
+  m_Name: Item_Recipe Poison Throw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

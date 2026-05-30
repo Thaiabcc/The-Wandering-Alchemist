@@ -16,6 +16,12 @@ public class SaveManager : MonoBehaviour
     [Header("Database Item")]
     [SerializeField] private List<ItemData> allItemDatabase = new List<ItemData>();
 
+    [Header("Puzzle State")] 
+    public List<string> solvedPuzzles = new List<string>();
+
+    [Header("Chest State")] 
+    public List<string> openedChests = new List<string>();
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -139,6 +145,9 @@ public class SaveManager : MonoBehaviour
             }
         }
 
+        data.solvedPuzzleIDs = new List<string>(solvedPuzzles);
+        data.openedChestIDs = new List<string>(openedChests); 
+
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(saveFilePath, json);
     }
@@ -230,7 +239,6 @@ public class SaveManager : MonoBehaviour
                         PlayerStats.Instance.AddShield(data.playerShield, buffSprite);
                         shieldLoaded = true;
                     }
-
                     continue;
                 }
 
@@ -248,7 +256,6 @@ public class SaveManager : MonoBehaviour
                             bData.remainingDuration,
                             buffSprite);
                     }
-
                     continue;
                 }
 
@@ -263,12 +270,29 @@ public class SaveManager : MonoBehaviour
                             bData.remainingDuration,
                             buffSprite);
                     }
-
                     continue;
                 }
 
                 BuffUIManager.Instance.AddBuff(bData.buffID, buffSprite, bData.remainingDuration);
             }
+        }
+
+        if (data.solvedPuzzleIDs != null)
+        {
+            solvedPuzzles = new List<string>(data.solvedPuzzleIDs);
+        }
+        else
+        {
+            solvedPuzzles = new List<string>();
+        }
+
+        if (data.openedChestIDs != null)
+        {
+            openedChests = new List<string>(data.openedChestIDs);
+        }
+        else
+        {
+            openedChests = new List<string>();
         }
     }
 

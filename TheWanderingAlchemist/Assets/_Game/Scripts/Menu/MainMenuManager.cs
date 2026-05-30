@@ -11,7 +11,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] public Button continueButton;
     
     [Header("Scene Settings")]
-    public string firstSceneName = "Town1";
+    public string firstSceneName = "Town 1";
 
     [Header("Audio")]
     public AudioMixer mainMixer;

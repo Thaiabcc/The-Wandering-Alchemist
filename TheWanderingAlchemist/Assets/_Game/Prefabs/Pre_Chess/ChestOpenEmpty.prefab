@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2284036256733339268}
   - component: {fileID: 3504789715494301541}
   - component: {fileID: 6878438415937665567}
+  - component: {fileID: -1700600711863702477}
   m_Layer: 0
   m_Name: ChestOpenEmpty
   m_TagString: Untagged
@@ -121,6 +122,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5783f5783baffaa40ae12de71a1e1839, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  chestID: Chest_01
+  goldPrefab: {fileID: 0}
+  goldAmount: 1
+  popForce: 3
 --- !u!61 &3504789715494301541
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -211,3 +216,16 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.8755283, y: 1.6344404}
   m_EdgeRadius: 0
+--- !u!114 &-1700600711863702477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5975973569930707553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a66c487561b242daa12da03905d82008, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  offset: 0

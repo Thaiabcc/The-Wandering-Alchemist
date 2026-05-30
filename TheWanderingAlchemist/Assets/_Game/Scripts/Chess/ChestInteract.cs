@@ -2,6 +2,9 @@
 
 public class ChestInteract : MonoBehaviour
 {
+    [Header("Save Settings")]
+    public string chestID = "Chest_01";
+
     private Animator anim;
     private bool isPlayerNearby = false;
     private bool isOpened = false;
@@ -13,6 +16,12 @@ public class ChestInteract : MonoBehaviour
 
     void Start()
     {
+        if (SaveManager.Instance != null && SaveManager.Instance.openedChests.Contains(chestID))
+        {
+            Destroy(gameObject);
+            return; 
+        }
+
         anim = GetComponent<Animator>();
     }
 
@@ -27,11 +36,22 @@ public class ChestInteract : MonoBehaviour
     void OpenChest()
     {
         isOpened = true;
-        anim.SetTrigger("Open");
+        
+        if (SaveManager.Instance != null && !SaveManager.Instance.openedChests.Contains(chestID))
+        {
+            SaveManager.Instance.openedChests.Add(chestID);
+        }
+
+        if (anim != null)
+        {
+            anim.SetTrigger("Open");
+        }
+        
         if (goldPrefab != null)
         {
             SpawnLoot();
         }
+        
         Destroy(gameObject, 0.5f);
     }
 

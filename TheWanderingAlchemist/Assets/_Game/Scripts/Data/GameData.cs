@@ -57,5 +57,11 @@ public class GameData
     
     // Buff Potion 
     public List<BuffSaveData> activeBuffDatas = new List<BuffSaveData>();
+    
+    // Puzzle
+    public List<string> solvedPuzzleIDs = new List<string>();
+    
+    // Chest
+    public List<string> openedChestIDs = new List<string>();
 
 }
