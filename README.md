@@ -5,50 +5,50 @@
 </p>
 
 <p align="center">
-  A solo-developed 2D Top-Down RPG built with Unity.
+  <strong>✨ A solo-developed 2D Top-Down RPG built with Unity ✨</strong>
 </p>
 
 <p align="center">
-  Explore • Fight • Complete Quests • Craft • Survive
+  <em>Explore • Fight • Complete Quests • Craft • Survive</em>
 </p>
 
 ---
 
 ## 🎮 Overview
 
-Wandering Alchemy is a fantasy RPG where players explore diverse regions, battle monsters, complete quests, interact with NPCs, and uncover hidden secrets throughout a dynamic world.
+**Wandering Alchemy** is a fantasy RPG where players explore diverse regions, battle monsters, complete quests, interact with NPCs, and uncover hidden secrets throughout a dynamic world.
 
-The project was fully designed and programmed independently using Unity and C#.
+The project was fully designed and programmed independently using **Unity** and **C#**.
 
 ---
 
 ## ✨ Features
 
 ### ⚔️ Combat System
-- Projectile-based combat
-- Critical hit mechanics
-- Hit stop & camera shake
-- Enemy AI and damage system
+- 🎯 Projectile-based combat
+- 💥 Critical hit mechanics
+- 🛑 Hit stop & camera shake
+- 🤖 Enemy AI and damage system
 
 ### 📜 Quest & Dialogue
-- Dynamic NPC interactions
-- Quest progression system
-- Branching dialogue choices
+- 🗣 Dynamic NPC interactions
+- 📝 Quest progression system
+- 🎭 Branching dialogue choices
 
 ### 🎒 Inventory System
-- Drag-and-drop inventory
-- Stackable items
-- Consumables and materials
+- 🖱 Drag-and-drop inventory
+- 📦 Stackable items
+- 🧪 Consumables and materials
 
 ### 🌦 World Systems
-- Day & Night cycle
-- Dynamic weather
-- Scene transitions
+- 🌅 Day & Night cycle
+- 🌧 Dynamic weather
+- 🔄 Scene transitions
 
 ### 💾 Save & Load
-- JSON save system
-- Persistent player data
-- Cross-scene state management
+- 📂 JSON save system
+- 💾 Persistent player data
+- 🧪 Cross-scene state management
 
 ---
 
@@ -56,19 +56,19 @@ The project was fully designed and programmed independently using Unity and C#.
 
 | Category | Technology |
 |-----------|------------|
-| Engine | Unity 2022 |
-| Language | C# |
-| Rendering | URP |
-| UI | Unity UI, TextMeshPro |
-| Camera | Cinemachine |
-| Data | JSON Serialization |
-| Architecture | Event-Driven, OOP |
+| ⚙️ Engine | Unity 2022 |
+| 💻 Language | C# |
+| 🎨 Rendering | URP |
+| 🖥 UI | Unity UI, TextMeshPro |
+| 📷 Camera | Cinemachine |
+| 📊 Data | JSON Serialization |
+| 🏗 Architecture | Event-Driven, OOP |
 
 ---
 
 ## 📸 Screenshots
 
-| Menu | Inventory,Shop,Hotbar |
+| Menu | Inventory, Shop, Hotbar |
 |------------|---------|
 | ![](Images/Menu.png) | ![](Images/MainFunc.png) |
 
@@ -90,23 +90,22 @@ The project was fully designed and programmed independently using Unity and C#.
 
 ## 👨‍💻 My Responsibilities
 
-- Gameplay Programming
-- Combat System
-- Quest System
-- Save/Load Architecture
-- UI Development
-- Weather System
-- Testing & Debugging
+- 🕹 Gameplay Programming
+- ⚔️ Combat System
+- 📜 Quest System
+- 💾 Save/Load Architecture
+- 🎨 UI Development
+- 🌦 Weather System
+- 🐛 Testing & Debugging
 
 ---
 
 ## 📦 Download
 
-👉 Play on Itch.io:
-https://thaiabcc.itch.io/the-wandering-alchemist
+👉 **Play on Itch.io:** [The Wandering Alchemist](https://thaiabcc.itch.io/the-wandering-alchemist)
 
 ---
 
 ## 📄 License
 
-Personal portfolio project.
+*Personal portfolio project.*
