@@ -78,14 +78,12 @@ public class WeatherManager : MonoBehaviour
         ChangeWeather(WeatherState.Sunny);
     }
 
-    private Coroutine lightningCoroutine; // thêm field này
+    private Coroutine lightningCoroutine;
 
     public void ChangeWeather(WeatherState newState)
     {
         CurrentWeather = newState;
         StopAllParticles();
-
-        // Chỉ stop lightning riêng, không StopAllCoroutines()
         if (lightningCoroutine != null)
         {
             StopCoroutine(lightningCoroutine);
@@ -111,7 +109,7 @@ public class WeatherManager : MonoBehaviour
                 ApplyRainyLight();
                 weatherAudio?.PlayStorm();
                 if (stormParticles != null) stormParticles.Play();
-                lightningCoroutine = StartCoroutine(LightningRoutine()); // lưu reference
+                lightningCoroutine = StartCoroutine(LightningRoutine());
                 break;
         }
     }
@@ -158,7 +156,7 @@ public class WeatherManager : MonoBehaviour
             }
         }
 
-        lightningCoroutine = null; // tự cleanup
+        lightningCoroutine = null; 
     }
 
     public void LoadWeatherData(string savedWeatherState)

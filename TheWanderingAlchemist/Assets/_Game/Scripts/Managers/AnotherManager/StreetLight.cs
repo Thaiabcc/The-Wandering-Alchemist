@@ -1,43 +1,85 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
+using System.Collections;
 
 public class StreetLight : MonoBehaviour
 {
-    [Header("Trạng thái đèn (Con)")]
-    [SerializeField] private GameObject lightOffObject; // Kéo thằng con Light_OFF vào đây
-    [SerializeField] private GameObject lightOnObject;  // Kéo thằng con Light_ON vào đây
+    [Header("Objects")]
+    [SerializeField] private SpriteRenderer lightOffSprite;
+    [SerializeField] private SpriteRenderer lightOnSprite;
+    [SerializeField] private Light2D light2D;
+
+    [Header("Fade Settings")]
+    [SerializeField] private float fadeDuration = 2f;
+    [SerializeField] private float maxIntensity = 1.5f;
+
+    private Coroutine fadeCoroutine;
 
     private void Start()
     {
-        // 1. Đăng ký lắng nghe sự kiện đổi thời gian từ TimeManager
         if (TimeManager.Instance != null)
         {
             TimeManager.Instance.OnNightStateChanged += HandleLightToggle;
-            
-            // 2. Gọi luôn một lần lúc vừa vào game để đèn sáng/tắt đúng theo giờ hiện tại
             HandleLightToggle(TimeManager.Instance.IsNight);
-        }
-        else
-        {
-            Debug.LogWarning("[StreetLight]: Chưa tìm thấy TimeManager Instance trên Scene!");
         }
     }
 
     private void OnDestroy()
     {
-        // Hủy đăng ký khi đối tượng bị xóa (Tránh lỗi Memory Leak của C#)
         if (TimeManager.Instance != null)
         {
             TimeManager.Instance.OnNightStateChanged -= HandleLightToggle;
         }
     }
 
-    // Hàm thực thi việc bật/tắt các object con
     private void HandleLightToggle(bool isNight)
     {
-        if (lightOnObject != null && lightOffObject != null)
+        if (fadeCoroutine != null)
+            StopCoroutine(fadeCoroutine);
+
+        fadeCoroutine = StartCoroutine(FadeRoutine(isNight));
+    }
+
+    private IEnumerator FadeRoutine(bool turnOn)
+    {
+        float startAlpha = lightOnSprite.color.a;
+        float targetAlpha = turnOn ? 1f : 0f;
+
+        float startIntensity = light2D.intensity;
+        float targetIntensity = turnOn ? maxIntensity : 0f;
+
+        float t = 0f;
+
+        while (t < fadeDuration)
         {
-            lightOnObject.SetActive(isNight);     // Nếu trời tối (true) -> Hiện đèn sáng
-            lightOffObject.SetActive(!isNight);   // Nếu trời sáng (false) -> Hiện đèn tắt
+            t += Time.deltaTime;
+            float progress = t / fadeDuration;
+
+            Color onColor = lightOnSprite.color;
+            onColor.a = Mathf.Lerp(startAlpha, targetAlpha, progress);
+            lightOnSprite.color = onColor;
+
+            Color offColor = lightOffSprite.color;
+            offColor.a = 1f - onColor.a;
+            lightOffSprite.color = offColor;
+
+            light2D.intensity = Mathf.Lerp(
+                startIntensity,
+                targetIntensity,
+                progress
+            );
+
+            yield return null;
         }
+
+        Color finalOn = lightOnSprite.color;
+        finalOn.a = targetAlpha;
+        lightOnSprite.color = finalOn;
+
+        Color finalOff = lightOffSprite.color;
+        finalOff.a = 1f - targetAlpha;
+        lightOffSprite.color = finalOff;
+
+        light2D.intensity = targetIntensity;
     }
 }

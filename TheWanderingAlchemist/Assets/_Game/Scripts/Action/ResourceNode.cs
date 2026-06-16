@@ -2,7 +2,7 @@
 
 public class ResourceNode : MonoBehaviour, IInteractable
 {
-    [Header("Cấu hình")]
+    [Header("Setting")]
     [SerializeField] private ItemData toolRequired; 
     [SerializeField] private ItemData itemToDrop;   
     [SerializeField] private int dropCount = 1;     

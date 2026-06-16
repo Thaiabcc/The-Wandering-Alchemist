@@ -9224,13 +9224,13 @@ MonoBehaviour:
   choiceButtonPrefab: {fileID: 6916438818650112770, guid: 651ec82c6c774dd43b80e2dd721e27eb, type: 3}
   choiceContainer: {fileID: 4697043463538500015}
   interactionIcons:
-  - {fileID: -1778607682, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
-  - {fileID: 18439509, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
-  - {fileID: 1711809358, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
-  - {fileID: 1504093939, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
-  - {fileID: 1235988310, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
-  - {fileID: -80438319, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
-  - {fileID: -1649728472, guid: e64ebb68a8d7d8b4e831183a02fcf12e, type: 3}
+  - {fileID: -1311396312, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
+  - {fileID: -1311396312, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
+  - {fileID: -1311396312, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
+  - {fileID: -1664440525, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
+  - {fileID: -1048604059, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
+  - {fileID: -1947739837, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
+  - {fileID: 1128664421, guid: 012409c9933c59d48ba0685ded96e8bb, type: 3}
 --- !u!114 &3882546885759268103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19846,7 +19846,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdd00fabface053409be5aa91799b693, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeScale: 30000
+  timeScale: 60
   startHour: 6
   globalLight: {fileID: 0}
   dayNightGradient:

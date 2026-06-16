@@ -35,12 +35,7 @@ public class CameraBoundsManager : MonoBehaviour
             {
                 confiner.m_BoundingShape2D = boundsCollider;
                 confiner.InvalidateCache();
-                Debug.Log($"[Camera] Đã cập nhật biên giới cho map: {scene.name}");
             }
-        }
-        else
-        {
-            Debug.LogWarning($"[Camera] CẢNH BÁO: Map {scene.name} chưa có object nào gắn Tag 'Bounds'!");
         }
     }
 }

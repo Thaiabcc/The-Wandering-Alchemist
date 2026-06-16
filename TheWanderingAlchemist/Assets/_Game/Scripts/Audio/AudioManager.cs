@@ -24,7 +24,6 @@ public class AudioManager : MonoBehaviour
         float master = PlayerPrefs.GetFloat("MasterVol", 1f);
         float music = PlayerPrefs.GetFloat("BGMVol", 1f);
         float sfx = PlayerPrefs.GetFloat("SFXVol", 1f);
-        Debug.Log($"<color=cyan>[AudioManager] LoadVolumes gọi từ PlayerPrefs -> Master: {master}, BGM: {music}, SFX: {sfx}</color>");
         UpdateVolume(master, music, sfx);
     }
 
@@ -33,12 +32,10 @@ public class AudioManager : MonoBehaviour
         if (musicSource != null) 
         {
             musicSource.volume = musicVol * masterVol;
-            Debug.Log($"<color=cyan>[AudioManager] Cập nhật Music Source Volume thực tế = {musicSource.volume}</color>");
         }
         if (sfxSource != null) 
         {
             sfxSource.volume = sfxVol * masterVol;
-            Debug.Log($"<color=cyan>[AudioManager] Cập nhật SFX Source Volume thực tế = {sfxSource.volume}</color>");
         }
     }
 
@@ -68,14 +65,12 @@ public class AudioManager : MonoBehaviour
         float master = PlayerPrefs.GetFloat("MasterVol", 1f);
         float sfx = PlayerPrefs.GetFloat("SFXVol", 1f);
         sfxSource.PlayOneShot(clip, volume * sfx * master);
-        Debug.Log($"<color=blue>[AudioManager] PlaySFX -> Clip: {clip.name}, Vol tính toán: {volume * sfx * master}</color>");
     }
 
     public void StopMusic()
     {
         if (musicSource != null) 
         {
-            Debug.Log("<color=blue>[AudioManager] StopMusic được gọi</color>");
             musicSource.Stop();
         }
     }

@@ -9,10 +9,6 @@ public class AudioVolumeController : MonoBehaviour
     private void Awake()
     {
         mySource = GetComponent<AudioSource>();
-        if (mySource != null)
-        {
-            Debug.Log($"<color=yellow>[Controller] Awake trên Object [{gameObject.name}] -> Trạng thái AudioSource ban đầu: Volume={mySource.volume}, IsPlaying={mySource.isPlaying}</color>");
-        }
         ApplyVolume();
     }
 
@@ -31,11 +27,9 @@ public class AudioVolumeController : MonoBehaviour
             : PlayerPrefs.GetFloat("SFXVol", 1f);
             
         mySource.volume = baseVolume * master;
-        Debug.Log($"<color=orange>[Controller] ApplyVolume trên Object [{gameObject.name}] ({type}) -> Đặt Volume thực tế = {mySource.volume} (Base: {baseVolume} * Master: {master})</color>");
 
         if (mySource.loop && !mySource.isPlaying && mySource.volume > 0)
         {
-            Debug.Log($"<color=orange>[Controller] [{gameObject.name}] tự động Play vì có loop và volume > 0</color>");
             mySource.Play();
         }
     }
