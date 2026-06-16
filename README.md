@@ -1,41 +1,78 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Status-In%20Development-blue" alt="Development Status Badge">
-  <br>
-  <h1>🧪 The Wandering Alchemist: A Unity 2D Adventure</h1>
-  <p>A solo project developed using **Unity**.</p>
-</p>
+# 🧪 Wandering Alchemy
 
----
+A solo-developed 2D top-down RPG built with Unity, featuring exploration, combat, quests, inventory management, dynamic weather, and a persistent save/load system.
 
-<p align="center">
-  <h2>📜 Concept Summary: The Expelled Alchemist</h2>
-  
-  The Wandering Alchemist is an adventure and management game centered around a young alchemist expelled from their academy. Armed with nothing but an old formula book and a dilapidated wagon, you embark on a crucial journey across the world.
-  <br><br>
-  Your ultimate goal is to <strong>seek out legendary ingredients</strong> and successfully craft the mythical <strong>Philosopher's Stone</strong>.
-</p>
+## Project Overview
 
----
+Wandering Alchemy is a fantasy RPG where players explore different regions, interact with NPCs, complete quests, battle monsters, gather resources, and progress through a world driven by dynamic gameplay systems.
 
-## 🚀 Key Gameplay & Mechanics
+This project was designed and implemented independently, including gameplay programming, UI systems, save architecture, and game logic.
 
-| Feature | Description |
-| :--- | :--- |
-| 🚚 **Mobile Base** | Your wagon serves as your sole laboratory and refuge. You must manage its space, upgrade tools, and ensure self-sufficiency on the road. |
-| 🗺️ **Dangerous Exploration** | Stop your mobile base in distinct, hostile biomes (Mushroom Forests, Swamps, Volcanoes) to gather essential, rare components. |
-| ✨ **Core Alchemy** | Master the art of crafting complex potions and poisons. You will trade these creations in the towns you pass through to earn vital profits and reputation. |
+## Key Features
 
----
+### Combat System
 
-<p align="center">
-  <h2>⚙️ Technology & Art Style</h2>
-  
-  <p>The project leverages detailed <strong>2D</strong> graphics, providing a classic, enchanting aesthetic that captures the mystery and allure of the world of alchemy.</p>
-</p>
+* Projectile-based combat with critical hit mechanics.
+* Enemy AI with attack and damage systems.
+* Hit-stop, camera shake, damage popups, and combat feedback.
 
----
+### Quest & Dialogue System
 
-<p align="center">
-  <h4>💖 Support & Contact</h4>
-  <p>This is a solo project currently under active development.</p>
-</p>
+* Branching dialogue interactions.
+* Dynamic NPC choices and quest progression.
+* Quest tracking and completion rewards.
+
+### Inventory & Item System
+
+* Drag-and-drop inventory interface.
+* Consumables, equipment, crafting materials, and quest items.
+* Stackable item support.
+
+### Save & Load System
+
+* JSON-based persistent save architecture.
+* Automatic serialization of gameplay data.
+* Cross-scene player state preservation.
+
+### World Systems
+
+* Day and night cycle.
+* Dynamic weather system (sunny, rain, storm).
+* Scene transitions and checkpoint-based respawn.
+
+### Player Progression
+
+* Health, stamina, shield, and status effect systems.
+* Buffs, debuffs, poison, healing, and temporary stat modifiers.
+
+## Technical Highlights
+
+* Unity 2022
+* C#
+* Object-Oriented Programming (OOP)
+* Event-Driven Architecture
+* JSON Serialization
+* Reflection-Based Data Collection
+* Scriptable Object Workflow
+* UI Development with TextMeshPro
+* Scene Management
+* Save/Load Persistence
+
+## Responsibilities
+
+* Gameplay programming
+* System architecture design
+* UI implementation
+* Save/load framework development
+* Combat mechanics
+* Quest system implementation
+* Testing and debugging
+
+## Technologies
+
+* Unity 2022
+* C#
+* TextMeshPro
+* Unity UI
+* Cinemachine
+* Universal Render Pipeline (URP)
