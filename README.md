@@ -1,111 +1,130 @@
-# 🧪 Wandering Alchemy
+<div align="center">
 
-<p align="center">
-  <img src="Images/Menu.png" width="600">
-</p>
+# ✦ WANDERING ALCHEMY ✦
 
-<p align="center">
-  <strong>✨ A solo-developed 2D Top-Down RPG built with Unity ✨</strong>
-</p>
+<img src="Images/Menu.png" width="650">
 
-<p align="center">
-  <em>Explore • Fight • Complete Quests • Craft • Survive</em>
-</p>
+### *A 2D Top-Down RPG — Solo Developed with Unity & C#*
 
----
+<br>
 
-## 🎮 Overview
-
-**Wandering Alchemy** is a fantasy RPG where players explore diverse regions, battle monsters, complete quests, interact with NPCs, and uncover hidden secrets throughout a dynamic world.
-
-The project was fully designed and programmed independently using **Unity** and **C#**.
+[![Itch.io](https://img.shields.io/badge/Play%20Now-Itch.io-FA5C5C?style=for-the-badge&logo=itch.io&logoColor=white)](https://thaiabcc.itch.io/the-wandering-alchemist)
+[![Unity](https://img.shields.io/badge/Made%20with-Unity-000000?style=for-the-badge&logo=unity&logoColor=white)](https://unity.com)
+[![C#](https://img.shields.io/badge/Language-C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 
 ---
 
-## ✨ Features
+</div>
 
-### ⚔️ Combat System
-- 🎯 Projectile-based combat
-- 💥 Critical hit mechanics
-- 🛑 Hit stop & camera shake
-- 🤖 Enemy AI and damage system
+## ✦ Overview
 
-### 📜 Quest & Dialogue
-- 🗣 Dynamic NPC interactions
-- 📝 Quest progression system
-- 🎭 Branching dialogue choices
+**Wandering Alchemy** is a handcrafted fantasy RPG where players explore vibrant regions, battle creatures, craft potions, complete quests, and uncover the secrets of a living, breathing world.
 
-### 🎒 Inventory System
-- 🖱 Drag-and-drop inventory
-- 📦 Stackable items
-- 🧪 Consumables and materials
-
-### 🌦 World Systems
-- 🌅 Day & Night cycle
-- 🌧 Dynamic weather
-- 🔄 Scene transitions
-
-### 💾 Save & Load
-- 📂 JSON save system
-- 💾 Persistent player data
-- 🧪 Cross-scene state management
+> 🛠 **Built entirely solo** — from systems design to pixel polish, every element reflects deliberate craftsmanship and technical depth.
 
 ---
 
-## 🛠 Tech Stack
+## ✦ Key Features
 
-| Category | Technology |
-|-----------|------------|
-| ⚙️ Engine | Unity 2022 |
-| 💻 Language | C# |
-| 🎨 Rendering | URP |
-| 🖥 UI | Unity UI, TextMeshPro |
-| 📷 Camera | Cinemachine |
-| 📊 Data | JSON Serialization |
-| 🏗 Architecture | Event-Driven, OOP |
+| ⚔️ Combat | 🗣️ Quest & Dialogue | 🎒 Inventory |
+|-----------|---------------------|--------------|
+| Projectile-based attacks | Branching NPC conversations | Drag-and-drop system |
+| Critical hit mechanics | Quest progression tracking | Stackable items |
+| Hit-stop & camera shake | Dynamic dialogue choices | Consumables & materials |
 
----
-
-## 📸 Screenshots
-
-| Menu | Inventory, Shop, Hotbar |
-|------------|---------|
-| ![](Images/Menu.png) | ![](Images/MainFunc.png) |
-
-| Alchemy | Quest |
-|------------|---------|
-| ![](Images/Craft.png) | ![](Images/Quest.png) |
-
-| Weather |
-|------------|
-| ![](Images/Rain.png) |
+| 🌦 World Systems | 💾 Save & Load | 🧪 Alchemy |
+|------------------|----------------|------------|
+| Day & Night cycle | JSON serialization | Recipe-based crafting |
+| Dynamic weather | Persistent player data | Unlockable combinations |
+| Seamless scene transitions | Cross-scene state management | Material gathering |
 
 ---
 
-## 🎥 Gameplay
+## ✦ Tech Stack
 
-![Gameplay](Images/Gameplay.png)
+<div align="center">
 
----
+| **Engine** | **Language** | **Rendering** | **UI** | **Camera** | **Data** | **Architecture** |
+|------------|--------------|---------------|--------|------------|----------|------------------|
+| Unity 2022 | C# | URP | Unity UI + TMP | Cinemachine | JSON | Event-Driven + OOP |
 
-## 👨‍💻 My Responsibilities
-
-- 🕹 Gameplay Programming
-- ⚔️ Combat System
-- 📜 Quest System
-- 💾 Save/Load Architecture
-- 🎨 UI Development
-- 🌦 Weather System
-- 🐛 Testing & Debugging
+</div>
 
 ---
 
-## 📦 Download
+## ✦ Visual Showcase
 
-👉 **Play on Itch.io:** [The Wandering Alchemist](https://thaiabcc.itch.io/the-wandering-alchemist)
+<div align="center">
+
+| Menu | Inventory & Shop |
+|:----:|:----------------:|
+| <img src="Images/Menu.png" width="300"> | <img src="Images/MainFunc.png" width="300"> |
+
+| Alchemy System | Quest Log |
+|:--------------:|:---------:|
+| <img src="Images/Craft.png" width="300"> | <img src="Images/Quest.png" width="300"> |
+
+| Dynamic Weather |
+|:---------------:|
+| <img src="Images/Rain.png" width="300"> |
+
+</div>
 
 ---
 
-## 📄 License
+## ✦ Gameplay
 
-*Personal portfolio project.*
+<div align="center">
+  <img src="Images/Gameplay.png" width="700">
+  <br><br>
+  <em>⚡ Explore. Fight. Craft. Survive. ⚡</em>
+</div>
+
+---
+
+## ✦ What I Built
+
+<div align="center">
+
+| Area | Details |
+|------|---------|
+| 🎮 **Gameplay Programming** | Movement, combat, AI, player mechanics |
+| 🧩 **System Architecture** | Event-driven design, scalable codebase |
+| 🎨 **UI/UX Development** | Intuitive interfaces for all systems |
+| 🌍 **World Systems** | Weather, day/night, transitions |
+| 💾 **Data Management** | JSON save/load with cross-scene persistence |
+| 🔧 **QA & Polish** | Full testing, optimization, bug fixing |
+
+</div>
+
+---
+
+## ✦ Play Now
+
+<div align="center">
+
+### [🎮 The Wandering Alchemist on Itch.io](https://thaiabcc.itch.io/the-wandering-alchemist)
+
+</div>
+
+---
+
+## ✦ About the Developer
+
+I'm a **game programmer** passionate about crafting immersive experiences and building robust, maintainable systems. This project showcases my ability to:
+
+- 🧠 **Own features end-to-end** — from concept to polish
+- 🏗️ **Design scalable architectures** — clean, modular, event-driven
+- 🎯 **Deliver polished products** — player-first experiences that feel complete
+
+📬 **Open to opportunities in game programming, systems design, and interactive development.**
+
+---
+
+<div align="center">
+
+---
+
+### ✦ *"From concept to completion — built with passion, precision, and purpose."* ✦
+
+</div>
