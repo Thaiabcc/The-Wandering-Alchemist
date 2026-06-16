@@ -68,19 +68,23 @@ The project was fully designed and programmed independently using Unity and C#.
 
 ## 📸 Screenshots
 
-| Exploration | Combat |
-|------------|---------|
-| ![](Images/explore.png) | ![](Images/combat.png) |
+| Menu | Inventory | Shop | Hotbar |
+|------------|---------|-----------|
+| ![](Images/Menu.png) | ![](Images/MainFunc.png) |
 
-| Inventory | Dialogue |
-|------------|---------|
-| ![](Images/inventory.png) | ![](Images/dialogue.png) |
+| Alchemy | Quest | Weather |
+|------------|---------|-----|
+| ![](Images/Craft.png) | ![](Images/Quest.png) | ![](Images/Rain.png) |
+
+| Dialogue |
+|------------|
+| ![](Images/Dialog) |
 
 ---
 
 ## 🎥 Gameplay
 
-![Gameplay](Images/gameplay.gif)
+![Gameplay](Images/Gameplay.png)
 
 ---
 
