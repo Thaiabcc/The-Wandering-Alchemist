@@ -68,17 +68,17 @@ The project was fully designed and programmed independently using Unity and C#.
 
 ## 📸 Screenshots
 
-| Menu | Inventory | Shop | Hotbar |
-|------------|---------|-----------|
+| Menu | Inventory,Shop,Hotbar |
+|------------|---------|
 | ![](Images/Menu.png) | ![](Images/MainFunc.png) |
 
-| Alchemy | Quest | Weather |
-|------------|---------|-----|
-| ![](Images/Craft.png) | ![](Images/Quest.png) | ![](Images/Rain.png) |
+| Alchemy | Quest |
+|------------|---------|
+| ![](Images/Craft.png) | ![](Images/Quest.png) |
 
-| Dialogue |
+| Weather |
 |------------|
-| ![](Images/Dialog) |
+| ![](Images/Rain.png) |
 
 ---
 
