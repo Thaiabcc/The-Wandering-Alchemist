@@ -11,15 +11,18 @@ public class EnemySlime : EnemyAI
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (isDead) return;
+        if (isDead || !collision.gameObject.CompareTag("Player")) return;
 
-        if (collision.gameObject.CompareTag("Player"))
+        if (Time.time >= nextDamageTime)
         {
-            if (Time.time >= nextDamageTime)
+            var player = collision.gameObject;
+        
+            if (player.TryGetComponent<PlayerStats>(out var stats))
             {
                 ApplyDamage(collision);
                 ApplyKnockback(collision);
                 nextDamageTime = Time.time + damageRate;
+                if (animator != null) animator.SetTrigger("Attack");
             }
         }
     }

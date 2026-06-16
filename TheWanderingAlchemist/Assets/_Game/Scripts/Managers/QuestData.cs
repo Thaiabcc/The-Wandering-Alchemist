@@ -5,7 +5,7 @@ public enum QuestType { KillEnemy, GatherItem, TalkToNPC }
 [CreateAssetMenu(fileName = "New Quest", menuName = "Quest System/New Quest")]
 public class QuestData : ScriptableObject
 {
-    [Header("--- THÔNG TIN CHUNG ---")]
+    [Header("--- Genaral ---")]
     public string questName;
     [TextArea(3, 10)] public string description;
 
@@ -15,22 +15,22 @@ public class QuestData : ScriptableObject
     public QuestData nextQuest;
     public bool autoAcceptNextQuest = false;
 
-    [Header("--- YÊU CẦU ---")]
+    [Header("--- Require ---")]
     public string targetName;
     public int requiredAmount;
     public ItemData requiredItem;
 
-    [Header("--- PHẦN THƯỞNG ---")]
+    [Header("--- Reward ---")]
     public int goldReward;
     public ItemData itemReward;
 
-    [Header("--- HỘI THOẠI ---")]
+    [Header("--- Dialog ---")]
     [TextArea(2, 5)] public string[] startDialogue;
     [TextArea(2, 5)] public string[] progressDialogue;
     [TextArea(2, 5)] public string[] completeDialogue;
     [TextArea(2, 5)] public string[] targetDialogue;
 
-    [Header("Scene trả Quest")]
+    [Header("Scene back Quest")]
     [TextArea(3, 10)]
     public string endStoryText;
 

@@ -5,6 +5,9 @@ public enum ItemType { Ingredient, Potion, Tool, KeyItem }
 [CreateAssetMenu(fileName = "NewItem", menuName = "Alchemist/Item")]
 public class ItemData : ScriptableObject
 {
+    [Header("Audio")]
+    public AudioClip useSound;
+    
     [Header("Basic Info")]
     public string id;
     public string itemName;
@@ -45,9 +48,8 @@ public class ItemData : ScriptableObject
     public bool UseItem(PlayerStats player)
     {
         if (!isConsumable || player == null) return false;
-
+        if (useSound != null) AudioManager.Instance.PlaySFX(useSound);
         bool itemUsed = false;
-
         if (itemType == ItemType.KeyItem) return true;
 
         if (isPoisonImmunityPotion && immunityDuration > 0)

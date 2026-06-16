@@ -20,19 +20,13 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float staminaRegen = 10f;
 
     // ==============================
-    // Audio Settings
-    // ==============================
-    [Header("Footstep Loop Audio")]
-    [SerializeField] private AudioSource footstepSource;
-    [SerializeField] private float runPitchMultiplier = 1.5f;
-
-    // ==============================
     // Components
     // ==============================
     private Rigidbody2D rb;
     private Animator animator;
     private GameControls controls;
     private SpriteRenderer spriteRenderer;
+    private PlayerAudio playerAudio; // Đã thay AudioSource bằng module PlayerAudio
 
     // ==============================
     // State
@@ -41,13 +35,13 @@ public class PlayerMovement : MonoBehaviour
     private float currentSpeed;
     private bool isKnockedBack;
     private bool canMove = true; 
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-
-        if (footstepSource == null) footstepSource = GetComponent<AudioSource>();
+        playerAudio = GetComponent<PlayerAudio>(); // Lấy module audio
 
         controls = new GameControls();
     }
@@ -76,7 +70,10 @@ public class PlayerMovement : MonoBehaviour
         ReadInput();
         HandleStamina();
         UpdateAnimation();
-        HandleFootstepAudioLoop();
+        
+        bool isMoving = MoveInput.sqrMagnitude > 0;
+        bool isRunning = (currentSpeed == runSpeed);
+        playerAudio?.UpdateFootstep(isMoving, isRunning);
     }
 
     private void FixedUpdate()
@@ -147,31 +144,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // ==============================
-    // Audio Logic
-    // ==============================
-    private void HandleFootstepAudioLoop()
-    {
-        if (footstepSource == null) return;
-
-        bool isMoving = MoveInput.sqrMagnitude > 0;
-
-        if (isMoving)
-        {
-            if (!footstepSource.isPlaying)
-            {
-                footstepSource.Play();
-            }
-            footstepSource.pitch = (currentSpeed == runSpeed) ? runPitchMultiplier : 1f;
-        }
-        else
-        {
-            if (footstepSource.isPlaying)
-            {
-                footstepSource.Stop();
-            }
-        }
-    }
     public void SetCanMove(bool status)
     {
         canMove = status;
@@ -179,7 +151,7 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.velocity = Vector2.zero;
             if (animator) animator.SetFloat("Speed", 0);
-            if (footstepSource && footstepSource.isPlaying) footstepSource.Stop();
+            playerAudio?.UpdateFootstep(false, false);
         }
     }
 

@@ -162,8 +162,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a07c4e2060192b3478f17d42ec196ed0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  breakSFX: {fileID: 8300000, guid: acd2e8537a1f4e949afdb05c9554aabb, type: 3}
   speed: 10
-  lifeTime: 3
+  maxRange: 6
   fallGravity: 1
   destroyAfterHit: 0.4
 --- !u!95 &1701304806149896658

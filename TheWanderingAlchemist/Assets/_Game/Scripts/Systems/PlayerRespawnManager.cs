@@ -15,6 +15,7 @@ public class PlayerRespawnManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
@@ -27,7 +28,9 @@ public class PlayerRespawnManager : MonoBehaviour
     private IEnumerator RespawnSequence()
     {
         yield return new WaitForSeconds(1.6f);
+
         Vector3 spawnPosition = Vector3.zero;
+
         if (defaultSpawnPoint != null)
         {
             spawnPosition = defaultSpawnPoint.position;
@@ -35,7 +38,8 @@ public class PlayerRespawnManager : MonoBehaviour
         else
         {
             GameObject spawnObj = GameObject.Find("PlayerSpawnPoint");
-            if (spawnObj != null) spawnPosition = spawnObj.transform.position;
+            if (spawnObj != null)
+                spawnPosition = spawnObj.transform.position;
         }
 
         if (PlayerStats.Instance != null)
@@ -46,15 +50,11 @@ public class PlayerRespawnManager : MonoBehaviour
         }
 
         PlayerPenalty penalty = FindObjectOfType<PlayerPenalty>();
-        if (penalty != null) penalty.ApplyPenalty();
+        if (penalty != null)
+            penalty.ApplyPenalty();
 
         if (HotbarManager.Instance != null)
             HotbarManager.Instance.UpdateAllSlotsUI();
-
-        if (DeathUI.Instance != null && DeathUI.Instance.deadText != null)
-            DeathUI.Instance.deadText.gameObject.SetActive(false);
-
-        yield return new WaitForSeconds(0.4f);
 
         string currentScene = SceneManager.GetActiveScene().name;
 

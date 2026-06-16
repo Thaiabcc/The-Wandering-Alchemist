@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CloudManager : MonoBehaviour
 {
@@ -17,9 +18,27 @@ public class CloudManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        HandleCloudVisuals();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        GameObject cloudObj = GameObject.FindGameObjectWithTag("CloudShadow");
+        if (cloudObj != null)
+        {
+            groundShadowClouds = cloudObj.GetComponent<ParticleSystem>();
+        }
+        else
+        {
+            groundShadowClouds = null; 
+        }
     }
 
     private void HandleCloudVisuals()

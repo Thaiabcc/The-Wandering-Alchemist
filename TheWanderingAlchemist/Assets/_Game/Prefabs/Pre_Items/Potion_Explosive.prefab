@@ -205,6 +205,7 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64
+  explosionSFX: {fileID: 8300000, guid: 075057104e74db7488520f7a535bca1e, type: 3}
 --- !u!114 &5891529365102935282
 MonoBehaviour:
   m_ObjectHideFlags: 0

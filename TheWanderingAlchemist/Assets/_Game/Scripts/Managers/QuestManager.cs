@@ -18,9 +18,12 @@ public class QuestManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        if (Instance != null && Instance != this) 
+        { 
+            Destroy(gameObject); 
+            return; 
+        }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
@@ -109,7 +112,7 @@ public class QuestManager : MonoBehaviour
                     if (count >= q.info.requiredAmount) { q.isCompleted = true; return true; }
                 }
                 break;
-        }
+            }
         return false;
     }
 
@@ -154,6 +157,7 @@ public class QuestManager : MonoBehaviour
         trackedQuest = null;
         OnQuestUpdated?.Invoke();
     }
+
     public void LoadQuestData(List<string> savedCompleted, List<QuestSaveData> savedActive, List<QuestData> database)
     {
         completedQuestNames = new List<string>(savedCompleted);

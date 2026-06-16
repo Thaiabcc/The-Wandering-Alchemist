@@ -6,6 +6,11 @@ TagManager:
   tags:
   - Monster
   - Bounds
+  - HUD
+  - Light
+  - Rain
+  - Stormy
+  - CloudShadow
   layers:
   - Default
   - TransparentFX

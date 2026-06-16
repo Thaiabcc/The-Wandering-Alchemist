@@ -18,6 +18,9 @@ public class ExplosivePotion : MonoBehaviour
     private Vector2 moveDirection;
     private bool hasExploded = false;
     private float lifeTimer = 0f;       
+    
+    [Header("Audio")]
+    [SerializeField] private AudioClip explosionSFX;
 
     public void Setup(Vector2 direction)
     {
@@ -67,9 +70,9 @@ public class ExplosivePotion : MonoBehaviour
             Instantiate(explosionVFXPrefab, explosionPos, Quaternion.identity);
         }
 
-        if (AudioManager.Instance != null && AudioManager.Instance.explosionSFX != null)
+        if (explosionSFX != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.explosionSFX, 1f, true);
+            AudioManager.Instance.PlaySFX(explosionSFX, 1f, true);
         }
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer);

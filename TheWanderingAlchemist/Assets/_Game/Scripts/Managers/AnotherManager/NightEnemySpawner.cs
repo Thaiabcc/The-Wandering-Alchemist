@@ -14,20 +14,20 @@ public class NightEnemySpawner : MonoBehaviour
     #endregion
 
     #region VIP SPAWN SETTINGS
-    [Header("Special VIP Enemies (Blood Moon)")]
+    [Header("Special Enemies")]
     [SerializeField] private GameObject[] vipEnemyPrefabs;
     [SerializeField] private int specialNightInterval = 4; 
     
-    [Tooltip("Giờ thả VIP (Thường là 0h nửa đêm)")]
+    [Tooltip("Time SE")]
     [SerializeField] private int vipSpawnHour = 0; 
     
-    [Tooltip("Số lượng VIP thả ra (Ít thôi cho nó nguy hiểm)")]
+    [Tooltip("Quantity SE")]
     [SerializeField] private int vipMaxAmount = 3; 
     
-    [Tooltip("Bán kính thả VIP (To hơn quái thường)")]
+    [Tooltip("Radius SE")]
     [SerializeField] private float vipSpawnRadius = 10f; 
     
-    [Tooltip("Khoảng cách thời gian thả từng con VIP (Giây)")]
+    [Tooltip("Delay SE")]
     [SerializeField] private float vipSpawnDelay = 1f;
     #endregion
 
@@ -128,8 +128,6 @@ public class NightEnemySpawner : MonoBehaviour
 
     private IEnumerator SpawnVIPRoutine()
     {
-        Debug.Log("Nửa đêm cmnr! Bắt đầu thả " + vipMaxAmount + " con VIP!");
-        
         for (int i = 0; i < vipMaxAmount; i++)
         {
             SpawnSingleEnemy(vipEnemyPrefabs, vipSpawnRadius);

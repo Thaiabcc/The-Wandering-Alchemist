@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3998887589515542348}
   - component: {fileID: 4686371587933452801}
   m_Layer: 3
-  m_Name: Item_Basic Recipe Health
+  m_Name: Item_Recipe Health of Time
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 1051334779
   m_SortingLayer: 3
   m_SortingOrder: 0
-  m_Sprite: {fileID: -1648809707, guid: 95e823af4a4f1e74a8df6ef922357e14, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0e6acb8cf8750c74fba914d1ade8d400, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -122,8 +122,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.22, y: 1.47}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 0.9765625, y: 0.9765625}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -144,10 +144,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f490c12ca23504ca802d07d7d391d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isPermanent: 0
+  isPermanent: 1
   uniqueID: Recipe_09
-  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
-  itemData: {fileID: 11400000, guid: 5dcc7a6f69aa4e7429a83e704b5aab5a, type: 2}
+  itemData: {fileID: 11400000, guid: 275ae4c8ab4e3b04c82901c7d131e13f, type: 2}
+  pickupSFX: {fileID: 8300000, guid: c1e261bbc2972494882d6fa089e8678a, type: 3}
 --- !u!114 &4686371587933452801
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-public class HotbarSlot : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class HotbarSlot : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public int slotID;
     public Image itemIcon;
@@ -61,34 +61,53 @@ public class HotbarSlot : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragH
 
         InventorySlot_UI.isDraggingItem = true;
         originalIconParent = itemIcon.transform.parent;
-        itemIcon.transform.SetParent(itemIcon.transform.root);
-        itemIcon.transform.SetAsLastSibling();
-        itemIcon.raycastTarget = false;
+
+        // Tạo ghost thay vì di chuyển icon gốc
+        CreateDragGhost();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (assignedItem == null || itemIcon == null) return;
-        itemIcon.transform.position = Input.mousePosition;
+        if (ghostObj != null)
+            ghostObj.transform.position = Input.mousePosition;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         InventorySlot_UI.isDraggingItem = false;
 
-        if (itemIcon != null && originalIconParent != null)
+        if (ghostObj != null)
         {
-            itemIcon.transform.SetParent(originalIconParent);
-            itemIcon.transform.localPosition = Vector3.zero;
-            itemIcon.raycastTarget = true;
+            Destroy(ghostObj);
+            ghostObj = null;
         }
 
-        if (eventData.pointerEnter == null || eventData.pointerEnter.GetComponentInParent<HotbarSlot>() == null)
+        if (eventData.pointerEnter == null || 
+            eventData.pointerEnter.GetComponentInParent<HotbarSlot>() == null)
         {
             ClearSlot();
         }
 
         HotbarManager.Instance.UpdateSlotUI(slotID);
+    }
+
+    private GameObject ghostObj;
+
+    private void CreateDragGhost()
+    {
+        if (ghostObj != null) Destroy(ghostObj);
+
+        ghostObj = new GameObject("DragGhost");
+        ghostObj.transform.SetParent(GetComponentInParent<Canvas>().transform, false);
+        ghostObj.transform.SetAsLastSibling();
+
+        Image ghostImage = ghostObj.AddComponent<Image>();
+        ghostImage.sprite = itemIcon.sprite;
+        ghostImage.color = new Color(1, 1, 1, 0.85f);
+        ghostImage.raycastTarget = false;
+
+        RectTransform rt = ghostObj.GetComponent<RectTransform>();
+        rt.sizeDelta = itemIcon.GetComponent<RectTransform>().sizeDelta;
     }
 
     public void ClearSlot()
@@ -100,5 +119,17 @@ public class HotbarSlot : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragH
             itemIcon.enabled = false;
         }
         if (quantityText != null) quantityText.text = "";
+    }
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (assignedItem != null)
+        {
+            ItemTooltipUI.Instance.Show(assignedItem);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        ItemTooltipUI.Instance.Hide();
     }
 }

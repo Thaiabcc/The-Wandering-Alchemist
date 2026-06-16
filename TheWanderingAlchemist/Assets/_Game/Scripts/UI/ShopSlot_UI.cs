@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class ShopSlot_UI : MonoBehaviour
+public class ShopSlot_UI : MonoBehaviour,IPointerEnterHandler,IPointerExitHandler
 {
     [Header("UI References")]
     [SerializeField] private Image iconImage;           
@@ -37,10 +38,7 @@ public class ShopSlot_UI : MonoBehaviour
                 buyButton.onClick.RemoveAllListeners();
                 buyButton.onClick.AddListener(OnBuyClick);
             }
-            else
-            {
-                Debug.LogWarning($"Slot {item.itemName} chưa được gán Button trong Prefab!");
-            }
+            
         }
     }
     private void OnBuyClick()
@@ -49,5 +47,18 @@ public class ShopSlot_UI : MonoBehaviour
         {
             ShopUI.Instance.TryBuyItem(currentItem);
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (currentItem != null)
+        {
+            ItemTooltipUI.Instance.Show(currentItem);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        ItemTooltipUI.Instance.Hide();
     }
 }

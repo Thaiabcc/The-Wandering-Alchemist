@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class AlchemyUI : MonoBehaviour
 {
@@ -15,15 +16,13 @@ public class AlchemyUI : MonoBehaviour
     public AlchemySlot inputSlot3;
     public Image outputIcon;
     public TextMeshProUGUI outputAmountText;
-    
+
     [Header("Mini-Game Timing")]
     public Slider timingSlider;
     public float sliderSpeed = 1.5f;
 
     private bool isWaitingForInput = false;
-
     private enum CookResult { Perfect, Good, Fail }
-
     private CookResult currentResult;
 
     [Header("Audio & Feedback")]
@@ -31,10 +30,7 @@ public class AlchemyUI : MonoBehaviour
     [SerializeField] private GameObject failTextObj;
     [SerializeField] private GameObject norecipe;
     [SerializeField] private float feedbackDuration = 1.5f;
-    [SerializeField] private AudioClip cookingSound;
-    [SerializeField] private AudioClip successSound;
-    [SerializeField] private AudioClip failSound;
-    
+
     [Header("Fail Item Setup")]
     public ItemData trashItem;
     public int trashAmountPerBatch = 1;
@@ -42,13 +38,16 @@ public class AlchemyUI : MonoBehaviour
     [Header("Animation Settings")]
     public Animator alchemyAnimator;
     public float cookTime = 2.5f;
-    
+
     public List<RecipeData> allRecipes;
 
     private AlchemySlot currentSelectingSlot;
     private int craftTimes;
     private bool isCooking = false;
     private Coroutine noRecipeCoroutine;
+
+    private EventTrigger outputTrigger;
+    private AlchemyAudio alchemyAudio;
 
     private void Awake()
     {
@@ -57,9 +56,9 @@ public class AlchemyUI : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        alchemyAudio = GetComponent<AlchemyAudio>();
     }
 
     private void Start()
@@ -72,17 +71,44 @@ public class AlchemyUI : MonoBehaviour
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
 
         ResetOutput();
+        SetupOutputTooltip();
+    }
 
-        if (allRecipes != null)
+    private void SetupOutputTooltip()
+    {
+        if (outputIcon == null) return;
+
+        if (outputTrigger == null)
+            outputTrigger = outputIcon.gameObject.GetComponent<EventTrigger>() 
+                         ?? outputIcon.gameObject.AddComponent<EventTrigger>();
+
+        outputTrigger.triggers.Clear();
+
+        EventTrigger.Entry enterEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+        enterEntry.callback.AddListener((e) =>
         {
-            foreach (var rc in allRecipes)
+            if (outputIcon.enabled && outputIcon.sprite != null)
             {
-                if (rc != null && rc.resultItem != null)
-                {
-                    rc.isUnlocked = PlayerPrefs.GetInt("Recipe" + rc.resultItem.itemName, 0) == 1;
-                }
+                ItemData resultItem = GetCurrentResultItem();
+                if (resultItem != null)
+                    ItemTooltipUI.Instance.Show(resultItem);
             }
+        });
+        outputTrigger.triggers.Add(enterEntry);
+
+        EventTrigger.Entry exitEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+        exitEntry.callback.AddListener((e) => ItemTooltipUI.Instance.Hide());
+        outputTrigger.triggers.Add(exitEntry);
+    }
+
+    private ItemData GetCurrentResultItem()
+    {
+        foreach (var recipe in allRecipes)
+        {
+            if (TryMatchRecipe(recipe, out _))
+                return recipe.resultItem;
         }
+        return null;
     }
 
     public void OpenPanel()
@@ -99,20 +125,15 @@ public class AlchemyUI : MonoBehaviour
     public void CloseButtonAction()
     {
         HidePanel();
-
         inputSlot1.UpdateVisual(null, 0);
         inputSlot2.UpdateVisual(null, 0);
         inputSlot3.UpdateVisual(null, 0);
-
         ResetOutput();
         CancelSelection();
-
         isCooking = false;
         isWaitingForInput = false;
-
         if (timingSlider != null) timingSlider.gameObject.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
-
         StopAllCoroutines();
     }
 
@@ -120,37 +141,45 @@ public class AlchemyUI : MonoBehaviour
     {
         if (isCooking)
         {
-            if (isWaitingForInput) CheckTiming();
+            if (isWaitingForInput)
+                CheckTiming();
             return;
         }
 
         RecipeData matchedRecipe = null;
-
         foreach (var recipe in allRecipes)
         {
             if (TryMatchRecipe(recipe, out int times))
             {
                 matchedRecipe = recipe;
+                craftTimes = times;
                 break;
             }
         }
 
-        if (matchedRecipe != null && !matchedRecipe.isUnlocked)
+        if (matchedRecipe == null)
         {
-            if (norecipe != null)
-            {
-                TextMeshProUGUI t = norecipe.GetComponent<TextMeshProUGUI>();
-                if (t != null) t.text = "You're not owned recipe !";
-
-                if (noRecipeCoroutine != null) StopCoroutine(noRecipeCoroutine);
-
-                noRecipeCoroutine = StartCoroutine(ShowFailNotificationTemporarily());
-            }
-
+            ShowNoRecipeMessage("No matching recipe!");
             return;
         }
 
-        if (outputIcon.enabled) StartCoroutine(CookingRoutineWithMiniGame());
+        if (!matchedRecipe.IsUnlocked())
+        {
+            ShowNoRecipeMessage("You're not owned recipe !");
+            return;
+        }
+
+        StartCoroutine(CookingRoutineWithMiniGame());
+    }
+
+    private void ShowNoRecipeMessage(string message)
+    {
+        if (norecipe == null) return;
+        TextMeshProUGUI t = norecipe.GetComponent<TextMeshProUGUI>();
+        if (t != null) t.text = message;
+
+        if (noRecipeCoroutine != null) StopCoroutine(noRecipeCoroutine);
+        noRecipeCoroutine = StartCoroutine(ShowFailNotificationTemporarily());
     }
 
     private IEnumerator ShowFailNotificationTemporarily()
@@ -166,39 +195,45 @@ public class AlchemyUI : MonoBehaviour
         if (timingSlider == null) return;
 
         isWaitingForInput = false;
-
         float val = timingSlider.value;
 
-        if (val >= 0.47f && val <= 0.53f) currentResult = CookResult.Perfect;
-        else if (val >= 0.25f && val <= 0.75f) currentResult = CookResult.Good;
-        else currentResult = CookResult.Fail;
+        if (val >= 0.47f && val <= 0.53f)
+            currentResult = CookResult.Perfect;
+        else if (val >= 0.25f && val <= 0.75f)
+            currentResult = CookResult.Good;
+        else
+            currentResult = CookResult.Fail;
     }
 
     private IEnumerator CookingRoutineWithMiniGame()
     {
         if (timingSlider == null) yield break;
 
+        alchemyAudio?.PlayCooking();
+
         isCooking = true;
         isWaitingForInput = true;
         currentResult = CookResult.Fail;
 
         timingSlider.gameObject.SetActive(true);
-        timingSlider.value = 0;
+        timingSlider.value = 0f;
 
-        if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(true);
-
-        if (AudioManager.Instance != null && cookingSound != null)
-            AudioManager.Instance.PlaySFX(cookingSound, 1f);
+        if (alchemyAnimator != null)
+        {
+            alchemyAnimator.gameObject.SetActive(true);
+            alchemyAnimator.SetTrigger("Cook");        
+        }
 
         float startTime = Time.time;
-        float elapsed = 0;
 
-        while (elapsed < cookTime && isWaitingForInput)
+        while (isWaitingForInput && (Time.time - startTime) < cookTime)
         {
-            elapsed += Time.deltaTime;
             timingSlider.value = Mathf.PingPong((Time.time - startTime) * sliderSpeed, 1f);
             yield return null;
         }
+
+        if (isWaitingForInput)
+            CheckTiming();
 
         if (timingSlider != null) timingSlider.gameObject.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
@@ -209,12 +244,12 @@ public class AlchemyUI : MonoBehaviour
     private void PerformCrafting()
     {
         RecipeData validRecipe = null;
-
         foreach (var recipe in allRecipes)
         {
             if (TryMatchRecipe(recipe, out int times))
             {
                 validRecipe = recipe;
+                craftTimes = times;
                 break;
             }
         }
@@ -229,9 +264,7 @@ public class AlchemyUI : MonoBehaviour
         int finalAmount = validRecipe.resultCount * craftTimes;
 
         if (currentResult == CookResult.Perfect)
-        {
             finalAmount *= 2;
-        }
         else if (currentResult == CookResult.Fail)
         {
             itemToGive = trashItem;
@@ -244,7 +277,7 @@ public class AlchemyUI : MonoBehaviour
         {
             foreach (var slot in slots)
             {
-                if (slot.CurrentItem == ing.item)
+                if (slot.CurrentItem == ing.item && slot.CurrentAmount >= ing.count * craftTimes)
                 {
                     InventoryManager.Instance.RemoveItem(slot.CurrentItem, ing.count * craftTimes);
                     break;
@@ -259,59 +292,48 @@ public class AlchemyUI : MonoBehaviour
         if (itemToGive != null)
         {
             InventoryManager.Instance.AddItem(itemToGive, finalAmount);
-
             outputIcon.sprite = itemToGive.icon;
             outputIcon.enabled = true;
             outputIcon.color = Color.white;
-
             outputAmountText.text = finalAmount.ToString();
             outputAmountText.gameObject.SetActive(true);
         }
 
         if (currentResult != CookResult.Fail)
-        {
             StartCoroutine(SuccessFeedbackRoutine(currentResult == CookResult.Perfect));
-        }
         else
-        {
             StartCoroutine(FailFeedbackRoutine());
-        }
 
         CancelSelection();
     }
 
     private IEnumerator SuccessFeedbackRoutine(bool isPerfect)
     {
-        if (AudioManager.Instance != null && successSound != null)
-            AudioManager.Instance.PlaySFX(successSound, 1f);
+        alchemyAudio?.PlaySuccess();
 
         if (successTextObj != null)
         {
             TextMeshProUGUI t = successTextObj.GetComponent<TextMeshProUGUI>();
             if (t != null) t.text = isPerfect ? "PERFECT! x2" : "SUCCESS";
-
             successTextObj.SetActive(true);
         }
 
         yield return new WaitForSeconds(feedbackDuration);
 
         if (successTextObj != null) successTextObj.SetActive(false);
-
         ResetOutput();
         isCooking = false;
     }
 
     private IEnumerator FailFeedbackRoutine()
     {
-        if (AudioManager.Instance != null && failSound != null)
-            AudioManager.Instance.PlaySFX(failSound, 1f);
+        alchemyAudio?.PlayFail();
 
         if (failTextObj != null) failTextObj.SetActive(true);
 
         yield return new WaitForSeconds(feedbackDuration);
 
         if (failTextObj != null) failTextObj.SetActive(false);
-
         ResetOutput();
         isCooking = false;
     }
@@ -319,38 +341,31 @@ public class AlchemyUI : MonoBehaviour
     private bool TryMatchRecipe(RecipeData recipe, out int times)
     {
         times = 0;
+        List<AlchemySlot> allInputSlots = new List<AlchemySlot> { inputSlot1, inputSlot2, inputSlot3 };
 
-        List<AlchemySlot> allInputSlots = new List<AlchemySlot>
-        {
-            inputSlot1,
-            inputSlot2,
-            inputSlot3
-        };
-
-        List<AlchemySlot> activeSlots = new List<AlchemySlot>();
-
+        int activeSlotCount = 0;
         foreach (var slot in allInputSlots)
         {
             if (slot.CurrentItem != null && slot.CurrentAmount > 0)
-                activeSlots.Add(slot);
+                activeSlotCount++;
         }
 
-        if (activeSlots.Count != recipe.ingredients.Count) return false;
+        if (activeSlotCount != recipe.ingredients.Count)
+            return false;
 
         int minPossible = int.MaxValue;
 
         foreach (var ing in recipe.ingredients)
         {
             bool found = false;
-
-            foreach (var slot in activeSlots)
+            foreach (var slot in allInputSlots)
             {
                 if (slot.CurrentItem == ing.item)
                 {
-                    if (slot.CurrentAmount < ing.count) return false;
+                    if (slot.CurrentAmount < ing.count)
+                        return false;
 
                     int possible = slot.CurrentAmount / ing.count;
-
                     if (possible < minPossible)
                         minPossible = possible;
 
@@ -358,7 +373,6 @@ public class AlchemyUI : MonoBehaviour
                     break;
                 }
             }
-
             if (!found) return false;
         }
 
@@ -368,14 +382,15 @@ public class AlchemyUI : MonoBehaviour
 
     private void ResetOutput()
     {
-        if (outputIcon != null) outputIcon.enabled = false;
-        if (outputAmountText != null) outputAmountText.gameObject.SetActive(false);
+        if (outputIcon != null)
+            outputIcon.enabled = false;
+        if (outputAmountText != null) 
+            outputAmountText.gameObject.SetActive(false);
     }
 
     public void StartSelection(AlchemySlot slot)
     {
         currentSelectingSlot = slot;
-
         if (InventoryUI.Instance != null)
             InventoryUI.Instance.OpenInventoryForSelection();
     }
@@ -389,11 +404,8 @@ public class AlchemyUI : MonoBehaviour
         currentSelectingSlot.SetItem(item);
         currentSelectingSlot = null;
 
-        if (InventoryUI.Instance != null)
-            InventoryUI.Instance.CloseInventory();
-
-        if (alchemyPanel != null)
-            alchemyPanel.SetActive(true);
+        if (InventoryUI.Instance != null) InventoryUI.Instance.CloseInventory();
+        if (alchemyPanel != null) alchemyPanel.SetActive(true);
 
         CheckRecipe();
     }
@@ -402,24 +414,21 @@ public class AlchemyUI : MonoBehaviour
     {
         ResetOutput();
 
-        if (inputSlot1.CurrentItem == null &&
-            inputSlot2.CurrentItem == null &&
-            inputSlot3.CurrentItem == null) return;
+        if (inputSlot1.CurrentItem == null && inputSlot2.CurrentItem == null && inputSlot3.CurrentItem == null)
+            return;
 
         foreach (var recipe in allRecipes)
         {
             if (TryMatchRecipe(recipe, out int times))
             {
-                if (!recipe.isUnlocked) continue;
-
-                craftTimes = times;
-
                 outputIcon.sprite = recipe.resultItem.icon;
                 outputIcon.enabled = true;
-                outputIcon.color = new Color(1, 1, 1, 0.5f);
-
+                outputIcon.color = recipe.IsUnlocked() ? Color.white : Color.gray;
                 outputAmountText.text = (recipe.resultCount * times).ToString();
                 outputAmountText.gameObject.SetActive(true);
+                craftTimes = times;
+
+                SetupOutputTooltip();
                 return;
             }
         }

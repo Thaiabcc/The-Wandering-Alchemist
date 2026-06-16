@@ -1,14 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class AlchemySlot : MonoBehaviour
+public class AlchemySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("UI")]
     [SerializeField] private Image iconDisplay;
     [SerializeField] private TextMeshProUGUI amountText;
 
-    [Header("Quantity Controls (MỚI)")]
+    [Header("Quantity Controls")]
     [SerializeField] private GameObject quantityGroup; 
     [SerializeField] private Button btnPlus;           
     [SerializeField] private Button btnMinus;         
@@ -40,7 +41,7 @@ public class AlchemySlot : MonoBehaviour
         }
         else
         {
-            Debug.Log("Đã hết hàng trong kho!");
+            Debug.Log("Not enough");
         }
     }
 
@@ -104,5 +105,18 @@ public class AlchemySlot : MonoBehaviour
     {
         if (AlchemyUI.Instance == null) return;
         AlchemyUI.Instance.StartSelection(this);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (currentItem != null)
+        {
+            ItemTooltipUI.Instance.Show(currentItem);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        ItemTooltipUI.Instance.Hide();
     }
 }

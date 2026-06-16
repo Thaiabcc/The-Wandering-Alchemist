@@ -9,8 +9,15 @@ public class GameManager : MonoBehaviour
     public GameObject player;
     public bool applyPenalty = true;
 
-    [Header("Teleport Data")]
-    public Vector3? nextSpawnPosition;
+    private static Vector3? _nextSpawnPosition;
+    public Vector3? nextSpawnPosition
+    {
+        get { return _nextSpawnPosition; }
+        set
+        {
+            _nextSpawnPosition = value;
+        }
+    }
 
     [Header("Return To World")]
     public string lastWorldScene;
@@ -25,28 +32,29 @@ public class GameManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
     }
 
     public void RespawnPlayer()
     {
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+        }
+
         if (player == null || fixedSpawnPoint == null)
         {
             Debug.LogWarning("GameManager: Missing player or spawn point");
             return;
         }
 
-        // Teleport position
         player.transform.position = fixedSpawnPoint.position;
 
-        // Reset stats
         var stats = player.GetComponent<PlayerStats>();
         if (stats != null)
         {
             stats.HealFullAndReset();
         }
 
-        // Apply penalty
         if (applyPenalty)
         {
             var penalty = player.GetComponent<PlayerPenalty>();

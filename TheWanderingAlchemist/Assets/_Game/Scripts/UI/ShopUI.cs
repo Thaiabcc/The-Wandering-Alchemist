@@ -100,10 +100,6 @@ public class ShopUI : MonoBehaviour
         {
             buyPopup.OpenPopup(item);
         }
-        else
-        {
-            Debug.LogError("Chưa gán ShopBuyPopup vào ShopUI!");
-        }
     }
     public void ProcessBuying(ItemData item, int quantity)
     {
@@ -115,14 +111,7 @@ public class ShopUI : MonoBehaviour
             {
                 InventoryManager.Instance.UpdateGold(-totalCost);
             }
-            else
-            {
-                Debug.Log("Túi đồ đã đầy!");
-            }
-        }
-        else
-        {
-            Debug.Log("Không đủ tiền!");
+           
         }
     }
     public void TrySellItem(ItemData item)

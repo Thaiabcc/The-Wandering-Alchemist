@@ -151,4 +151,8 @@ public class InventoryUI : MonoBehaviour
 
         inventoryPanel.SetActive(true);
     }
+    public void RefreshInventoryUI()
+    {
+        RefreshUI();
+    }
 }

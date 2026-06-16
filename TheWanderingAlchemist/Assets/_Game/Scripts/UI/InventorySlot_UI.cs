@@ -3,36 +3,31 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
-public class InventorySlot_UI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
+public class InventorySlot_UI : MonoBehaviour,
+    IBeginDragHandler,
+    IDragHandler,
+    IEndDragHandler,
+    IPointerClickHandler,
+    IPointerEnterHandler,
+    IPointerExitHandler
 {
     [Header("UI Setup")]
     [SerializeField] private Image icon;
     [SerializeField] private TextMeshProUGUI amountText;
 
     public static bool isDraggingItem = false;
+
     public int slotIndex;
-    
+
     private ItemData item;
     public ItemData Item => item;
-    
-    private Transform originalIconParent;
-    private int currentAmount;
-    private bool isSplitting = false;
-    private int splitAmount = 0;
-    
-    private float holdTimer = 0f;
-    private float delayBeforeFastCount = 0.5f;
-    private float fastCountInterval = 0.1f;
-    private float fastCountTimer = 0f;
 
     private GameObject ghostObj;
-    private TextMeshProUGUI ghostText;
 
     public void SetItem(ItemData newItem, int amount)
     {
         item = newItem;
-        currentAmount = amount;
-        
+
         if (item == null)
         {
             Clear();
@@ -42,7 +37,7 @@ public class InventorySlot_UI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         icon.sprite = item.icon;
         icon.enabled = true;
         icon.color = Color.white;
-        icon.raycastTarget = true;
+        icon.raycastTarget = false;
 
         amountText.gameObject.SetActive(amount > 1);
         amountText.text = amount.ToString();
@@ -51,201 +46,141 @@ public class InventorySlot_UI : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     public void Clear()
     {
         item = null;
-        if (icon != null) icon.enabled = false;
-        if (amountText != null) amountText.gameObject.SetActive(false);
-    }
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        if (item == null || isDraggingItem) return;
+        if (icon != null)
+            icon.enabled = false;
 
-        if (Input.GetKey(KeyCode.LeftShift) && eventData.button == PointerEventData.InputButton.Left && currentAmount > 1)
+        if (amountText != null)
         {
-            isSplitting = true;
-            splitAmount = 1;
-            holdTimer = 0f;
-            fastCountTimer = 0f;
-            isDraggingItem = true;
-            CreateGhostUI();
-            UpdateGhostUI();
-        }
-    }
-
-    private void Update()
-    {
-        if (isSplitting && Input.GetMouseButton(0))
-        {
-            if (ghostObj != null)
-                ghostObj.transform.position = Input.mousePosition;
-
-            holdTimer += Time.deltaTime;
-            if (holdTimer >= delayBeforeFastCount)
-            {
-                fastCountTimer += Time.deltaTime;
-                if (fastCountTimer >= fastCountInterval)
-                {
-                    if (splitAmount < currentAmount - 1)
-                    {
-                        splitAmount++;
-                        UpdateGhostUI();
-                    }
-                    fastCountTimer = 0f;
-                }
-            }
-        }
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        if (isSplitting)
-        {
-            isSplitting = false;
-            isDraggingItem = false;
-
-            InventorySlot_UI targetSlot = null;
-            if (eventData.hovered != null)
-            {
-                foreach (var hovered in eventData.hovered)
-                {
-                    var slot = hovered.GetComponentInParent<InventorySlot_UI>();
-                    if (slot != null)
-                    {
-                        targetSlot = slot;
-                        break;
-                    }
-                }
-            }
-
-            if (targetSlot != null && targetSlot != this)
-            {
-                InventoryManager.Instance.SplitItem(this.slotIndex, targetSlot.slotIndex, splitAmount);
-            }
-            
-            if (ghostObj != null) Destroy(ghostObj);
+            amountText.text = "";
+            amountText.gameObject.SetActive(false);
         }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (isSplitting || Input.GetKey(KeyCode.LeftShift)) return;
-        if (item == null || isDraggingItem) return;
+        if (item == null || isDraggingItem)
+            return;
 
-        if (eventData.button == PointerEventData.InputButton.Left)
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (ShopUI.Instance != null && ShopUI.Instance.IsShopOpen())
         {
-            if (ShopUI.Instance != null && ShopUI.Instance.IsShopOpen())
+            ShopUI.Instance.TrySellItem(item);
+            return;
+        }
+
+        if (AlchemyUI.Instance != null && AlchemyUI.Instance.IsSelecting())
+        {
+            AlchemyUI.Instance.ReceiveItemFromInventory(item);
+            return;
+        }
+
+        if (AlchemyUI.Instance != null && AlchemyUI.Instance.allRecipes != null)
+        {
+            foreach (var recipe in AlchemyUI.Instance.allRecipes)
             {
-                ShopUI.Instance.TrySellItem(item);
-                return;
-            }
+                if (recipe == null || recipe.recipeItem != item)
+                    continue;
 
-            if (AlchemyUI.Instance != null && AlchemyUI.Instance.IsSelecting())
-            {
-                AlchemyUI.Instance.ReceiveItemFromInventory(item);
-                return;
-            }
+                if (recipe.IsUnlocked())
+                    return;
 
-            bool isRecipeItem = false;
-            if (AlchemyUI.Instance != null && AlchemyUI.Instance.allRecipes != null)
-            {
-                foreach (var recipe in AlchemyUI.Instance.allRecipes)
-                {
-                    if (recipe != null && recipe.recipeItem == this.item)
-                    {
-                        isRecipeItem = true;
-
-                        if (recipe.isUnlocked)
-                        {
-                            return;
-                        }
-
-                        recipe.isUnlocked = true;
-                        PlayerPrefs.SetInt("Recipe_" + recipe.resultItem.itemName, 1);
-                        PlayerPrefs.Save();
-
-                        InventoryManager.Instance.RemoveItem(this.item, 1);
-                        return;
-                    }
-                }
-            }
-
-            bool isSuccess = item.UseItem(PlayerStats.Instance);
-            if (isSuccess)
-            {
+                SaveManager.Instance.UnlockRecipe(recipe);
                 InventoryManager.Instance.RemoveItem(item, 1);
+                return;
             }
+        }
+
+        if (item.UseItem(PlayerStats.Instance))
+        {
+            InventoryManager.Instance.RemoveItem(item, 1);
         }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left) return;
-        if (item == null || isSplitting || Input.GetKey(KeyCode.LeftShift)) return;
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (item == null)
+            return;
 
         isDraggingItem = true;
-        originalIconParent = icon.transform.parent;
-        icon.transform.SetParent(icon.transform.root);
-        icon.transform.SetAsLastSibling();
-        icon.raycastTarget = false;
+        CreateDragGhost();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (isDraggingItem && !isSplitting)
-        {
-            icon.transform.position = Input.mousePosition;
-        }
+        if (!isDraggingItem || ghostObj == null)
+            return;
+
+        ghostObj.transform.position = Input.mousePosition;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (!isDraggingItem || isSplitting) return;
+        if (!isDraggingItem)
+            return;
 
         isDraggingItem = false;
-        icon.transform.SetParent(originalIconParent);
-        icon.transform.localPosition = Vector3.zero;
-        icon.raycastTarget = true;
+
+        if (ghostObj != null)
+        {
+            Destroy(ghostObj);
+            ghostObj = null;
+        }
+
+        if (eventData.pointerEnter != null)
+        {
+            HotbarSlot hotbarSlot = eventData.pointerEnter.GetComponentInParent<HotbarSlot>();
+
+            if (hotbarSlot != null)
+            {
+                HotbarManager.Instance.PreventDuplicate(item);
+                hotbarSlot.assignedItem = item;
+                HotbarManager.Instance.UpdateAllSlotsUI();
+            }
+        }
     }
 
-    private void CreateGhostUI()
+    private void CreateDragGhost()
     {
-        if (ghostObj != null) Destroy(ghostObj);
+        if (ghostObj != null)
+            Destroy(ghostObj);
 
-        ghostObj = new GameObject("SplitGhost");
-        ghostObj.transform.SetParent(GetComponentInParent<Canvas>().transform);
+        ghostObj = new GameObject("DragGhost");
+        ghostObj.transform.SetParent(GetComponentInParent<Canvas>().transform, false);
         ghostObj.transform.SetAsLastSibling();
 
-        Image img = ghostObj.AddComponent<Image>();
-        img.sprite = item.icon;
-        img.color = new Color(1, 1, 1, 0.6f);
-        img.raycastTarget = false;
+        Image ghostImage = ghostObj.AddComponent<Image>();
+        ghostImage.sprite = icon.sprite;
+        ghostImage.color = new Color(1f, 1f, 1f, 0.85f);
+        ghostImage.raycastTarget = false;
 
-        RectTransform ghostRT = ghostObj.GetComponent<RectTransform>();
-        RectTransform originalRT = icon.GetComponent<RectTransform>();
-        ghostRT.sizeDelta = originalRT.sizeDelta;
-
-        GameObject textObj = new GameObject("GhostText");
-        textObj.transform.SetParent(ghostObj.transform);
-
-        ghostText = textObj.AddComponent<TextMeshProUGUI>();
-        ghostText.fontSize = amountText.fontSize;
-        ghostText.font = amountText.font;
-        ghostText.alignment = TextAlignmentOptions.BottomRight;
-        ghostText.color = Color.yellow;
-        ghostText.raycastTarget = false;
-
-        RectTransform rt = ghostText.GetComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        RectTransform rt = ghostObj.GetComponent<RectTransform>();
+        rt.sizeDelta = icon.GetComponent<RectTransform>().sizeDelta;
     }
 
-    private void UpdateGhostUI()
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        if (ghostText != null) ghostText.text = splitAmount.ToString();
-        
-        int remaining = currentAmount - splitAmount;
-        amountText.text = remaining.ToString();
-        amountText.gameObject.SetActive(remaining > 0);
+        if (item != null && ItemTooltipUI.Instance != null)
+        {
+            ItemTooltipUI.Instance.Show(item);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (isDraggingItem)
+            return;
+
+        ItemTooltipUI.Instance?.Hide();
+    }
+
+    private void OnDisable()
+    {
+        ItemTooltipUI.Instance?.Hide();
     }
 }

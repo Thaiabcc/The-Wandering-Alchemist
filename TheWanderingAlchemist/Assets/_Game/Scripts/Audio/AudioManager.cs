@@ -1,77 +1,82 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
-    [Header("Audio Sources")]
     [SerializeField] private AudioSource musicSource;
     [SerializeField] private AudioSource sfxSource;
 
-    [Header("Background")]
-    public AudioClip backgroundMusic;
-
-    [Header("Player")]
-    public AudioClip footstep;      
-    public AudioClip pickupItems;     
-    public AudioClip potionUse;     
-
-    [Header("Player Attack")]
-    public AudioClip swordSwing;      
-    public AudioClip stoneThrow;     
-    public AudioClip stoneBreak;     
-    public AudioClip deflectSuccess;  
-    public AudioClip playerTakeDamage;
-    public AudioClip playerDie;       
-
-    [Header("Enemy")]
-    public AudioClip enemyHit;        
-    public AudioClip enemyDie;
-    public AudioClip explosionSFX;
-
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
+        if (Instance != null && Instance != this) 
+        { 
+            Destroy(gameObject); 
+            return; 
         }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+        LoadVolumes();
     }
 
-    private void Start()
+    public void LoadVolumes()
     {
-        PlayMusic(backgroundMusic, 1f);
+        float master = PlayerPrefs.GetFloat("MasterVol", 1f);
+        float music = PlayerPrefs.GetFloat("BGMVol", 1f);
+        float sfx = PlayerPrefs.GetFloat("SFXVol", 1f);
+        Debug.Log($"<color=cyan>[AudioManager] LoadVolumes gọi từ PlayerPrefs -> Master: {master}, BGM: {music}, SFX: {sfx}</color>");
+        UpdateVolume(master, music, sfx);
+    }
+
+    public void UpdateVolume(float masterVol, float musicVol, float sfxVol)
+    {
+        if (musicSource != null) 
+        {
+            musicSource.volume = musicVol * masterVol;
+            Debug.Log($"<color=cyan>[AudioManager] Cập nhật Music Source Volume thực tế = {musicSource.volume}</color>");
+        }
+        if (sfxSource != null) 
+        {
+            sfxSource.volume = sfxVol * masterVol;
+            Debug.Log($"<color=cyan>[AudioManager] Cập nhật SFX Source Volume thực tế = {sfxSource.volume}</color>");
+        }
     }
 
     public void PlayMusic(AudioClip clip, float volume = 1f)
     {
         if (clip == null || musicSource == null) return;
-
+    
         musicSource.clip = clip;
-        musicSource.volume = volume;
+    
+        float master = PlayerPrefs.GetFloat("MasterVol", 1f);
+        float music = PlayerPrefs.GetFloat("BGMVol", 1f);
+        musicSource.volume = volume * music * master;
+    
         musicSource.loop = true;
-        musicSource.Play();
+
+        if (!musicSource.isPlaying)
+        {
+            musicSource.Play();
+        }
     }
 
     public void PlaySFX(AudioClip clip, float volume = 1f, bool randomPitch = false)
     {
         if (clip == null || sfxSource == null) return;
+        
+        sfxSource.pitch = randomPitch ? Random.Range(0.85f, 1.15f) : 1f;
+        float master = PlayerPrefs.GetFloat("MasterVol", 1f);
+        float sfx = PlayerPrefs.GetFloat("SFXVol", 1f);
+        sfxSource.PlayOneShot(clip, volume * sfx * master);
+        Debug.Log($"<color=blue>[AudioManager] PlaySFX -> Clip: {clip.name}, Vol tính toán: {volume * sfx * master}</color>");
+    }
 
-        if (randomPitch)
+    public void StopMusic()
+    {
+        if (musicSource != null) 
         {
-            sfxSource.pitch = Random.Range(0.85f, 1.15f);
+            Debug.Log("<color=blue>[AudioManager] StopMusic được gọi</color>");
+            musicSource.Stop();
         }
-        else
-        {
-            sfxSource.pitch = 1f;
-        }
-
-        sfxSource.PlayOneShot(clip, volume);
     }
 }

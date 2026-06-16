@@ -40,6 +40,10 @@ public class FlyingRangeBoss : EnemyAI
 
     [Header("Patrol")]
     public Transform[] patrolPoints;
+    
+    [Header("Ending Transition")]
+    public string endingSceneName = "Ending"; 
+    public float delayBeforeEnding = 7f;
 
     private int currentPatrolIndex = 0;
     private float waypointWaitTimer = 0;
@@ -108,11 +112,10 @@ public class FlyingRangeBoss : EnemyAI
             if (distance > stopDistance)
             {
                 animator.SetBool("isMoving", true);
-
                 Vector2 targetPos = playerTransform.position;
                 targetPos.y += flyHeight + Mathf.Sin(Time.time * bobSpeed) * 0.5f; 
-
-                rb.MovePosition(Vector2.MoveTowards(transform.position, targetPos, moveSpeed * Time.fixedDeltaTime));
+        
+                transform.position = Vector2.MoveTowards(transform.position, targetPos, moveSpeed * Time.fixedDeltaTime);
             }
             else
             {

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement; 
 using System.Collections;
 
 public class EnemyHealth : MonoBehaviour
@@ -21,6 +22,8 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private GameObject lootPrefab;
     [SerializeField] private EnemyHealthBar healthBar;
+    
+    private EnemyAudio enemyAudio;
     #endregion
 
     #region State Variables
@@ -49,6 +52,7 @@ public class EnemyHealth : MonoBehaviour
         ProcessBossLogic(damageAmount);
         UpdateUI();
         PlayHitEffect();
+        enemyAudio?.PlayHit();
 
         if (DamagePopupGenerator.Instance != null)
         {
@@ -75,6 +79,8 @@ public class EnemyHealth : MonoBehaviour
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
         if (enemyAI == null) enemyAI = GetComponent<EnemyAI>();
         bossScript = GetComponent<FlyingRangeBoss>();
+        
+        enemyAudio = GetComponent<EnemyAudio>();
     }
 
     private void SetupBossConfiguration()
@@ -137,26 +143,68 @@ public class EnemyHealth : MonoBehaviour
     private void Die()
     {
         if (isDead) return;
+
         isDead = true;
-        if (GetComponent<Collider2D>()) GetComponent<Collider2D>().enabled = false;
-        if (healthBar != null) healthBar.gameObject.SetActive(false);
-        if (bossScript != null && bossScript.bossHUD != null) bossScript.bossHUD.gameObject.SetActive(false);
-        if (enemyAI != null) enemyAI.TriggerDeath();
+
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null)
+            col.enabled = false;
+
+        if (healthBar != null)
+            healthBar.gameObject.SetActive(false);
+
+        if (bossScript != null && bossScript.bossHUD != null)
+            bossScript.bossHUD.gameObject.SetActive(false);
+
+        if (enemyAI != null)
+            enemyAI.TriggerDeath();
 
         try
         {
-            AudioManager.Instance?.PlaySFX(AudioManager.Instance.enemyDie, 0.8f, true);
+            enemyAudio?.PlayDie();
             HandleLootDrop();
         }
-        catch (System.Exception) {}
+        catch (System.Exception) { }
 
         try
         {
             HandleQuestProgress();
         }
-        catch (System.Exception) {}
+        catch (System.Exception) { }
 
-        Destroy(gameObject, destroyDelay);
+        if (bossScript != null)
+        {
+            BossPersistence bossSave = GetComponent<BossPersistence>();
+
+            if (bossSave != null)
+            {
+                bossSave.MarkAsDefeated();
+
+                if (SaveManager.Instance != null)
+                    SaveManager.Instance.SaveGame();
+            }
+
+            StartCoroutine(TriggerEndingScene());
+        }
+        else
+        {
+            Destroy(gameObject, destroyDelay);
+        }
+    }
+
+    private IEnumerator TriggerEndingScene()
+    {
+        yield return new WaitForSeconds(bossScript.delayBeforeEnding);
+
+        if (UIController.Instance != null)
+        {
+            UIController.Instance.ShowManager(false);
+        }
+
+        if (!string.IsNullOrEmpty(bossScript.endingSceneName))
+        {
+            SceneManager.LoadScene(bossScript.endingSceneName);
+        }
     }
 
     private void HandleQuestProgress()

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,11 @@ public class SaveManager : MonoBehaviour
     public static SaveManager Instance { get; private set; }
 
     private string saveFilePath;
+    
+    [Header("Auto Save")]
+    [SerializeField] private float autoSaveInterval = 240f;
+
+    private Coroutine autoSaveCoroutine;
 
     [Header("Database Quest")]
     [SerializeField] private List<QuestData> allQuestDatabase = new List<QuestData>();
@@ -22,6 +28,15 @@ public class SaveManager : MonoBehaviour
     [Header("Chest State")] 
     public List<string> openedChests = new List<string>();
 
+    [Header("Boss")] 
+    public List<string> defeatedBosses = new List<string>();
+    
+    [Header("Potion")]
+    public List<string> unlockedRecipes = new List<string>();
+    
+    [Header("Unique Item")]
+    public List<string> collectedUniqueIDs = new List<string>();
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -33,10 +48,47 @@ public class SaveManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         saveFilePath = Path.Combine(Application.persistentDataPath, "gamesave.dat");
+
+        StartAutoSave();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.LoadVolumes();
+        }
+
+        foreach (var ctrl in FindObjectsByType<AudioVolumeController>(FindObjectsSortMode.None))
+        {
+            ctrl.ApplyVolume();
+        }
+    }
+
+    private void Start()
+    {
+        Invoke("SaveGame", 2f);
     }
 
     public void SaveGame()
     {
+        string currentScene = SceneManager.GetActiveScene().name;
+        if (currentScene == "MainMenu" || currentScene.Contains("Menu") || 
+            currentScene.Contains("Ending") || currentScene.Contains("Credit"))
+        {
+            return;
+        }
+
         GameData data = new GameData();
 
         if (PlayerStats.Instance != null)
@@ -51,7 +103,7 @@ public class SaveManager : MonoBehaviour
             data.playerPosition = new float[] { pos.x, pos.y, pos.z };
         }
 
-        data.currentSceneName = SceneManager.GetActiveScene().name;
+        data.currentSceneName = currentScene;
 
         if (TimeManager.Instance != null)
         {
@@ -84,11 +136,9 @@ public class SaveManager : MonoBehaviour
         if (HotbarManager.Instance != null && HotbarManager.Instance.hotbarSlots != null)
         {
             data.hotbarItems = new List<ItemSaveData>();
-
             for (int i = 0; i < HotbarManager.Instance.hotbarSlots.Length; i++)
             {
                 var slot = HotbarManager.Instance.hotbarSlots[i];
-
                 if (slot != null && slot.assignedItem != null)
                 {
                     ItemSaveData hData = new ItemSaveData();
@@ -108,7 +158,6 @@ public class SaveManager : MonoBehaviour
             for (int i = 0; i < InventoryManager.Instance.inventory.Count; i++)
             {
                 var slot = InventoryManager.Instance.inventory[i];
-
                 if (slot != null && slot.item != null && slot.quantity > 0)
                 {
                     ItemSaveData iData = new ItemSaveData();
@@ -130,7 +179,6 @@ public class SaveManager : MonoBehaviour
                 if (kvp.Value != null)
                 {
                     BuffIconUI iconScript = kvp.Value.GetComponent<BuffIconUI>();
-
                     if (iconScript != null)
                     {
                         var timerField = typeof(BuffIconUI).GetField("timer", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -146,7 +194,14 @@ public class SaveManager : MonoBehaviour
         }
 
         data.solvedPuzzleIDs = new List<string>(solvedPuzzles);
-        data.openedChestIDs = new List<string>(openedChests); 
+        data.openedChestIDs = new List<string>(openedChests);
+        data.defeatedBossIDs = new List<string>(defeatedBosses);
+        data.unlockedRecipes = new List<string>(unlockedRecipes);
+        data.collectedUniqueIDs = new List<string>(collectedUniqueIDs);
+        
+        data.masterVolume = PlayerPrefs.GetFloat("MasterVol", 1f);
+        data.musicVolume = PlayerPrefs.GetFloat("BGMVol", 1f);
+        data.sfxVolume = PlayerPrefs.GetFloat("SFXVol", 1f);
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(saveFilePath, json);
@@ -154,10 +209,7 @@ public class SaveManager : MonoBehaviour
 
     public void LoadGame()
     {
-        if (!File.Exists(saveFilePath))
-        {
-            return;
-        }
+        if (!File.Exists(saveFilePath)) return;
 
         string json = File.ReadAllText(saveFilePath);
         GameData data = JsonUtility.FromJson<GameData>(json);
@@ -192,16 +244,14 @@ public class SaveManager : MonoBehaviour
             }
 
             var sortMethod = typeof(InventoryManager).GetMethod("SortInventory", BindingFlags.Public | BindingFlags.Instance);
-
-            if (sortMethod != null)
-                sortMethod.Invoke(InventoryManager.Instance, null);
+            if (sortMethod != null) sortMethod.Invoke(InventoryManager.Instance, null);
+            InventoryManager.Instance.ForceRefreshUIAfterLoad();
         }
 
         if (HotbarManager.Instance != null && HotbarManager.Instance.hotbarSlots != null)
         {
             foreach (var slot in HotbarManager.Instance.hotbarSlots)
-                if (slot != null)
-                    slot.ClearSlot();
+                if (slot != null) slot.ClearSlot();
 
             foreach (ItemSaveData hData in data.hotbarItems)
             {
@@ -220,17 +270,12 @@ public class SaveManager : MonoBehaviour
         if (BuffUIManager.Instance != null && data.activeBuffDatas != null)
         {
             BuffUIManager.Instance.RemoveAllBuffs();
-
             bool shieldLoaded = false;
 
             foreach (BuffSaveData bData in data.activeBuffDatas)
             {
                 Sprite buffSprite = BuffUIManager.Instance.GetBuffSprite(bData.buffID, allItemDatabase);
-
-                if (buffSprite == null)
-                {
-                    continue;
-                }
+                if (buffSprite == null) continue;
 
                 if (bData.buffID == "Shield")
                 {
@@ -242,19 +287,14 @@ public class SaveManager : MonoBehaviour
                     continue;
                 }
 
-                if (bData.remainingDuration <= 0f)
-                    continue;
+                if (bData.remainingDuration <= 0f) continue;
 
                 if (bData.buffID == "DamageBuff" && PlayerStats.Instance != null)
                 {
                     ItemData potion = allItemDatabase.Find(item => item.damageBuffAmount > 0);
-
                     if (potion != null)
                     {
-                        PlayerStats.Instance.ApplyBuffDamage(
-                            potion.damageBuffAmount,
-                            bData.remainingDuration,
-                            buffSprite);
+                        PlayerStats.Instance.ApplyBuffDamage(potion.damageBuffAmount, bData.remainingDuration, buffSprite);
                     }
                     continue;
                 }
@@ -262,13 +302,9 @@ public class SaveManager : MonoBehaviour
                 if (bData.buffID == "MaxHealthBuff" && PlayerStats.Instance != null)
                 {
                     ItemData potion = allItemDatabase.Find(item => item.maxHealthPercentBonus > 0);
-
                     if (potion != null)
                     {
-                        PlayerStats.Instance.ApplyTemporaryMaxHealth(
-                            potion.maxHealthPercentBonus,
-                            bData.remainingDuration,
-                            buffSprite);
+                        PlayerStats.Instance.ApplyTemporaryMaxHealth(potion.maxHealthPercentBonus, bData.remainingDuration, buffSprite);
                     }
                     continue;
                 }
@@ -277,39 +313,74 @@ public class SaveManager : MonoBehaviour
             }
         }
 
-        if (data.solvedPuzzleIDs != null)
+        solvedPuzzles = data.solvedPuzzleIDs != null ? new List<string>(data.solvedPuzzleIDs) : new List<string>();
+        openedChests = data.openedChestIDs != null ? new List<string>(data.openedChestIDs) : new List<string>();
+        defeatedBosses = data.defeatedBossIDs != null ? new List<string>(data.defeatedBossIDs) : new List<string>();
+        unlockedRecipes = data.unlockedRecipes != null ? new List<string>(data.unlockedRecipes) : new List<string>();
+        collectedUniqueIDs = data.collectedUniqueIDs != null ? new List<string>(data.collectedUniqueIDs) : new List<string>();
+        
+        foreach (var ctrl in FindObjectsByType<AudioVolumeController>(FindObjectsSortMode.None))
         {
-            solvedPuzzles = new List<string>(data.solvedPuzzleIDs);
-        }
-        else
-        {
-            solvedPuzzles = new List<string>();
-        }
-
-        if (data.openedChestIDs != null)
-        {
-            openedChests = new List<string>(data.openedChestIDs);
-        }
-        else
-        {
-            openedChests = new List<string>();
+            ctrl.ApplyVolume();
         }
     }
 
-    public bool HasSaveFile()
-    {
-        return File.Exists(saveFilePath);
-    }
+    public bool HasSaveFile() => File.Exists(saveFilePath);
 
     public string GetSavedSceneName()
     {
-        if(!File.Exists(saveFilePath)) return "Gameplay";
-        
+        if (!File.Exists(saveFilePath)) return "Town 1";
         string json = File.ReadAllText(saveFilePath);
         GameData data = JsonUtility.FromJson<GameData>(json);
+        return string.IsNullOrEmpty(data.currentSceneName) ? "Town 1" : data.currentSceneName;
+    }
 
-        if (string.IsNullOrEmpty(data.currentSceneName)) return "Gameplay";
+    public void UnlockRecipe(RecipeData recipe)
+    {
+        if (recipe == null || recipe.resultItem == null) return;
+        string recipeID = !string.IsNullOrEmpty(recipe.resultItem.id) ? recipe.resultItem.id : recipe.resultItem.itemName;
 
-        return data.currentSceneName;
+        if (!unlockedRecipes.Contains(recipeID))
+        {
+            unlockedRecipes.Add(recipeID);
+            SaveGame();
+        }
+    }
+
+    public bool IsRecipeUnlocked(string recipeID)
+    {
+        if (string.IsNullOrEmpty(recipeID)) return false;
+        return unlockedRecipes.Contains(recipeID);
+    }
+
+    private void StartAutoSave()
+    {
+        if (autoSaveCoroutine != null) StopCoroutine(autoSaveCoroutine);
+        autoSaveCoroutine = StartCoroutine(AutoSaveRoutine());
+    }
+
+    private IEnumerator AutoSaveRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(autoSaveInterval);
+            SaveGame();
+        }
+    }
+
+    public bool IsSaveValid()
+    {
+        if (!File.Exists(saveFilePath)) return false;
+        try
+        {
+            string json = File.ReadAllText(saveFilePath);
+            if (string.IsNullOrWhiteSpace(json)) return false;
+            GameData data = JsonUtility.FromJson<GameData>(json);
+            return data != null && !string.IsNullOrEmpty(data.currentSceneName);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

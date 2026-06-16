@@ -16,6 +16,9 @@ public class PoisonPotion : MonoBehaviour
     private bool hasImpacted = false;
     private float lifeTimer = 0f;
     private float finalDamage;
+    
+    [Header("Audio")]
+    [SerializeField] private AudioClip poisonImpactSFX;
 
     public void Setup(Vector2 direction, float damage)
     {
@@ -66,9 +69,9 @@ public class PoisonPotion : MonoBehaviour
             cloud.GetComponent<PoisonCloud>()?.InitCloud(finalDamage);
         }
 
-        if (AudioManager.Instance != null && AudioManager.Instance.potionUse != null)
+        if (poisonImpactSFX != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.potionUse, 1f, true);
+            AudioManager.Instance.PlaySFX(poisonImpactSFX, 1f, true);
         }
 
         Destroy(gameObject);

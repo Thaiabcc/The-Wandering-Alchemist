@@ -3,10 +3,10 @@ using UnityEngine.UI;
 
 public class BossHUD : MonoBehaviour
 {
-    [Header("Thanh Máu")]
+    [Header("HP")]
     public Slider hpSlider;
 
-    [Header("Thanh Poise")]
+    [Header("Poise")]
     public Slider poiseSlider;
     public void SetMaxStats(float maxHP, float maxPoise)
     {

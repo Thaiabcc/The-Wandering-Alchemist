@@ -2,10 +2,10 @@
 
 public class NoteItem : MonoBehaviour
 {
-    public string noteTitle = "Tiêu đề giấy";
+    public string noteTitle = "Title";
 
     [TextArea(5, 10)]
-    public string noteContent = "Nhập nội dung vào đây...";
+    public string noteContent = "Content..";
 
     private bool isPlayerNearby;
 
@@ -24,7 +24,7 @@ public class NoteItem : MonoBehaviour
         if (!collision.CompareTag("Player")) return;
 
         isPlayerNearby = true;
-        Debug.Log("Nhấn E để đọc");
+        Debug.Log("Press E to read");
     }
 
     private void OnTriggerExit2D(Collider2D collision)

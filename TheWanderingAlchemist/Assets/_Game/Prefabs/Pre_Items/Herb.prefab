@@ -144,6 +144,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isPermanent: 0
-  uniqueID: Herb_01
-  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
+  uniqueID: 
   itemData: {fileID: 11400000, guid: 6590da77ce872ad41bd0bc065e0c406a, type: 2}
+  pickupSFX: {fileID: 8300000, guid: c1e261bbc2972494882d6fa089e8678a, type: 3}

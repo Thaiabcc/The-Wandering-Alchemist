@@ -67,14 +67,16 @@ public class PauseMenuManager : MonoBehaviour
         isPaused = false;
         AudioListener.pause = false; 
 
-        if (PlayerStats.Instance != null) Destroy(PlayerStats.Instance.gameObject);
-        Destroy(GameObject.Find("HotbarManager"));
-        Destroy(GameObject.Find("GameManager"));
-        Destroy(GameObject.Find("QuestManager"));
-        Destroy(GameObject.Find("InventoryManager"));
-        Destroy(GameObject.Find("UI_Manager"));
-        Destroy(GameObject.Find("HUD_Player"));
-        Destroy(GameObject.Find("Respawn Manager"));
+        if (PlayerStats.Instance != null) 
+        {
+            Destroy(PlayerStats.Instance.gameObject);
+        }
+
+        GameObject bigManager = GameObject.Find("Manager");
+        if (bigManager != null)
+        {
+            Destroy(bigManager);
+        }
 
         if (SceneTransition.Instance != null)
         {

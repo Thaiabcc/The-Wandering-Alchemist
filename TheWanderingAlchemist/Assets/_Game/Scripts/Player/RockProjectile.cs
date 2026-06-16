@@ -2,6 +2,9 @@
 
 public class RockProjectile : MonoBehaviour
 {
+    [Header("Audio")]
+    [SerializeField] private AudioClip breakSFX;
+    
     [Header("Settings")]
     public float speed = 10f;
     public float maxRange = 6f;
@@ -85,7 +88,7 @@ public class RockProjectile : MonoBehaviour
         hasHit = true;
         if (col != null) col.enabled = false;
         if (anim != null) anim.Play("Rock_Break");
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.stoneBreak, 0.8f, true);
+        if (breakSFX != null) AudioManager.Instance.PlaySFX(breakSFX, 0.8f, true);
         if (rb != null)
         {
             rb.velocity = Vector2.zero; 

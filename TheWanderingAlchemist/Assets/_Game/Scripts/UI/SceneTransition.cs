@@ -20,7 +20,7 @@ public class SceneTransition : MonoBehaviour
     [SerializeField] private List<string> gameTips = new List<string>();
 
     [Header("Loading Settings")]
-    [SerializeField] private float loadingSpeed = 1.5f;       
+    [SerializeField] private float loadingSpeed = 1.5f;
 
     private void Awake()
     {
@@ -55,48 +55,65 @@ public class SceneTransition : MonoBehaviour
     private IEnumerator TransitionRoutine(string sceneName, Action onLoaded = null)
     {
         ChangeRandomTip();
+
         yield return Fade(1);
 
         ActivateLoadingUI();
-        
+
         System.GC.Collect();
+
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
         operation.allowSceneActivation = false;
 
         yield return RunLoadingBar(operation);
 
         yield return new WaitForSeconds(0.3f);
+
         operation.allowSceneActivation = true;
-        while (!operation.isDone) yield return null;
+
+        while (!operation.isDone)
+            yield return null;
 
         yield return new WaitForSeconds(0.2f);
 
         onLoaded?.Invoke();
+
         DeactivateLoadingUI();
+
         yield return Fade(0);
     }
 
     private IEnumerator TransitionFromDeathRoutine(string sceneName)
     {
+        if (DeathUI.Instance != null)
+        {
+            DeathUI.Instance.ResetUI();
+        }
+
         fadeCanvasGroup.alpha = 1f;
         fadeCanvasGroup.blocksRaycasts = true;
 
         ActivateLoadingUI();
         ChangeRandomTip();
-        
+
         System.GC.Collect();
+
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
         operation.allowSceneActivation = false;
 
         yield return RunLoadingBar(operation);
 
         yield return new WaitForSeconds(0.3f);
+
         operation.allowSceneActivation = true;
-        while (!operation.isDone) yield return null;
+
+        while (!operation.isDone)
+            yield return null;
 
         yield return new WaitForSeconds(0.2f);
 
         DeactivateLoadingUI();
+
         yield return Fade(0);
     }
 
@@ -107,12 +124,15 @@ public class SceneTransition : MonoBehaviour
             loadingSlider.gameObject.SetActive(true);
             loadingSlider.value = 0f;
         }
+
         if (progressText != null)
         {
             progressText.gameObject.SetActive(true);
             progressText.text = "Loading... 0%";
         }
-        if (tipText != null) tipText.gameObject.SetActive(true);
+
+        if (tipText != null)
+            tipText.gameObject.SetActive(true);
     }
 
     private void DeactivateLoadingUI()
@@ -129,7 +149,12 @@ public class SceneTransition : MonoBehaviour
         while (progress < 1f)
         {
             float target = operation.progress < 0.9f ? operation.progress / 0.9f : 1f;
-            progress = Mathf.MoveTowards(progress, target, Time.deltaTime * loadingSpeed);
+
+            progress = Mathf.MoveTowards(
+                progress,
+                target,
+                Time.deltaTime * loadingSpeed
+            );
 
             if (loadingSlider != null)
                 loadingSlider.value = progress;
@@ -166,11 +191,18 @@ public class SceneTransition : MonoBehaviour
         while (time < fadeDuration)
         {
             time += Time.deltaTime;
-            fadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / fadeDuration);
+
+            fadeCanvasGroup.alpha = Mathf.Lerp(
+                startAlpha,
+                targetAlpha,
+                time / fadeDuration
+            );
+
             yield return null;
         }
 
         fadeCanvasGroup.alpha = targetAlpha;
+
         if (targetAlpha == 0)
             fadeCanvasGroup.blocksRaycasts = false;
     }

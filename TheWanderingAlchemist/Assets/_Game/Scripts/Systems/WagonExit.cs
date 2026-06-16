@@ -10,7 +10,7 @@ public class WagonExit : MonoBehaviour, IInteractable
 
         if (string.IsNullOrEmpty(sceneToLoad))
         {
-            sceneToLoad = "Town_01";
+            sceneToLoad = "Town 1";
             posToSpawn = new Vector3(5, 5, 0);
         }
 

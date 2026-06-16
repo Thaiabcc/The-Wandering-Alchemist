@@ -145,9 +145,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isPermanent: 0
-  uniqueID: Eye_01
-  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
+  uniqueID: 
   itemData: {fileID: 11400000, guid: 30c978ff9be49514d8b0986c18f893ad, type: 2}
+  pickupSFX: {fileID: 8300000, guid: c1e261bbc2972494882d6fa089e8678a, type: 3}
 --- !u!114 &4686371587933452801
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -4,7 +4,6 @@ using UnityEngine;
 public class PlayerDeflect : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("Gameobject con chứa Collider")]
     [SerializeField] private GameObject deflectHitbox;
     [SerializeField] private Animator animator;
 

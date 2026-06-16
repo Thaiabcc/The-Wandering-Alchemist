@@ -6,8 +6,8 @@ using TMPro;
 public class EndingManager : MonoBehaviour
 {
     [Header("Cinematic Flow")]
-    public CanvasGroup blackScreenCanvasGroup; 
-    public string postGameScene = "Town1"; 
+    public CanvasGroup blackScreenCanvasGroup;
+    public string postGameScene = "Menu";
     public float fadeSpeed = 2f;
     public float timeBeforeLore = 4f;
 
@@ -20,33 +20,30 @@ public class EndingManager : MonoBehaviour
     [Header("Credits Settings")]
     public CanvasGroup creditsCanvasGroup;
     public RectTransform creditsTextRect;
-    public float creditsScrollSpeed = 100f; 
-    
-    [Tooltip("Chỉnh tọa độ Y bắt đầu của sớ. Càng âm thì sớ xuất phát càng sâu.")]
-    public float startingYPos = -8000f; // <-- CÔNG TẮC CHO MÀY TỰ VẶN TỌA ĐỘ ĐÂY
-
+    public float creditsScrollSpeed = 100f;
+    public float startingYPos = -8000f;
     private Vector2 originalCreditsPos;
 
     void Start()
     {
+        if (UIController.Instance != null) UIController.Instance.ShowManager(false);
         if (blackScreenCanvasGroup) blackScreenCanvasGroup.alpha = 1f;
-        
-        if (loreCanvasGroup) 
+
+        if (loreCanvasGroup)
         {
             loreCanvasGroup.alpha = 0f;
             loreCanvasGroup.gameObject.SetActive(false);
         }
-        
-        if (creditsCanvasGroup) 
+
+        if (creditsCanvasGroup)
         {
             creditsCanvasGroup.alpha = 0f;
             creditsCanvasGroup.gameObject.SetActive(false);
         }
-        
+
         if (creditsTextRect != null)
         {
             originalCreditsPos = creditsTextRect.anchoredPosition;
-            // Áp dụng luôn cái số mày điền ngoài Unity vào đây
             creditsTextRect.anchoredPosition = new Vector2(originalCreditsPos.x, startingYPos);
         }
 
@@ -80,22 +77,22 @@ public class EndingManager : MonoBehaviour
 
             yield return FadeCanvas(loreCanvasGroup, 1f, 0f);
             loreCanvasGroup.gameObject.SetActive(false);
-            yield return new WaitForSeconds(1f); 
+            yield return new WaitForSeconds(1f);
         }
 
         if (creditsCanvasGroup != null)
         {
-            creditsCanvasGroup.gameObject.SetActive(true); 
+            creditsCanvasGroup.gameObject.SetActive(true);
             creditsCanvasGroup.alpha = 1f;
-            
+
             float targetY = creditsTextRect.rect.height + 1200f;
-            
+
             while (creditsTextRect.anchoredPosition.y < targetY)
             {
                 creditsTextRect.anchoredPosition += Vector2.up * creditsScrollSpeed * Time.deltaTime;
                 yield return null;
             }
-            
+
             yield return FadeCanvas(creditsCanvasGroup, 1f, 0f);
             creditsCanvasGroup.gameObject.SetActive(false);
         }

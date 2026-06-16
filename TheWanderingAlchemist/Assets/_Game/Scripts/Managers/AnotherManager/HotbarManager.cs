@@ -1,10 +1,9 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class HotbarManager : MonoBehaviour
 {
+    [SerializeField] private AudioClip usePotionSFX;
     public static HotbarManager Instance;
-
     public HotbarSlot[] hotbarSlots;
 
     private void Awake()
@@ -16,25 +15,18 @@ public class HotbarManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private void Start()
     {
-        ReassignHotbarSlots();
+        InitHotbarSlots();
     }
 
-    private void ReassignHotbarSlots()
+    private void InitHotbarSlots()
     {
         hotbarSlots = FindObjectsOfType<HotbarSlot>(true);
         
-        // Sắp xếp theo slotID
         System.Array.Sort(hotbarSlots, (a, b) => a.slotID.CompareTo(b.slotID));
-
-        foreach (var slot in hotbarSlots)
-            slot.ClearSlot();
 
         if (InventoryManager.Instance != null)
         {
@@ -43,16 +35,6 @@ public class HotbarManager : MonoBehaviour
         }
 
         UpdateAllSlotsUI();
-    }
-
-    private void Start()
-    {
-        ReassignHotbarSlots();
-    }
-
-    private void OnDestroy()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Update()
@@ -82,8 +64,7 @@ public class HotbarManager : MonoBehaviour
             if (isSuccess)
             {
                 InventoryManager.Instance.RemoveItem(slot.assignedItem, 1);
-                if (AudioManager.Instance != null)
-                    AudioManager.Instance.PlaySFX(AudioManager.Instance.potionUse);
+                if (usePotionSFX != null) AudioManager.Instance.PlaySFX(usePotionSFX);
             }
         }
         else

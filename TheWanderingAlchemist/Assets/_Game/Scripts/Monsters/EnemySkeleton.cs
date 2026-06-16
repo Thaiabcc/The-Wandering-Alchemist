@@ -9,27 +9,29 @@ public class EnemySkeleton : EnemyAI
 
     protected override void PerformAttack()
     {
+        FlipSprite(playerTransform.position);
+    
         if (playerTransform != null && hitPoint != null)
         {
-            Vector2 direction = (playerTransform.position - transform.position).normalized;
-            hitPoint.position = transform.position + (Vector3)(direction * 0.8f);
+            float offset = spriteRenderer.flipX ? -0.8f : 0.8f;
+            hitPoint.localPosition = new Vector3(offset, 0, 0);
         }
         animator.SetTrigger("Attack");
     }
     public void AnimationEvent_DealDamage()
     {
-        Debug.Log("1. Event đã chạy!"); 
-
         if (hitPoint == null) return;
-
-        // Quét xung quanh
-        Collider2D[] hits = Physics2D.OverlapCircleAll(hitPoint.position, hitRadius);
+        int playerLayer = LayerMask.GetMask("Player");
+        Collider2D[] hits = Physics2D.OverlapCircleAll(hitPoint.position, hitRadius, playerLayer);
 
         foreach (var hit in hits)
         {
-            if (hit.GetComponent<PlayerStats>())
+            if (hit.gameObject == this.gameObject) continue;
+            if (hit.TryGetComponent<PlayerStats>(out var stats))
             {
-                hit.GetComponent<PlayerStats>().TakeDamage(swordDamage);
+                stats.TakeDamage(swordDamage);
+                Debug.Log("Skeleton gây dame: " + swordDamage);
+                break; 
             }
         }
     }

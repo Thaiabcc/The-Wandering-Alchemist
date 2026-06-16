@@ -144,6 +144,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isPermanent: 0
-  uniqueID: Stone_01
-  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
+  uniqueID: 
   itemData: {fileID: 11400000, guid: 3a12d24c0a88c5246b7babce51884f06, type: 2}
+  pickupSFX: {fileID: 8300000, guid: c1e261bbc2972494882d6fa089e8678a, type: 3}

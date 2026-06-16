@@ -63,5 +63,16 @@ public class GameData
     
     // Chest
     public List<string> openedChestIDs = new List<string>();
+    
+    // Boss
+    public List<string> defeatedBossIDs = new List<string>();
+    
+    // Potion
+    public List<string> unlockedRecipes = new List<string>();
+    
+    // Setting Audio
+    public float masterVolume = 1.0f;
+    public float musicVolume = 1.0f;
+    public float sfxVolume = 1.0f;
 
 }

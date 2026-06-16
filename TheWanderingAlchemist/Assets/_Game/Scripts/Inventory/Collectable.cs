@@ -4,13 +4,15 @@
 [RequireComponent(typeof(BoxCollider2D))]
 public class Collectable : MonoBehaviour, IInteractable
 {
-    [Header("World State")]
+    [Header("Save Settings")]
     public bool isPermanent = true;
     public string uniqueID;
-    public WorldState worldState;
 
     [Header("Items Data")]
     public ItemData itemData;
+    
+    [Header("Audio")]
+    [SerializeField] private AudioClip pickupSFX;
 
     private SpriteRenderer spriteRenderer;
     private bool isPickedUp = false;
@@ -26,7 +28,9 @@ public class Collectable : MonoBehaviour, IInteractable
         spriteRenderer = GetComponent<SpriteRenderer>();
         UpdateVisual();
 
-        if (isPermanent && worldState != null && worldState.IsCollected(uniqueID))
+        if (isPermanent &&
+            SaveManager.Instance != null &&
+            SaveManager.Instance.collectedUniqueIDs.Contains(uniqueID))
         {
             Destroy(gameObject);
         }
@@ -43,37 +47,39 @@ public class Collectable : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        if (isPickedUp || itemData == null || InventoryManager.Instance == null) return;
+        if (isPickedUp || itemData == null || InventoryManager.Instance == null)
+            return;
 
         bool added = InventoryManager.Instance.AddItem(itemData, 1);
 
-        if (added)
+        if (!added)
+            return;
+
+        isPickedUp = true;
+
+        if (isPermanent &&
+            SaveManager.Instance != null &&
+            !SaveManager.Instance.collectedUniqueIDs.Contains(uniqueID))
         {
-            isPickedUp = true;
-
-            if (isPermanent && worldState != null)
-            {
-                worldState.RecordPickup(uniqueID);
-            }
-
-            if (HotbarManager.Instance != null)
-                HotbarManager.Instance.UpdateAllSlotsUI();
-
-            if (QuestManager.Instance != null)
-            {
-                QuestManager.Instance.UpdateGatherProgress();
-            }
-
-            DisableAndDestroy();
-
-            if (AudioManager.Instance != null)
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.pickupItems, 1f, true);
+            SaveManager.Instance.collectedUniqueIDs.Add(uniqueID);
         }
+
+        HotbarManager.Instance?.UpdateAllSlotsUI();
+        QuestManager.Instance?.UpdateGatherProgress();
+        
+        if (pickupSFX != null)
+        {
+            AudioManager.Instance?.PlaySFX(pickupSFX, 1f, true);
+        }
+        DisableAndDestroy();
+
+        
     }
 
     private void DisableAndDestroy()
     {
         Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+
         foreach (var col in colliders)
             col.enabled = false;
 

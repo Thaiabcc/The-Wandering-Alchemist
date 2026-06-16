@@ -145,9 +145,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isPermanent: 0
-  uniqueID: FreshMeat_01
-  worldState: {fileID: 11400000, guid: 9f2f853945cbad94bb683641ed4c8bd4, type: 2}
+  uniqueID: 
   itemData: {fileID: 11400000, guid: 4bb8f5b7eff16ac4db09d7d210c98f7f, type: 2}
+  pickupSFX: {fileID: 8300000, guid: c1e261bbc2972494882d6fa089e8678a, type: 3}
 --- !u!114 &4686371587933452801
 MonoBehaviour:
   m_ObjectHideFlags: 0

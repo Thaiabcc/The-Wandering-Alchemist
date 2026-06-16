@@ -24,22 +24,17 @@ public class BossChainAttack : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            if (PlayerStats.Instance != null)
+            var stats = PlayerStats.Instance;
+            if (stats != null)
             {
-                PlayerStats.Instance.TakeDamage(damage);
-
-                if (applyPoison)
-                {
-                    PlayerStats.Instance.ApplyPoison(poisonDamage, poisonInterval);
-                }
-
+                stats.TakeDamage(damage);
+                if (applyPoison) stats.ApplyPoison(poisonDamage, poisonInterval);
+            
                 if (hitEffectPrefab != null)
                 {
                     Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
                 }
             }
-
-            // Destroy(gameObject);
         }
     }
 }

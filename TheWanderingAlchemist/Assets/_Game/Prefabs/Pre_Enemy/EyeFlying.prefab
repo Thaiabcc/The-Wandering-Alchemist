@@ -91,6 +91,7 @@ GameObject:
   - component: {fileID: 6865415566511103148}
   - component: {fileID: 551556398491975224}
   - component: {fileID: 3953324955522117463}
+  - component: {fileID: 2910804123971592245}
   m_Layer: 6
   m_Name: EyeFlying
   m_TagString: Monster
@@ -307,6 +308,20 @@ CircleCollider2D:
   m_Offset: {x: 0.011093438, y: 0.23474693}
   serializedVersion: 2
   m_Radius: 0.30799484
+--- !u!114 &2910804123971592245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4462314265393242684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51d0101c39c247958b3c103eac739afc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitSFX: {fileID: 8300000, guid: 31ac6429cf420a44f96bd068ae45970e, type: 3}
+  dieSFX: {fileID: 8300000, guid: 7f29ca5490c4e6a439e0c5f48ba9306e, type: 3}
 --- !u!1 &4921780312130408123
 GameObject:
   m_ObjectHideFlags: 0

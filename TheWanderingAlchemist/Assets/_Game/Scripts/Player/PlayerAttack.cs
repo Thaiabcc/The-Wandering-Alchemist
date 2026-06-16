@@ -20,6 +20,8 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float cooldown = 0.5f;
     [SerializeField] private float spawnDistance = 1.0f;
     [SerializeField] private float heightOffset = 0.8f;
+    
+    private PlayerAudio playerAudio;
 
     private bool isAttacking;
     private Vector2 mouseDirection;
@@ -29,6 +31,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (!animator) animator = GetComponent<Animator>();
         if (!spriteRenderer) spriteRenderer = GetComponent<SpriteRenderer>();
+        playerAudio = GetComponent<PlayerAudio>();
     }
 
     private void Update()
@@ -84,7 +87,7 @@ public class PlayerAttack : MonoBehaviour
         lastAttackTime = Time.time;
         FaceMouseDirection();
         animator.SetTrigger("Attack");
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.swordSwing, 0.5f);
+        playerAudio?.PlayAttack();
         yield return new WaitForSeconds(hitDelay);
         SpawnProjectile();
         isAttacking = false;

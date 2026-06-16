@@ -25,7 +25,6 @@ public class InventoryManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
     }
 
     public void UpdateGold(int amount)
@@ -153,46 +152,16 @@ public class InventoryManager : MonoBehaviour
         }
         return total;
     }
-
-    public void SplitItem(int sourceIdx, int targetIdx, int amount)
+    
+    public void ForceRefreshUIAfterLoad()
     {
-        if (sourceIdx < 0 || sourceIdx >= inventory.Count) return;
-        
-        InventorySlot sourceSlot = inventory[sourceIdx];
-        if (sourceSlot == null || sourceSlot.item == null || sourceSlot.quantity <= amount) return;
-
-        ItemData splitItem = sourceSlot.item;
-        sourceSlot.quantity -= amount;
-
-        if (targetIdx >= 0 && targetIdx < maxSlots)
-        {
-            while (inventory.Count <= targetIdx)
-            {
-                inventory.Add(new InventorySlot(null, 0));
-            }
-
-            InventorySlot targetSlot = inventory[targetIdx];
-            
-            if (targetSlot.item == null)
-            {
-                targetSlot.item = splitItem;
-                targetSlot.quantity = amount;
-            }
-            else if (targetSlot.item == splitItem)
-            {
-                targetSlot.quantity += amount;
-            }
-            else
-            {
-                AddItem(splitItem, amount);
-            }
-        }
-        else
-        {
-            AddItem(splitItem, amount);
-        }
-
-        inventory.RemoveAll(slot => slot.item != null && slot.quantity <= 0);
-        OnInventoryChanged?.Invoke();
+        StartCoroutine(WaitAndRefreshRoutine());
     }
+
+    private System.Collections.IEnumerator WaitAndRefreshRoutine()
+    {
+        yield return new WaitForSeconds(0.1f);
+        OnInventoryChanged?.Invoke(); 
+    }
+    
 }

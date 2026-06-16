@@ -199,3 +199,4 @@ MonoBehaviour:
   maxVisualHeight: 2
   visualChild: {fileID: 2687110137755824142}
   poisonCloudPrefab: {fileID: 7430454404666334991, guid: efca7e415529c3940b875c91e273ed21, type: 3}
+  poisonImpactSFX: {fileID: 8300000, guid: eaec8d5689b6a2245ac047f87841b54f, type: 3}

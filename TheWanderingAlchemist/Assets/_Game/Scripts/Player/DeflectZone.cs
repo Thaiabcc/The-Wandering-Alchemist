@@ -25,9 +25,8 @@ public class DeflectZone : MonoBehaviour
 
                 CameraShake.Instance?.Shake(0.1f, 5f);
                 // Audio
-                AudioManager.Instance?.PlaySFX(AudioManager.Instance.deflectSuccess, 1.2f);
+                GetComponentInParent<PlayerAudio>()?.PlayDeflect();
                 HitStop.Instance?.Stop(0.1f);
-                Debug.Log("Đã đẩy lùi quái về hướng: " + pushDirection);
             }
 
             // Dame

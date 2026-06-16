@@ -12,38 +12,21 @@ public class EnemyMushroom : EnemyAI
 
     protected override void PerformAttack()
     {
-        if (playerTransform != null && hitPoint != null)
-        {
+        FlipSprite(playerTransform.position);
+        float directionMultiplier = spriteRenderer.flipX ? -1f : 1f;
+        hitPoint.localPosition = new Vector3(Mathf.Abs(hitPoint.localPosition.x) * directionMultiplier, hitPoint.localPosition.y, 0);
 
-            Vector2 myCenter = (Vector2)transform.position + new Vector2(0, 1f);
-            Vector2 targetCenter = (Vector2)playerTransform.position + new Vector2(0, 1f);
-            Vector2 direction = (targetCenter - myCenter).normalized;
-            hitPoint.position = myCenter + (direction * attackOffset);
-
-            // ---------------------------------------------
-
-            animator.SetTrigger("Attack");
-        }
+        animator.SetTrigger("Attack");
     }
     public void AnimationEvent_DealDame()
     {
-        if (hitPoint == null) return;
-        int playerLayer = LayerMask.GetMask("Player");
-        if (playerLayer == 0) playerLayer = -1;
+        Collider2D hit = Physics2D.OverlapCircle(hitPoint.position, hitRadius, LayerMask.GetMask("Player"));
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(hitPoint.position, hitRadius, playerLayer);
-
-        foreach (var hit in hits)
+        if (hit != null)
         {
-            if (hit.CompareTag("Player"))
+            if (hit.TryGetComponent<PlayerStats>(out var stats))
             {
-                PlayerStats playerStats = hit.GetComponent<PlayerStats>();
-                if (playerStats != null)
-                {
-                    playerStats.TakeDamage(hitDame);
-                    Debug.Log("Nấm đấm trúng Player!");
-                    return;
-                }
+                stats.TakeDamage(hitDame);
             }
         }
     }

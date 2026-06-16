@@ -61,14 +61,14 @@ public class EnemyAI : MonoBehaviour
     {
         if (isDead) return;
 
-        if (playerTransform == null)
+        if (playerTransform == null) 
         {
+            FindPlayer();
             Patroling();
             return;
         }
 
         float distanceToPlayer = GetCombatDistanceToPlayer();
-
         if (distanceToPlayer < chaseRange)
         {
             Chasing(distanceToPlayer);
@@ -84,7 +84,7 @@ public class EnemyAI : MonoBehaviour
 
     protected virtual void Chasing(float distance)
     {
-        ResetPatrolState(); // Reset timer wait/stuck khi đang đuổi
+        ResetPatrolState();
 
         if (distance <= attackRange)
         {
@@ -163,7 +163,7 @@ public class EnemyAI : MonoBehaviour
         StopMoving();
         stuckTimer = 0; 
 
-        if (!isWaiting) // Bắt đầu chờ
+        if (!isWaiting)
         {
             waitTimer = waitTime;
             isWaiting = true;
@@ -238,7 +238,6 @@ public class EnemyAI : MonoBehaviour
     #region Movement & Action
     protected void MoveTo(Vector2 target)
     {
-        // Thêm dòng check này
         if (animator.runtimeAnimatorController != null && HasParameter("isMoving", animator))
             animator.SetBool("isMoving", true);
 
@@ -251,12 +250,10 @@ public class EnemyAI : MonoBehaviour
     {
         rb.velocity = Vector2.zero;
 
-        // Thêm dòng check này
         if (animator.runtimeAnimatorController != null && HasParameter("isMoving", animator))
             animator.SetBool("isMoving", false);
     }
 
-// Chèn hàm này vào bất kỳ đâu trong class EnemyAI
     private bool HasParameter(string paramName, Animator anim)
     {
         foreach (AnimatorControllerParameter param in anim.parameters)

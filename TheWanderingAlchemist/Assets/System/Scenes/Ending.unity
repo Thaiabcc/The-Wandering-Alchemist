@@ -11115,7 +11115,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blackScreenCanvasGroup: {fileID: 909803119}
-  postGameScene: Town 1
+  postGameScene: Menu
   fadeSpeed: 2
   timeBeforeLore: 3.5
   loreCanvasGroup: {fileID: 1265803138}

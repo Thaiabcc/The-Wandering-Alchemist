@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
@@ -9,36 +8,37 @@ using TMPro;
 public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] public Button continueButton;
-    
+
     [Header("Scene Settings")]
     public string firstSceneName = "Town 1";
-
-    [Header("Audio")]
-    public AudioMixer mainMixer;
 
     [Header("UI & Settings")]
     public GameObject settingsPanel;
     public CanvasGroup settingsCanvasGroup;
-    
+
     [Header("Credits UI")]
     public GameObject creditsPanel;
     public CanvasGroup creditsCanvasGroup;
     public RectTransform creditsTextRect;
+    public float creditsStartY = -800f;
     public float creditsScrollSpeed = 100f;
 
-    [Header("Cinematic Intro (New Game)")]
+    [Header("Intro (New Game)")]
     public CanvasGroup mainMenuCanvasGroup;
     public CanvasGroup loreCanvasGroup;
     public TMP_Text loreText;
-
     public float timeToDrive = 3f;
     public float typingSpeed = 0.05f;
     public float timeToReadLore = 5f;
-    
     public UnityEvent onWagonStartDriving;
 
     [Header("Effect Speed")]
     public float fadeSpeed = 5f;
+    
+    [Header("Volume Sliders")]
+    public Slider masterSlider;
+    public Slider musicSlider;
+    public Slider sfxSlider;
 
     private Vector2 originalCreditsPos;
     private Coroutine creditsRoutine;
@@ -46,16 +46,15 @@ public class MainMenuManager : MonoBehaviour
 
     public void Start()
     {
-        bool hasSave = SaveManager.Instance != null && SaveManager.Instance.HasSaveFile();
-        continueButton.interactable = hasSave;
-        Color cl = continueButton.image.color;
-        cl.a = hasSave ? 1f : 0.5f;
-        continueButton.image.color = cl;
-        
-        if (creditsTextRect != null)
+        bool hasSave = SaveManager.Instance != null && SaveManager.Instance.IsSaveValid();
+        if (continueButton != null)
         {
-            originalCreditsPos = creditsTextRect.anchoredPosition;
+            continueButton.interactable = hasSave;
+            CanvasGroup group = continueButton.GetComponent<CanvasGroup>();
+            if (group != null) group.alpha = hasSave ? 1f : 0.5f;
         }
+
+        if (creditsTextRect != null) originalCreditsPos = creditsTextRect.anchoredPosition;
 
         if (loreCanvasGroup != null)
         {
@@ -63,19 +62,28 @@ public class MainMenuManager : MonoBehaviour
             loreCanvasGroup.blocksRaycasts = false;
             loreCanvasGroup.gameObject.SetActive(false);
         }
+
+        float masterVol = PlayerPrefs.GetFloat("MasterVol", 1f);
+        float musicVol = PlayerPrefs.GetFloat("BGMVol", 1f);
+        float sfxVol = PlayerPrefs.GetFloat("SFXVol", 1f);
+
+        if (masterSlider != null) masterSlider.value = masterVol;
+        if (musicSlider != null) musicSlider.value = musicVol;
+        if (sfxSlider != null) sfxSlider.value = sfxVol;
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.UpdateVolume(masterVol, musicVol, sfxVol);
     }
 
     public void StartGame()
     {
         if (isStartingGame) return;
         isStartingGame = true;
-
         if (mainMenuCanvasGroup != null)
         {
             mainMenuCanvasGroup.interactable = false;
             mainMenuCanvasGroup.blocksRaycasts = false;
         }
-
         StartCoroutine(NewGameCinematicSequence());
     }
 
@@ -99,11 +107,7 @@ public class MainMenuManager : MonoBehaviour
         {
             loreCanvasGroup.gameObject.SetActive(true);
             loreCanvasGroup.alpha = 0f;
-
-            if (loreText != null)
-            {
-                loreText.maxVisibleCharacters = 0;
-            }
+            if (loreText != null) loreText.maxVisibleCharacters = 0;
 
             float t = 0;
             while (t < 1f)
@@ -116,41 +120,31 @@ public class MainMenuManager : MonoBehaviour
             if (loreText != null)
             {
                 loreText.ForceMeshUpdate();
-                int totalCharacters = loreText.textInfo.characterCount;
-                int visibleCount = 0;
-                while (visibleCount <= totalCharacters)
+                int totalChars = loreText.textInfo.characterCount;
+                for (int i = 0; i <= totalChars; i++)
                 {
-                    loreText.maxVisibleCharacters = visibleCount;
-                    visibleCount++;
+                    loreText.maxVisibleCharacters = i;
                     yield return new WaitForSeconds(typingSpeed);
                 }
             }
-
             yield return new WaitForSeconds(timeToReadLore);
         }
 
         if (SceneTransition.Instance != null)
-        {
-            SceneTransition.Instance.SwitchScene(firstSceneName, () => 
-            {
-                Time.timeScale = 1f;
-            });
-        }
+            SceneTransition.Instance.SwitchScene(firstSceneName, () => Time.timeScale = 1f);
         else
-        {
             SceneManager.LoadScene(firstSceneName);
-        }
     }
 
     public void ContinueGame()
     {
         if (isStartingGame) return;
-        if (SaveManager.Instance != null && SaveManager.Instance.HasSaveFile())
+        if (SaveManager.Instance != null && SaveManager.Instance.IsSaveValid())
         {
             string sceneToLoad = SaveManager.Instance.GetSavedSceneName();
             if (SceneTransition.Instance != null)
             {
-                SceneTransition.Instance.SwitchScene(sceneToLoad, () => 
+                SceneTransition.Instance.SwitchScene(sceneToLoad, () =>
                 {
                     SaveManager.Instance.LoadGame();
                     Time.timeScale = 1f;
@@ -165,10 +159,7 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
-    public void QuitGame()
-    {
-        Application.Quit();
-    }
+    public void QuitGame() => Application.Quit();
 
     public void OpenSettings()
     {
@@ -176,11 +167,8 @@ public class MainMenuManager : MonoBehaviour
         StartCoroutine(FadePanel(0f, 1f, 0.9f, 1f));
     }
 
-    public void CloseSettings()
-    {
-        StartCoroutine(FadePanel(1f, 0f, 1f, 0.9f, true));
-    }
-    
+    public void CloseSettings() => StartCoroutine(FadePanel(1f, 0f, 1f, 0.9f, true));
+
     public void OpenCredits()
     {
         creditsPanel.SetActive(true);
@@ -196,8 +184,7 @@ public class MainMenuManager : MonoBehaviour
 
     IEnumerator ScrollCreditsSequence()
     {
-        creditsTextRect.anchoredPosition = new Vector2(originalCreditsPos.x, -(creditsTextRect.rect.height + 1080f)); 
-        
+        creditsTextRect.anchoredPosition = new Vector2(originalCreditsPos.x, creditsStartY);
         float time = 0;
         while (time < 1f)
         {
@@ -205,7 +192,6 @@ public class MainMenuManager : MonoBehaviour
             creditsCanvasGroup.alpha = Mathf.Lerp(0f, 1f, time);
             yield return null;
         }
-
         while (true)
         {
             creditsTextRect.anchoredPosition += Vector2.up * creditsScrollSpeed * Time.deltaTime;
@@ -217,8 +203,7 @@ public class MainMenuManager : MonoBehaviour
     {
         float time = 0;
         float startAlpha = creditsCanvasGroup.alpha;
-        
-        while (time < 0.5f) 
+        while (time < 0.5f)
         {
             time += Time.deltaTime * 2f;
             creditsCanvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, time);
@@ -232,7 +217,6 @@ public class MainMenuManager : MonoBehaviour
         float time = 0;
         settingsCanvasGroup.alpha = startAlpha;
         settingsPanel.transform.localScale = new Vector3(startScale, startScale, 1f);
-
         while (time < 1f)
         {
             time += Time.deltaTime * fadeSpeed;
@@ -241,25 +225,42 @@ public class MainMenuManager : MonoBehaviour
             settingsPanel.transform.localScale = new Vector3(currentScale, currentScale, 1f);
             yield return null;
         }
+        if (disableAfter) settingsPanel.SetActive(false);
+    }
 
-        if (disableAfter)
+    public void SetMasterVolume(float vol)
+    {
+        PlayerPrefs.SetFloat("MasterVol", vol);
+        PlayerPrefs.Save();
+        SyncAllAudio();
+    }
+
+    public void SetMusicVolume(float vol)
+    {
+        PlayerPrefs.SetFloat("BGMVol", vol);
+        PlayerPrefs.Save();
+        SyncAllAudio();
+    }
+
+    public void SetSFXVolume(float vol)
+    {
+        PlayerPrefs.SetFloat("SFXVol", vol);
+        PlayerPrefs.Save();
+        SyncAllAudio();
+    }
+
+    private void SyncAllAudio()
+    {
+        float master = PlayerPrefs.GetFloat("MasterVol", 1f);
+        float music = PlayerPrefs.GetFloat("BGMVol", 1f);
+        float sfx = PlayerPrefs.GetFloat("SFXVol", 1f);
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.UpdateVolume(master, music, sfx);
+
+        foreach (var ctrl in FindObjectsByType<AudioVolumeController>(FindObjectsSortMode.None))
         {
-            settingsPanel.SetActive(false);
+            ctrl.ApplyVolume();
         }
     }
-
-    public void SetVolume(float volume)
-    {
-        mainMixer.SetFloat("MasterVol", Mathf.Log10(volume) * 20);
-    }
-
-    public void SetMusicVolume(float volume)
-    {
-        mainMixer.SetFloat("BGMVol", Mathf.Log10(volume) * 20);
-    }
-
-    public void SetSFXVolume(float volume)
-    {
-        mainMixer.SetFloat("SFXVol", Mathf.Log10(volume) * 20);
-    }
-}
+}       

@@ -4,12 +4,10 @@ using UnityEngine.UI;
 
 public class QuestJournalUI : MonoBehaviour
 {
-    [Header("--- CỘT TRÁI (DANH SÁCH) ---")]
     public GameObject journalPanel;
     public Transform contentContainer;
     public GameObject questSlotPrefab;
 
-    [Header("--- CỘT PHẢI (CHI TIẾT MÔ TẢ) ---")]
     public GameObject detailPanel;       
     public TextMeshProUGUI detailTitle;   
     public TextMeshProUGUI detailDesc;    
@@ -23,6 +21,7 @@ public class QuestJournalUI : MonoBehaviour
 
     private void Update()
     {
+        if (journalPanel == null) return;
         if (Input.GetKeyDown(KeyCode.J))
         {
             if (journalPanel.activeSelf) CloseJournal();

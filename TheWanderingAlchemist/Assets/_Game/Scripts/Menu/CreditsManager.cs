@@ -37,25 +37,25 @@ Dam Duc Thai
 Ha Duc Tuan
 
 <size=70%>Bug Testing & Quality Check</size>
-Bui Duy Khanh
+Ha Duc Tuan
 
 <size=70%>Playtesting & Feedback</size>
-Ha Duc Tuan, Bui Duy Khanh
+Ha Duc Tuan
 
 <size=70%>Quest Flow & Progression Review</size>
 Ha Duc Tuan
 
 <size=70%>Combat Balance Testing</size>
-Bui Duy Khanh
+Ha Duc Tuan
 
 <size=70%>World Exploration Feedback</size>
 Ha Duc Tuan
 
 <size=70%>UI Testing & Accessibility Check</size>
-Bui Duy Khanh
+Ha Duc Tuan
 
 <size=70%>Additional Creative Support</size>
-Ha Duc Tuan, Bui Duy Khanh
+Ha Duc Tuan
 
 - - - - - - - - - - - - - - - - - - - -
 

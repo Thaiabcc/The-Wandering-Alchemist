@@ -56,6 +56,8 @@ public class PlayerStats : MonoBehaviour
     private Coroutine maxHealthBuffCoroutine;
     private int lastMaxHealthBuffAmount;
     private int originalMaxHealth;
+    
+    private PlayerAudio playerAudio;
     #endregion
 
     #region UNITY LIFECYCLE
@@ -77,11 +79,13 @@ public class PlayerStats : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += CheckLightBasedOnScene;
+        SceneManager.sceneLoaded += TeleportPlayerOnSceneLoad;
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= CheckLightBasedOnScene;
+        SceneManager.sceneLoaded -= TeleportPlayerOnSceneLoad;
     }
 
     private void SetupSingleton()
@@ -107,6 +111,48 @@ public class PlayerStats : MonoBehaviour
         currentDamage = baseDamage;
         currentShield = 0f;
         isDead = false;
+    }
+    #endregion
+    
+    #region SCENE LOAD & TELEPORT 
+    private void TeleportPlayerOnSceneLoad(Scene scene, LoadSceneMode mode)
+    {
+        if (GameManager.Instance == null)
+        {
+            return;
+        }
+
+        if (GameManager.Instance.nextSpawnPosition == null)
+        {
+            return;
+        }
+
+        Vector3 spawnPos = GameManager.Instance.nextSpawnPosition.Value;
+
+        transform.position = spawnPos;
+
+        if (rb != null)
+        {
+            rb.position = spawnPos;
+            rb.velocity = Vector2.zero;
+        }
+
+        if (Camera.main != null)
+        {
+            Camera.main.transform.position = new Vector3(
+                spawnPos.x,
+                spawnPos.y,
+                Camera.main.transform.position.z
+            );
+        }
+
+        var vcam = FindObjectOfType<Cinemachine.CinemachineVirtualCamera>();
+        if (vcam != null)
+        {
+            vcam.Follow = this.transform;
+        }
+
+        GameManager.Instance.nextSpawnPosition = null;
     }
     #endregion
 
@@ -148,7 +194,7 @@ public class PlayerStats : MonoBehaviour
         {
             currentHealth -= remainingDamage;
             if (!isFlashing) StartCoroutine(FlashEffect());
-            AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerTakeDamage);
+            playerAudio?.PlayHurt();
         }
 
         UpdateUI();
@@ -179,6 +225,7 @@ public class PlayerStats : MonoBehaviour
 
         isDead = true;
         isCurrentlyRespawning = true;
+        playerAudio?.PlayDie();
         
         CurePoison();
 
@@ -565,4 +612,5 @@ public class PlayerStats : MonoBehaviour
         UpdateUI();
     }
     #endregion
+    
 }

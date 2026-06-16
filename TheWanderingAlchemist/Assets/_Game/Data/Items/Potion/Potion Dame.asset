@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 688144ce370a147429611f7ccbb643cd, type: 3}
   m_Name: Potion Dame
   m_EditorClassIdentifier: 
+  useSound: {fileID: 8300000, guid: 6ce52bc2811fafd4b90a88cc623918e7, type: 3}
   id: Potion_BuffDame
   itemName: 'Power '
   description: Rare Potion That Grants Enhanced Strength
@@ -30,6 +31,9 @@ MonoBehaviour:
   hoTDuration: 0
   maxHealthPercentBonus: 0
   buffDuration: 10
+  isPoisonImmunityPotion: 0
+  immunityDuration: 0
+  isCurePoisonOnly: 0
   isThrowable: 0
   throwablePrefab: {fileID: 0}
   poisonPuddlePrefab: {fileID: 0}
