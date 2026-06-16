@@ -1,7 +1,7 @@
 # 🧪 Wandering Alchemy
 
 <p align="center">
-  <img src="Images/Menu.png" width="900">
+  <img src="Images/Menu.png" width="600">
 </p>
 
 <p align="center">
