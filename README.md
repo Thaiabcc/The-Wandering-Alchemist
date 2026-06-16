@@ -1,78 +1,108 @@
 # 🧪 Wandering Alchemy
 
-A solo-developed 2D top-down RPG built with Unity, featuring exploration, combat, quests, inventory management, dynamic weather, and a persistent save/load system.
+<p align="center">
+  <img src="Images/banner.png" width="900">
+</p>
 
-## Project Overview
+<p align="center">
+  A solo-developed 2D Top-Down RPG built with Unity.
+</p>
 
-Wandering Alchemy is a fantasy RPG where players explore different regions, interact with NPCs, complete quests, battle monsters, gather resources, and progress through a world driven by dynamic gameplay systems.
+<p align="center">
+  Explore • Fight • Complete Quests • Craft • Survive
+</p>
 
-This project was designed and implemented independently, including gameplay programming, UI systems, save architecture, and game logic.
+---
 
-## Key Features
+## 🎮 Overview
 
-### Combat System
+Wandering Alchemy is a fantasy RPG where players explore diverse regions, battle monsters, complete quests, interact with NPCs, and uncover hidden secrets throughout a dynamic world.
 
-* Projectile-based combat with critical hit mechanics.
-* Enemy AI with attack and damage systems.
-* Hit-stop, camera shake, damage popups, and combat feedback.
+The project was fully designed and programmed independently using Unity and C#.
 
-### Quest & Dialogue System
+---
 
-* Branching dialogue interactions.
-* Dynamic NPC choices and quest progression.
-* Quest tracking and completion rewards.
+## ✨ Features
 
-### Inventory & Item System
+### ⚔️ Combat System
+- Projectile-based combat
+- Critical hit mechanics
+- Hit stop & camera shake
+- Enemy AI and damage system
 
-* Drag-and-drop inventory interface.
-* Consumables, equipment, crafting materials, and quest items.
-* Stackable item support.
+### 📜 Quest & Dialogue
+- Dynamic NPC interactions
+- Quest progression system
+- Branching dialogue choices
 
-### Save & Load System
+### 🎒 Inventory System
+- Drag-and-drop inventory
+- Stackable items
+- Consumables and materials
 
-* JSON-based persistent save architecture.
-* Automatic serialization of gameplay data.
-* Cross-scene player state preservation.
+### 🌦 World Systems
+- Day & Night cycle
+- Dynamic weather
+- Scene transitions
 
-### World Systems
+### 💾 Save & Load
+- JSON save system
+- Persistent player data
+- Cross-scene state management
 
-* Day and night cycle.
-* Dynamic weather system (sunny, rain, storm).
-* Scene transitions and checkpoint-based respawn.
+---
 
-### Player Progression
+## 🛠 Tech Stack
 
-* Health, stamina, shield, and status effect systems.
-* Buffs, debuffs, poison, healing, and temporary stat modifiers.
+| Category | Technology |
+|-----------|------------|
+| Engine | Unity 2022 |
+| Language | C# |
+| Rendering | URP |
+| UI | Unity UI, TextMeshPro |
+| Camera | Cinemachine |
+| Data | JSON Serialization |
+| Architecture | Event-Driven, OOP |
 
-## Technical Highlights
+---
 
-* Unity 2022
-* C#
-* Object-Oriented Programming (OOP)
-* Event-Driven Architecture
-* JSON Serialization
-* Reflection-Based Data Collection
-* Scriptable Object Workflow
-* UI Development with TextMeshPro
-* Scene Management
-* Save/Load Persistence
+## 📸 Screenshots
 
-## Responsibilities
+| Exploration | Combat |
+|------------|---------|
+| ![](Images/explore.png) | ![](Images/combat.png) |
 
-* Gameplay programming
-* System architecture design
-* UI implementation
-* Save/load framework development
-* Combat mechanics
-* Quest system implementation
-* Testing and debugging
+| Inventory | Dialogue |
+|------------|---------|
+| ![](Images/inventory.png) | ![](Images/dialogue.png) |
 
-## Technologies
+---
 
-* Unity 2022
-* C#
-* TextMeshPro
-* Unity UI
-* Cinemachine
-* Universal Render Pipeline (URP)
+## 🎥 Gameplay
+
+![Gameplay](Images/gameplay.gif)
+
+---
+
+## 👨‍💻 My Responsibilities
+
+- Gameplay Programming
+- Combat System
+- Quest System
+- Save/Load Architecture
+- UI Development
+- Weather System
+- Testing & Debugging
+
+---
+
+## 📦 Download
+
+👉 Play on Itch.io:
+[Wandering Alchemy](YOUR_ITCH_LINK)
+
+---
+
+## 📄 License
+
+Personal portfolio project.
