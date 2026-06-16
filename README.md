@@ -99,7 +99,7 @@ The project was fully designed and programmed independently using Unity and C#.
 ## 📦 Download
 
 👉 Play on Itch.io:
-[Wandering Alchemy](YOUR_ITCH_LINK)
+https://thaiabcc.itch.io/the-wandering-alchemist
 
 ---
 
