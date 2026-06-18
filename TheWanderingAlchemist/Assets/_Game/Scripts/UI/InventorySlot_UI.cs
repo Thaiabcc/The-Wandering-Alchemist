@@ -93,9 +93,9 @@ public class InventorySlot_UI : MonoBehaviour,
             }
         }
 
-        if (item.UseItem(PlayerStats.Instance))
+        if (InventoryContextMenu.Instance != null)
         {
-            InventoryManager.Instance.RemoveItem(item, 1);
+            InventoryContextMenu.Instance.Show(item, slotIndex, Input.mousePosition);
         }
     }
 
@@ -106,6 +106,7 @@ public class InventorySlot_UI : MonoBehaviour,
 
         if (item == null)
             return;
+        if (InventoryContextMenu.Instance != null) InventoryContextMenu.Instance.Hide();
 
         isDraggingItem = true;
         CreateDragGhost();

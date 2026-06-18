@@ -4,8 +4,10 @@ public class PauseMenuManager : MonoBehaviour
 {
     [Header("UI Panels")]
     [SerializeField] private GameObject pauseMenuPanel; 
+    [SerializeField] private GameObject controlsPanel; 
 
     private bool isPaused = false;
+    private bool wasOpenedThisFrame = false;
 
     private void Start()
     {
@@ -13,12 +15,23 @@ public class PauseMenuManager : MonoBehaviour
         {
             pauseMenuPanel.SetActive(false);
         }
+
+        if (controlsPanel != null)
+        {
+            controlsPanel.SetActive(false);
+        }
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            if (controlsPanel != null && controlsPanel.activeSelf)
+            {
+                CloseControlsButton();
+                return;
+            }
+
             if (isPaused)
             {
                 ResumeGame();
@@ -27,6 +40,23 @@ public class PauseMenuManager : MonoBehaviour
             {
                 PauseGame();
             }
+        }
+
+        if (controlsPanel != null && controlsPanel.activeSelf && !wasOpenedThisFrame)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (!RectTransformUtility.RectangleContainsScreenPoint(
+                        controlsPanel.GetComponent<RectTransform>(), Input.mousePosition))
+                {
+                    CloseControlsButton();
+                }
+            }
+        }
+
+        if (wasOpenedThisFrame && Input.GetMouseButtonUp(0))
+        {
+            wasOpenedThisFrame = false;
         }
     }
 
@@ -41,11 +71,35 @@ public class PauseMenuManager : MonoBehaviour
 
     public void ResumeGame()
     {
+        if (controlsPanel != null)
+        {
+            controlsPanel.SetActive(false);
+        }
+
         pauseMenuPanel.SetActive(false);
         Time.timeScale = 1f; 
         isPaused = false;
         
         AudioListener.pause = false;
+    }
+
+    public void OpenControlsButton()
+    {
+        if (controlsPanel != null)
+        {
+            wasOpenedThisFrame = true; 
+            
+            controlsPanel.SetActive(true);
+            controlsPanel.transform.SetAsLastSibling();
+        }
+    }
+
+    public void CloseControlsButton()
+    {
+        if (controlsPanel != null)
+        {
+            controlsPanel.SetActive(false);
+        }
     }
 
     public void SaveGameButton()

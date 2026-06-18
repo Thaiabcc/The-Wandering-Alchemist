@@ -87,12 +87,14 @@ public class InventoryUI : MonoBehaviour
 
         if (slots == null || slots.Length == 0)
         {
-            Debug.LogError("Chưa tìm thấy Slot UI nào");
             return;
         }
 
         for (int i = 0; i < slots.Length; i++)
         {
+            if (slots[i] == null) continue;
+            slots[i].slotIndex = i; 
+
             if (i < inventory.Count)
             {
                 if (inventory[i] != null)
@@ -104,8 +106,6 @@ public class InventoryUI : MonoBehaviour
             }
         }
     }
-
-
 
     private void UpdateGold()
     {

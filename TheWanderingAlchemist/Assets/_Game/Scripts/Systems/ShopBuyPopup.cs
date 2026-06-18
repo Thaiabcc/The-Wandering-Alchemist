@@ -48,11 +48,11 @@ public class ShopBuyPopup : MonoBehaviour
 
         iconImage.sprite = currentItem.icon;
         nameText.text = currentItem.name;
-        priceText.text = $"Giá thành : {currentItem.baseValue} G";
+        priceText.text = $"Price : {currentItem.baseValue} G";
         amountText.text = quantity.ToString();
 
         int totalCost = currentItem.baseValue * quantity;
-        totalPriceText.text = $"Total : {totalCost} G";
+        totalPriceText.text = $"Total Price : {totalCost} G";
 
         if(InventoryManager.Instance.currentGold < totalCost)
         {

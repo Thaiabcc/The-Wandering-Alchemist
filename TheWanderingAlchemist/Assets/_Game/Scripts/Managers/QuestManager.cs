@@ -30,8 +30,14 @@ public class QuestManager : MonoBehaviour
     {
         if (startingMainQuest != null)
         {
-            AcceptQuest(startingMainQuest);
-            TrackQuest(activeQuests[0]); 
+            if (!IsQuestCompleted(startingMainQuest.questName) && !activeQuests.Exists(q => q.info.questName == startingMainQuest.questName))
+            {
+                AcceptQuest(startingMainQuest);
+                if (activeQuests.Count > 0)
+                {
+                    TrackQuest(activeQuests[0]);
+                }
+            }
         }
     }
 

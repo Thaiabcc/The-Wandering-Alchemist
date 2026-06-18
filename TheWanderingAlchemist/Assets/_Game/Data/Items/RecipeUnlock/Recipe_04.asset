@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 688144ce370a147429611f7ccbb643cd, type: 3}
   m_Name: Recipe_04
   m_EditorClassIdentifier: 
+  useSound: {fileID: 8300000, guid: 40323ff3ff851fc419686b2e6e6b398c, type: 3}
   id: Recipe Buff Dame
   itemName: Recipe Buff Dame
-  description: '"...."'
+  description: 3 Red Mushroom + 3 Slime
   icon: {fileID: 1262984375, guid: 95e823af4a4f1e74a8df6ef922357e14, type: 3}
   buffIcon: {fileID: 0}
   itemType: 0

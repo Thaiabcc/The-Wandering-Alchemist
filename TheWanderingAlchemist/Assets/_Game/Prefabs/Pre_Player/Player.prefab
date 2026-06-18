@@ -415,8 +415,8 @@ MonoBehaviour:
   playerLight: {fileID: 5031813227613968890}
   maxStamina: 100
   currentStamina: 0
-  staminaRegenRate: 15
-  movingRegenRate: 5
+  staminaRegenRate: 12
+  movingRegenRate: 10
   baseDamage: 20
   currentDamage: 0
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -520,7 +520,7 @@ MonoBehaviour:
   - {x: 0.71875, y: 0, z: 0}
   m_ShapePathHash: 0
   m_Mesh: {fileID: 0}
-  m_InstanceId: 80276
+  m_InstanceId: 67286
   m_LocalBounds:
     m_Center: {x: 0, y: 0.90625, z: 0}
     m_Extent: {x: 0.71875, y: 0.90625, z: 0}
@@ -541,7 +541,7 @@ MonoBehaviour:
   activeTime: 0.2
   cooldown: 1
   offsetDistance: 1
-  staminaCost: 20
+  staminaCost: 30
 --- !u!114 &3047654490691238014
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -554,7 +554,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05fd201beccc26047874dbf47e79bd24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 6
+  duration: 15
   speedMultiplier: 0.5
   debuffColor: {r: 0.7195621, g: 0.5145959, b: 0.9245283, a: 1}
 --- !u!114 &3205641581421243046
@@ -564,7 +564,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5850448356051248001}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 853e3b4b7e8acda47b76c74f8862b6f0, type: 3}
   m_Name: 

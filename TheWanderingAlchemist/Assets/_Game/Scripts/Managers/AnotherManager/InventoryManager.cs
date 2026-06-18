@@ -164,4 +164,23 @@ public class InventoryManager : MonoBehaviour
         OnInventoryChanged?.Invoke(); 
     }
     
+    // Use and Discard Items
+    public void RemoveItemAtSlotIndex(int index, int amountToRemove = 1)
+    {
+        if (index < 0 || index >= inventory.Count || amountToRemove <= 0) return;
+
+        InventorySlot slot = inventory[index];
+        if (slot == null || slot.item == null) return;
+
+        if (slot.quantity > amountToRemove)
+        {
+            slot.quantity -= amountToRemove;
+        }
+        else
+        {
+            inventory.RemoveAt(index);
+        }
+
+        OnInventoryChanged?.Invoke();
+    }
 }
