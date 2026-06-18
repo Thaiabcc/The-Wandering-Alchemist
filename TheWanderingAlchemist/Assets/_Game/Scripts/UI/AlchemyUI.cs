@@ -17,6 +17,10 @@ public class AlchemyUI : MonoBehaviour
     public Image outputIcon;
     public TextMeshProUGUI outputAmountText;
 
+    [Header("Recipe Book UI")]
+    [SerializeField] private GameObject recipeBookPanel;
+    [SerializeField] private TextMeshProUGUI recipeListText;
+
     [Header("Mini-Game Timing")]
     public Slider timingSlider;
     public float sliderSpeed = 1.5f;
@@ -48,6 +52,7 @@ public class AlchemyUI : MonoBehaviour
 
     private EventTrigger outputTrigger;
     private AlchemyAudio alchemyAudio;
+    private bool wasRecipeOpenedThisFrame = false;
 
     private void Awake()
     {
@@ -69,7 +74,8 @@ public class AlchemyUI : MonoBehaviour
         if (failTextObj != null) failTextObj.SetActive(false);
         if (norecipe != null) norecipe.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
-
+        if (recipeBookPanel != null) recipeBookPanel.SetActive(false);
+        
         ResetOutput();
         SetupOutputTooltip();
     }
@@ -120,6 +126,7 @@ public class AlchemyUI : MonoBehaviour
     public void HidePanel()
     {
         if (alchemyPanel != null) alchemyPanel.SetActive(false);
+        if (recipeBookPanel != null) recipeBookPanel.SetActive(false);
     }
 
     public void CloseButtonAction()
@@ -135,6 +142,85 @@ public class AlchemyUI : MonoBehaviour
         if (timingSlider != null) timingSlider.gameObject.SetActive(false);
         if (alchemyAnimator != null) alchemyAnimator.gameObject.SetActive(false);
         StopAllCoroutines();
+    }
+
+    private void Update()
+    {
+        if (recipeBookPanel != null && recipeBookPanel.activeSelf)
+        {
+            if (wasRecipeOpenedThisFrame)
+            {
+                wasRecipeOpenedThisFrame = false;
+                return;
+            }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (!RectTransformUtility.RectangleContainsScreenPoint(
+                        recipeBookPanel.GetComponent<RectTransform>(), Input.mousePosition))
+                {
+                    recipeBookPanel.SetActive(false);
+                }
+            }
+        }
+    }
+
+    public void ToggleRecipeBook()
+    {
+        if (recipeBookPanel == null) return;
+
+        bool isOpening = !recipeBookPanel.activeSelf;
+        recipeBookPanel.SetActive(isOpening);
+
+        if (isOpening)
+        {
+            recipeBookPanel.transform.SetAsLastSibling();
+            wasRecipeOpenedThisFrame = true;
+            RenderRecipeList();
+        }
+    }
+
+    private void RenderRecipeList()
+    {
+        if (recipeListText == null || allRecipes == null) return;
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+        sb.AppendLine("<color=#F5B642><b>□ RECIPE BOOK</b></color>\n");
+
+        bool hasAnyRecipe = false;
+
+        foreach (var recipe in allRecipes)
+        {
+            if (recipe == null || recipe.resultItem == null) continue;
+            if (!recipe.IsUnlocked()) continue;
+
+            hasAnyRecipe = true;
+
+            sb.AppendLine(
+                $"<color=#7CFF7C><b>{recipe.resultItem.itemName}</b></color>");
+
+            sb.AppendLine();
+
+            foreach (var ing in recipe.ingredients)
+            {
+                if (ing == null || ing.item == null) continue;
+
+                sb.AppendLine(
+                    $"<color=#EAEAEA>• {ing.item.itemName}</color> <color=#FFB347>x{ing.count}</color>");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("<color=#666666>----------------</color>");
+            sb.AppendLine();
+        }
+
+        if (!hasAnyRecipe)
+        {
+            sb.AppendLine("<color=#808080>No recipes learned yet.</color>");
+        }
+
+        recipeListText.text = sb.ToString();
     }
 
     public void OnCookButtonPress()
