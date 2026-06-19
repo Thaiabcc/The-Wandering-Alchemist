@@ -186,7 +186,7 @@ public class AlchemyUI : MonoBehaviour
 
         System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-        sb.AppendLine("<color=#F5B642><b>□ RECIPE BOOK</b></color>\n");
+        sb.AppendLine("<align=center><color=#F5B642><b>RECIPE BOOK</b></color></align>\n");
 
         bool hasAnyRecipe = false;
 

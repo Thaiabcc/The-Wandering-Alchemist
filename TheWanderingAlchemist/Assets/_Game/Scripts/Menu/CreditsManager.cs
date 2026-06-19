@@ -34,28 +34,28 @@ Dam Duc Thai
 - - - - - - - - - - - - - - - - - - - -
 
 <size=70%>Gameplay Review & Suggestions</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>Bug Testing & Quality Check</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>Playtesting & Feedback</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>Quest Flow & Progression Review</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>Combat Balance Testing</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>World Exploration Feedback</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>UI Testing & Accessibility Check</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 <size=70%>Additional Creative Support</size>
-Ha Duc Tuan
+Dam Duc Thai
 
 - - - - - - - - - - - - - - - - - - - -
 
