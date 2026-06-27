@@ -37,7 +37,7 @@ public class FlyingEyeAI : EnemyAI
         if (!isTriggered) StartCoroutine(ExplodeRoutine());
     }
 
-    #region Combat Death (Khi bị Player đánh chết)
+    #region Combat Death
     public override void TriggerDeath()
     {
         if (isDead) return;
@@ -77,7 +77,7 @@ public class FlyingEyeAI : EnemyAI
     }
     #endregion
 
-    #region Kamikaze Logic (Tự phát nổ)
+    #region Kamikaze
     private IEnumerator ExplodeRoutine()
     {
         isTriggered = true;

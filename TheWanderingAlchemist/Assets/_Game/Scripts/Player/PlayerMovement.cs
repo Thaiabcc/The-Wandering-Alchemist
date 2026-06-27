@@ -26,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator;
     private GameControls controls;
     private SpriteRenderer spriteRenderer;
-    private PlayerAudio playerAudio; // Đã thay AudioSource bằng module PlayerAudio
+    private PlayerAudio playerAudio; 
 
     // ==============================
     // State
@@ -41,7 +41,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        playerAudio = GetComponent<PlayerAudio>(); // Lấy module audio
+        playerAudio = GetComponent<PlayerAudio>(); 
 
         controls = new GameControls();
     }
